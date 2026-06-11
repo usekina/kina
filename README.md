@@ -7,7 +7,7 @@
 KinaBot helps users and families notice possible changes in speech and communication patterns through natural conversation analysis. It is designed to support awareness, reflection, and better conversations with care professionals.
 
 KinaBot is **not a medical device**, **not a diagnostic tool**, and **not a replacement for licensed healthcare professionals**.
-> This repository preserves earlier exploratory prototype work for transparency. Current development focuses on a new KinaBot implementation maintained by Aoi Minamoto. Future public-facing releases will be developed separately from the earlier exploratory prototype, with clearer safety, privacy, and responsible-use boundaries.
+> This repository preserves earlier exploratory work and product-direction discussions for transparency. Current development focuses on a new KinaBot implementation maintained by Aoi Minamoto through AImoji LLC. Future public-facing releases will be developed separately from earlier exploratory materials, with clearer safety, privacy, and responsible-use boundaries.
 >
 ## Current Ownership And Maintainership
 
@@ -72,7 +72,7 @@ If you or a family member has health concerns, please consult a qualified health
 
 KinaBot works with sensitive voice and language data. Users should only record or upload speech when they have proper consent from every person whose voice may be included.
 
-Current prototype behavior:
+Current V1 design direction:
 
 - Audio may be processed for speech-to-text transcription.
 - The current Python prototype uses the `SpeechRecognition` library and may use Google speech recognition services unless replaced by a local or private transcription backend.
@@ -94,7 +94,7 @@ KinaBot should be used with:
 
 ## Project Status
 
-KinaBot is an early-stage source-available prototype for research, education, and non-commercial exploration. The project is not clinically validated and should not be used as a standalone medical screening system.
+KinaBot is an early-stage source-available public-benefit project for research, education, and non-commercial exploration. The project is not clinically validated and should not be used as a standalone medical screening system.
 
 ## License
 
