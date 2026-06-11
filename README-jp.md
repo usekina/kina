@@ -2,6 +2,8 @@
 
 自然な会話パターンを通じて認知機能の変化を検出します。
 <img width="1447" height="365" alt="image" src="https://github.com/user-attachments/assets/4d6fc097-4f5a-41b6-813c-61abbca545d8" />
+<img width="1067" height="252" alt="image" src="https://github.com/user-attachments/assets/c15d5c44-81eb-400c-8c4a-22bf2a2fe30f" />
+
 ## KinaBotの由来
 日常会話からBrain Health,認知機能の変化をスコアリングする革新的AIツール。
 創立者兼開発者のAoiは、日本とアメリカでデータサイエンティストとして１６年間活躍してきました。高齢者との会話をAIが正しく理解できるよう、長年にわたってロボットに学習させてきました。
