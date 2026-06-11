@@ -11,13 +11,13 @@ KinaBot is **not a medical device**, **not a diagnostic tool**, and **not a repl
 
 ## Current Development Status
 
-Earlier prototype code remains in this repository for transparency and project history. It may not reflect the current KinaBot V1 design.
+This repository preserves earlier exploratory work and product-direction discussions for transparency and project history. Those earlier materials do not represent the current KinaBot V1 design or implementation.
 
 Current Aoi-maintained development is in `aoi_kinabot_app/`.
 
 KinaBot V1 does not use cognitive age, biological age, dementia risk, medical risk labels, or diagnosis-like composite scores. V1 focuses on separate speech and language feature scores, trend reflection, consent-first access, and privacy-aware data handling.
 
-Please treat files outside `aoi_kinabot_app/` as earlier exploratory work unless otherwise stated.
+Please treat files outside `aoi_kinabot_app/` as historical exploratory materials unless otherwise stated.
 
 <img width="462" height="235" alt="image backed by-1229" src="https://github.com/user-attachments/assets/ea03453b-df66-4561-b5bd-719c2f63e27c" />
 
