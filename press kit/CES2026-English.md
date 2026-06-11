@@ -131,5 +131,16 @@ Contact: Aoi Minamoto — [email] aoi@aimojitech.com
 
 
 
+<img width="1678" height="1872" alt="Aoi M-profile photo-option 1" src="https://github.com/user-attachments/assets/0f741181-6cd9-426d-9b1d-f78c3bcd3157" />
 
+<img width="282" height="131" alt="aomiji logo" src="https://github.com/user-attachments/assets/0c4e725d-dcb0-481a-95a1-07d0a0370fec" />
 
+<img width="1536" height="1024" alt="Kinabot App image" src="https://github.com/user-attachments/assets/0e13dd13-990d-4307-a1ff-d5d070026211" />
+
+<img width="1024" height="1536" alt="20251030_1754_Cognitive Chat App_simple_compose_01k8vw1k9ef0r8jaew00qhg37m" src="https://github.com/user-attachments/assets/a0240629-c81e-4943-aafd-23d0f743b3cf" />
+
+![WhatsApp Image 2026-01-08 at 01 55 34](https://github.com/user-attachments/assets/b11c6aea-ffcd-4dcc-babe-51ec994b2fdc)
+ 
+![IMG_5319](https://github.com/user-attachments/assets/477c14bc-2ba9-432c-a08a-0de12dec76dd)
+
+![WhatsApp Image 2026-01-08 at 01 55 33](https://github.com/user-attachments/assets/6b1104a7-ec22-43ba-91af-fad1c610c11b)
