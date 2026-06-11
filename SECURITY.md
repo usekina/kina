@@ -1,21 +1,37 @@
 # Security Policy
 
-## Supported Versions
+KinaBot handles sensitive voice and language data. Security issues should be reported responsibly so users and families can be protected.
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
+## Supported Project Status
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+KinaBot is an early-stage prototype. Security improvements are prioritized for the current `main` branch.
 
-## Reporting a Vulnerability
+## Reporting A Vulnerability
 
-Use this section to tell people how to report a vulnerability.
+If you discover a security or privacy vulnerability, please do not open a public GitHub issue with sensitive details.
 
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+Instead, contact the project maintainer directly:
+
+- Email: aoi@aimojitech.com
+
+Please include:
+
+- A clear description of the issue
+- Steps to reproduce, if possible
+- The affected file, feature, or deployment pattern
+- Whether sensitive voice, transcript, report, or user data may be exposed
+
+## Security Priorities
+
+Important areas include:
+
+- Unauthorized access to recordings or transcripts
+- Accidental long-term storage of sensitive audio
+- Hidden recording or unclear consent flows
+- Exposure of generated reports
+- Dependency vulnerabilities
+- Misconfiguration in public deployments
+
+## Responsible Use
+
+KinaBot should not be used for surveillance, hidden recording, coercive monitoring, employment decisions, insurance decisions, or any use that harms user dignity, privacy, or autonomy.
