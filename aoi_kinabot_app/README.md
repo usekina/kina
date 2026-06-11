@@ -15,6 +15,9 @@ Earlier prototype work remains in the repository for transparency, but future pu
 - Minimize data retention
 - Keep reports respectful, non-alarming, and suitable for family discussion
 
+## App UI Image
+<img width="624" height="412" alt="Picture2" src="https://github.com/user-attachments/assets/0257e1bd-48ea-48de-94ed-0c308a0faedd" />
+
 ## Local Audio Upload
 
 The V1 local app accepts speech audio uploads for pilot-flow testing.
