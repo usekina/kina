@@ -1,4 +1,4 @@
-"""SQLite database helpers for KinaBot V1."""
+﻿"""SQLite database helpers for KinaBot V1."""
 
 from __future__ import annotations
 
@@ -21,6 +21,12 @@ def get_connection(db_path: Path = DATABASE_PATH) -> sqlite3.Connection:
     return conn
 
 
+def ensure_column(conn: sqlite3.Connection, table: str, column: str, definition: str) -> None:
+    columns = [row["name"] for row in conn.execute(f"PRAGMA table_info({table})").fetchall()]
+    if column not in columns:
+        conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+
+
 def init_db() -> None:
     with get_connection() as conn:
         conn.executescript(
@@ -28,6 +34,10 @@ def init_db() -> None:
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 email_hash TEXT NOT NULL UNIQUE,
+                email TEXT,
+                age_range TEXT,
+                primary_language TEXT,
+                country_region TEXT,
                 created_at TEXT NOT NULL,
                 last_active_at TEXT
             );
@@ -54,6 +64,9 @@ def init_db() -> None:
                 user_id INTEGER NOT NULL,
                 session_date TEXT NOT NULL,
                 session_number INTEGER NOT NULL,
+                session_type TEXT,
+                language TEXT,
+                duration_seconds REAL,
                 app_version TEXT NOT NULL,
                 consent_version TEXT NOT NULL,
                 scoring_model_version TEXT NOT NULL,
@@ -73,25 +86,51 @@ def init_db() -> None:
             );
             """
         )
+        ensure_column(conn, "users", "email", "TEXT")
+        ensure_column(conn, "users", "age_range", "TEXT")
+        ensure_column(conn, "users", "primary_language", "TEXT")
+        ensure_column(conn, "users", "country_region", "TEXT")
+        ensure_column(conn, "test_sessions", "session_type", "TEXT")
+        ensure_column(conn, "test_sessions", "language", "TEXT")
+        ensure_column(conn, "test_sessions", "duration_seconds", "REAL")
 
 
-def upsert_user(email_hash: str) -> int:
+def upsert_user(email_hash: str, email: str | None = None) -> int:
     now = utc_now_iso()
     with get_connection() as conn:
         conn.execute(
             """
-            INSERT INTO users (email_hash, created_at, last_active_at)
-            VALUES (?, ?, ?)
+            INSERT INTO users (email_hash, email, created_at, last_active_at)
+            VALUES (?, ?, ?, ?)
             ON CONFLICT(email_hash)
-            DO UPDATE SET last_active_at = excluded.last_active_at
+            DO UPDATE SET
+                email = COALESCE(excluded.email, users.email),
+                last_active_at = excluded.last_active_at
             """,
-            (email_hash, now, now),
+            (email_hash, email, now, now),
         )
         row = conn.execute(
             "SELECT id FROM users WHERE email_hash = ?",
             (email_hash,),
         ).fetchone()
         return int(row["id"])
+
+
+def update_user_profile(
+    user_id: int,
+    age_range: str | None,
+    primary_language: str | None,
+    country_region: str | None,
+) -> None:
+    with get_connection() as conn:
+        conn.execute(
+            """
+            UPDATE users
+            SET age_range = ?, primary_language = ?, country_region = ?, last_active_at = ?
+            WHERE id = ?
+            """,
+            (age_range, primary_language, country_region, utc_now_iso(), user_id),
+        )
 
 
 def record_consent(user_id: int, consent_version: str) -> None:
@@ -162,19 +201,26 @@ def create_test_session(
     app_version: str,
     consent_version: str,
     scoring_model_version: str,
+    session_type: str | None = None,
+    language: str | None = None,
+    duration_seconds: float | None = None,
 ) -> int:
     with get_connection() as conn:
         cursor = conn.execute(
             """
             INSERT INTO test_sessions
-                (user_id, session_date, session_number, app_version,
-                 consent_version, scoring_model_version, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+                (user_id, session_date, session_number, session_type, language,
+                 duration_seconds, app_version, consent_version,
+                 scoring_model_version, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 user_id,
                 session_date,
                 session_number,
+                session_type,
+                language,
+                duration_seconds,
                 app_version,
                 consent_version,
                 scoring_model_version,
@@ -213,6 +259,8 @@ def get_user_scores(user_id: int) -> list[sqlite3.Row]:
             SELECT
                 ts.created_at,
                 ts.session_number,
+                ts.session_type,
+                ts.language,
                 fs.feature_name,
                 fs.score
             FROM feature_scores fs
@@ -221,4 +269,57 @@ def get_user_scores(user_id: int) -> list[sqlite3.Row]:
             ORDER BY ts.created_at ASC, fs.feature_name ASC
             """,
             (user_id,),
+        ).fetchall()
+
+
+def get_admin_metrics() -> dict:
+    with get_connection() as conn:
+        total_users = conn.execute("SELECT COUNT(*) AS count FROM users").fetchone()["count"]
+        total_tests = conn.execute("SELECT COUNT(*) AS count FROM test_sessions").fetchone()["count"]
+        total_scores = conn.execute("SELECT COUNT(*) AS count FROM feature_scores").fetchone()["count"]
+        active_today = conn.execute(
+            "SELECT COUNT(DISTINCT user_id) AS count FROM test_sessions WHERE session_date = ?",
+            (datetime.now(timezone.utc).date().isoformat(),),
+        ).fetchone()["count"]
+        return {
+            "total_users": int(total_users),
+            "total_tests": int(total_tests),
+            "total_scores": int(total_scores),
+            "active_users_today": int(active_today),
+        }
+
+
+def list_admin_users() -> list[sqlite3.Row]:
+    with get_connection() as conn:
+        return conn.execute(
+            """
+            SELECT id, email, age_range, primary_language, country_region, created_at, last_active_at
+            FROM users
+            ORDER BY created_at DESC
+            """
+        ).fetchall()
+
+
+def list_admin_test_records() -> list[sqlite3.Row]:
+    with get_connection() as conn:
+        return conn.execute(
+            """
+            SELECT
+                u.email,
+                u.age_range,
+                u.primary_language,
+                u.country_region,
+                ts.created_at,
+                ts.session_number,
+                ts.session_type,
+                ts.language,
+                ts.duration_seconds,
+                fs.feature_name,
+                fs.score,
+                fs.raw_metric
+            FROM feature_scores fs
+            JOIN test_sessions ts ON ts.id = fs.test_session_id
+            JOIN users u ON u.id = ts.user_id
+            ORDER BY ts.created_at DESC, fs.feature_name ASC
+            """
         ).fetchall()
