@@ -7,10 +7,10 @@ from streamlit_app import calculate_cognitive_score
 
 def test_cognitive_scoring():
     """Test the cognitive scoring with different scenarios."""
-    
+
     print("🧠 Testing Cognitive Scoring System")
     print("=" * 40)
-    
+
     # Test Case 1: High-performing speech sample
     print("\n📊 Test Case 1: High-Quality Speech")
     high_quality_results = {
@@ -28,7 +28,7 @@ def test_cognitive_scoring():
             'feedback': '✅ Balanced complexity.'
         }
     }
-    
+
     cognitive_score = calculate_cognitive_score(high_quality_results)
     print(f"Overall Score: {cognitive_score['overall_score']}/100")
     print(f"Cognitive Age: {cognitive_score['cognitive_age']} years")
@@ -37,7 +37,7 @@ def test_cognitive_scoring():
     print("Component Scores:")
     for component, score in cognitive_score['component_scores'].items():
         print(f"  - {component.replace('_', ' ').title()}: {score}/100")
-    
+
     # Test Case 2: Lower-performing speech sample
     print("\n📊 Test Case 2: Concerning Speech Patterns")
     concerning_results = {
@@ -55,7 +55,7 @@ def test_cognitive_scoring():
             'feedback': '⚠️ Simple or flat sentence structure.'
         }
     }
-    
+
     cognitive_score = calculate_cognitive_score(concerning_results)
     print(f"Overall Score: {cognitive_score['overall_score']}/100")
     print(f"Cognitive Age: {cognitive_score['cognitive_age']} years")
@@ -64,7 +64,7 @@ def test_cognitive_scoring():
     print("Component Scores:")
     for component, score in cognitive_score['component_scores'].items():
         print(f"  - {component.replace('_', ' ').title()}: {score}/100")
-    
+
     # Test Case 3: Average speech sample
     print("\n📊 Test Case 3: Average Speech Performance")
     average_results = {
@@ -82,7 +82,7 @@ def test_cognitive_scoring():
             'feedback': '⚠️ Simple or flat sentence structure.'
         }
     }
-    
+
     cognitive_score = calculate_cognitive_score(average_results)
     print(f"Overall Score: {cognitive_score['overall_score']}/100")
     print(f"Cognitive Age: {cognitive_score['cognitive_age']} years")
@@ -91,7 +91,7 @@ def test_cognitive_scoring():
     print("Component Scores:")
     for component, score in cognitive_score['component_scores'].items():
         print(f"  - {component.replace('_', ' ').title()}: {score}/100")
-    
+
     print("\n" + "=" * 40)
     print("✅ Cognitive scoring system is working correctly!")
     print("\n💡 Key Features:")

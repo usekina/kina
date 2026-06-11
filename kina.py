@@ -4,10 +4,12 @@ from textblob import TextBlob
 import textwrap
 import re
 
+
 # Format transcribed text
 def format_text(text, width=80):
     sentences = text.replace('. ', '.\n').replace('? ', '?\n').replace('! ', '!\n')
     return textwrap.fill(sentences, width=width)
+
 
 # Lexical Diversity: Type-Token Ratio
 def lexical_diversity(text):
@@ -16,6 +18,7 @@ def lexical_diversity(text):
     unique_words = len(set(words))
     score = unique_words / total_words if total_words else 0
     return score, total_words, unique_words
+
 
 # Sentence Complexity: Avg sentence length and conjunctions
 def sentence_complexity(text):
@@ -27,12 +30,17 @@ def sentence_complexity(text):
     avg_sentence_length = len(words) / num_sentences if num_sentences else 0
 
     # Look for conjunctions and subordinating words
-    conjunctions = ['and', 'but', 'or', 'because', 'although', 'since', 'while', 'if', 'when', 'though']
+    conjunctions = ['and', 'but', 'or', 'because', 'although', 'since',
+                    'while', 'if', 'when', 'though']
     conjunction_count = sum(text.lower().count(c) for c in conjunctions)
 
-    feedback = "✅ Balanced complexity." if avg_sentence_length > 12 and conjunction_count >= num_sentences else "⚠️ Simple or flat sentence structure."
+    if avg_sentence_length > 12 and conjunction_count >= num_sentences:
+        feedback = "✅ Balanced complexity."
+    else:
+        feedback = "⚠️ Simple or flat sentence structure."
 
     return avg_sentence_length, conjunction_count, feedback
+
 
 # File and language
 audio_file = "/content/2024-02-24_21-25-20.WAV"
@@ -61,7 +69,10 @@ try:
 
     # Lexical Diversity
     diversity, total_words, unique_words = lexical_diversity(text)
-    lex_pattern = "✅ Diverse vocabulary." if diversity > 0.5 else "⚠️ Repeated words or less variety."
+    if diversity > 0.5:
+        lex_pattern = "✅ Diverse vocabulary."
+    else:
+        lex_pattern = "⚠️ Repeated words or less variety."
 
     # Sentence Complexity
     avg_len, conj_count, complexity_feedback = sentence_complexity(text)

@@ -19,18 +19,18 @@ from kina import format_text, lexical_diversity, sentence_complexity
 
 class TestFormatText:
     """Unit tests for the format_text() function."""
-    
+
     def test_empty_string(self):
         """Test that empty string input returns empty string."""
         result = format_text("")
         assert result == ""
-    
+
     def test_single_sentence(self):
         """Test formatting of a single sentence."""
         text = "This is a test sentence."
         result = format_text(text)
         assert "This is a test sentence." in result
-    
+
     def test_multiple_sentences(self):
         """Test formatting of multiple sentences with different punctuation."""
         text = "First sentence. Second sentence? Third sentence!"
@@ -47,14 +47,14 @@ class TestFormatText:
 
 class TestLexicalDiversity:
     """Unit tests for the lexical_diversity() function."""
-    
+
     def test_empty_string(self):
         """Test that empty string returns (0, 0, 0) without errors."""
         score, total, unique = lexical_diversity("")
         assert score == 0
         assert total == 0
         assert unique == 0
-    
+
     def test_all_unique_words(self):
         """Test text with all unique words returns diversity of 1.0."""
         text = "one two three four five"
@@ -62,7 +62,7 @@ class TestLexicalDiversity:
         assert score == 1.0
         assert total == 5
         assert unique == 5
-    
+
     def test_all_repeated_words(self):
         """Test text with repeated words returns appropriate diversity."""
         text = "test test test"
@@ -78,14 +78,14 @@ class TestLexicalDiversity:
 
 class TestSentenceComplexity:
     """Unit tests for the sentence_complexity() function."""
-    
+
     def test_empty_string(self):
         """Test that empty string returns (0, 0, feedback) without errors."""
         avg_len, conj_count, feedback = sentence_complexity("")
         assert avg_len == 0
         assert conj_count == 0
         assert isinstance(feedback, str)
-    
+
     def test_single_sentence(self):
         """Test complexity analysis of a single sentence."""
         text = "This is a simple test sentence."
@@ -93,7 +93,7 @@ class TestSentenceComplexity:
         assert avg_len > 0
         assert conj_count >= 0
         assert isinstance(feedback, str)
-    
+
     def test_no_conjunctions(self):
         """Test text with no conjunctions."""
         text = "This is a test. Another test."

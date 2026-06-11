@@ -8,3 +8,4 @@ audio-recorder-streamlit>=0.0.8
 pytest>=7.4.0
 hypothesis>=6.92.0
 reportlab>=4.0.0
+flake8>=7.3.0

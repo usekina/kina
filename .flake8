@@ -1,0 +1,17 @@
+[flake8]
+max-line-length = 100
+exclude = 
+    .git,
+    __pycache__,
+    .venv,
+    .pytest_cache,
+    build,
+    dist
+ignore = 
+    # Allow line breaks before binary operators (W503 vs W504)
+    W503,
+    # Allow line breaks after binary operators
+    W504
+per-file-ignores =
+    # Allow unused imports in __init__.py files
+    __init__.py:F401
