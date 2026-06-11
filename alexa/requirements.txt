@@ -1,0 +1,5 @@
+boto3==1.28.78
+ask-sdk-core==1.19.0
+ask-sdk-s3-persistence-adapter==1.0.0
+ask-sdk-dynamodb-persistence-adapter==1.19.0
+ask-sdk>=2.22.0

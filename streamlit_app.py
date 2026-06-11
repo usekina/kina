@@ -11,6 +11,12 @@ import re
 import os
 from datetime import datetime
 from audio_recorder_streamlit import audio_recorder
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.lib import colors
+from io import BytesIO
 
 # Page config
 st.set_page_config(
@@ -124,6 +130,146 @@ def sentence_complexity(text):
     
     return avg_sentence_length, conjunction_count, feedback
 
+def calculate_cognitive_score(results):
+    """
+    Calculate overall cognitive health score and estimated cognitive age.
+    
+    Returns:
+        dict: Contains overall_score (0-100), cognitive_age, risk_level, and recommendations
+    """
+    
+    # Extract metrics
+    diversity_score = results['lexical']['diversity_score']
+    total_words = results['lexical']['total_words']
+    avg_sentence_length = results['complexity']['avg_sentence_length']
+    conjunction_count = results['complexity']['conjunction_count']
+    duration = results['duration']
+    polarity = results['sentiment']['polarity']
+    
+    # Calculate component scores (0-100 scale)
+    
+    # 1. Lexical Diversity Score (30% weight)
+    # Healthy range: 0.6-0.9, Optimal: 0.75+
+    if diversity_score >= 0.75:
+        diversity_component = 100
+    elif diversity_score >= 0.6:
+        diversity_component = 60 + (diversity_score - 0.6) * 266.67  # Scale 0.6-0.75 to 60-100
+    elif diversity_score >= 0.4:
+        diversity_component = 30 + (diversity_score - 0.4) * 150     # Scale 0.4-0.6 to 30-60
+    else:
+        diversity_component = max(0, diversity_score * 75)           # Scale 0-0.4 to 0-30
+    
+    # 2. Speech Fluency Score (25% weight)
+    # Based on words per second (optimal: 2-3 words/second)
+    words_per_second = total_words / duration if duration > 0 else 0
+    if 2.0 <= words_per_second <= 3.0:
+        fluency_component = 100
+    elif 1.5 <= words_per_second < 2.0 or 3.0 < words_per_second <= 3.5:
+        fluency_component = 80
+    elif 1.0 <= words_per_second < 1.5 or 3.5 < words_per_second <= 4.0:
+        fluency_component = 60
+    elif 0.5 <= words_per_second < 1.0 or 4.0 < words_per_second <= 5.0:
+        fluency_component = 40
+    else:
+        fluency_component = 20
+    
+    # 3. Sentence Complexity Score (25% weight)
+    # Optimal sentence length: 12-20 words, with good conjunction usage
+    if 12 <= avg_sentence_length <= 20 and conjunction_count >= 1:
+        complexity_component = 100
+    elif 8 <= avg_sentence_length < 12 or 20 < avg_sentence_length <= 25:
+        complexity_component = 80
+    elif 6 <= avg_sentence_length < 8 or 25 < avg_sentence_length <= 30:
+        complexity_component = 60
+    elif 4 <= avg_sentence_length < 6 or avg_sentence_length > 30:
+        complexity_component = 40
+    else:
+        complexity_component = 20
+    
+    # 4. Emotional Expression Score (20% weight)
+    # Healthy emotional range: slight positive to neutral
+    if -0.1 <= polarity <= 0.3:
+        emotion_component = 100
+    elif -0.3 <= polarity < -0.1 or 0.3 < polarity <= 0.5:
+        emotion_component = 80
+    elif -0.5 <= polarity < -0.3 or 0.5 < polarity <= 0.7:
+        emotion_component = 60
+    else:
+        emotion_component = 40
+    
+    # Calculate weighted overall score
+    overall_score = (
+        diversity_component * 0.30 +
+        fluency_component * 0.25 +
+        complexity_component * 0.25 +
+        emotion_component * 0.20
+    )
+    
+    # Determine risk level
+    if overall_score >= 80:
+        risk_level = "Low Risk"
+        risk_color = "🟢"
+        risk_description = "Excellent cognitive health indicators"
+    elif overall_score >= 65:
+        risk_level = "Low-Moderate Risk"
+        risk_color = "🟡"
+        risk_description = "Good cognitive health with minor areas for attention"
+    elif overall_score >= 50:
+        risk_level = "Moderate Risk"
+        risk_color = "🟠"
+        risk_description = "Some cognitive health concerns detected"
+    else:
+        risk_level = "Higher Risk"
+        risk_color = "🔴"
+        risk_description = "Multiple cognitive health indicators suggest consultation recommended"
+    
+    # Estimate cognitive age (simplified model)
+    # Base age adjustment on score deviation from optimal (85)
+    score_deviation = 85 - overall_score
+    age_adjustment = score_deviation * 0.3  # Each point below 85 adds ~0.3 years
+    
+    # Assume baseline cognitive age of 35 for healthy adult
+    baseline_age = 35
+    estimated_cognitive_age = max(20, baseline_age + age_adjustment)
+    
+    # Generate recommendations
+    recommendations = []
+    
+    if diversity_component < 70:
+        recommendations.append("📚 Expand vocabulary through reading diverse materials")
+    
+    if fluency_component < 70:
+        if words_per_second < 1.5:
+            recommendations.append("🗣️ Practice speaking exercises to improve fluency")
+        else:
+            recommendations.append("⏸️ Practice paced speaking to improve clarity")
+    
+    if complexity_component < 70:
+        recommendations.append("🧠 Practice using varied sentence structures and connecting words")
+    
+    if emotion_component < 70:
+        recommendations.append("😊 Consider activities that promote emotional well-being")
+    
+    if not recommendations:
+        recommendations.append("🎉 Excellent results! Continue maintaining cognitive health through regular mental activities")
+    
+    return {
+        'overall_score': round(overall_score, 1),
+        'cognitive_age': round(estimated_cognitive_age, 1),
+        'risk_level': risk_level,
+        'risk_color': risk_color,
+        'risk_description': risk_description,
+        'component_scores': {
+            'lexical_diversity': round(diversity_component, 1),
+            'speech_fluency': round(fluency_component, 1),
+            'sentence_complexity': round(complexity_component, 1),
+            'emotional_expression': round(emotion_component, 1)
+        },
+        'recommendations': recommendations,
+        'words_per_second': round(words_per_second, 2)
+    }
+    return avg_sentence_length, conjunction_count, feedback
+
 def get_audio_duration(audio_bytes):
     """Calculate actual audio duration from bytes"""
     try:
@@ -136,6 +282,216 @@ def get_audio_duration(audio_bytes):
         return duration
     except:
         return 0
+
+def generate_pdf_report(results, language_name):
+    """Generate a PDF report of the analysis results"""
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.5*inch)
+    
+    # Calculate cognitive score
+    cognitive_results = calculate_cognitive_score(results)
+    
+    # Get styles
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=24,
+        spaceAfter=30,
+        textColor=colors.HexColor('#667eea'),
+        alignment=1  # Center alignment
+    )
+    
+    heading_style = ParagraphStyle(
+        'CustomHeading',
+        parent=styles['Heading2'],
+        fontSize=16,
+        spaceAfter=12,
+        textColor=colors.HexColor('#374151'),
+        borderWidth=1,
+        borderColor=colors.HexColor('#e5e7eb'),
+        borderPadding=8,
+        backColor=colors.HexColor('#f9fafb')
+    )
+    
+    # Build the document
+    story = []
+    
+    # Title
+    story.append(Paragraph("🎤 KINA Speech Analysis Report", title_style))
+    story.append(Spacer(1, 20))
+    
+    # Header info table
+    header_data = [
+        ['Generated:', datetime.now().strftime('%Y-%m-%d %H:%M:%S')],
+        ['Recording Duration:', f"{results['duration']:.1f} seconds"],
+        ['Language:', language_name],
+        ['Audio File:', results['audio_path']]
+    ]
+    
+    header_table = Table(header_data, colWidths=[2*inch, 4*inch])
+    header_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#f3f4f6')),
+        ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e5e7eb')),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+    ]))
+    
+    story.append(header_table)
+    story.append(Spacer(1, 20))
+    
+    # Cognitive Health Assessment
+    story.append(Paragraph("🎯 COGNITIVE HEALTH ASSESSMENT", heading_style))
+    story.append(Spacer(1, 10))
+    
+    cognitive_data = [
+        ['Overall Cognitive Score:', f"{cognitive_results['overall_score']}/100"],
+        ['Estimated Cognitive Age:', f"{cognitive_results['cognitive_age']} years"],
+        ['Risk Level:', f"{cognitive_results['risk_level']}"],
+        ['Assessment:', cognitive_results['risk_description']]
+    ]
+    
+    cognitive_table = Table(cognitive_data, colWidths=[2*inch, 4*inch])
+    cognitive_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#e0e7ff')),
+        ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e5e7eb')),
+    ]))
+    
+    story.append(cognitive_table)
+    story.append(Spacer(1, 20))
+    
+    # Component Scores
+    story.append(Paragraph("� DETAILED SCORE BREAKDOWN", heading_style))
+    story.append(Spacer(1, 10))
+    
+    component_data = [
+        ['Lexical Diversity:', f"{cognitive_results['component_scores']['lexical_diversity']:.1f}/100"],
+        ['Speech Fluency:', f"{cognitive_results['component_scores']['speech_fluency']:.1f}/100"],
+        ['Sentence Complexity:', f"{cognitive_results['component_scores']['sentence_complexity']:.1f}/100"],
+        ['Emotional Expression:', f"{cognitive_results['component_scores']['emotional_expression']:.1f}/100"],
+        ['Speaking Rate:', f"{cognitive_results['words_per_second']} words/second"]
+    ]
+    
+    component_table = Table(component_data, colWidths=[2*inch, 4*inch])
+    component_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#f0f9ff')),
+        ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e5e7eb')),
+    ]))
+    
+    story.append(component_table)
+    story.append(Spacer(1, 20))
+    
+    # Transcription
+    story.append(Paragraph("📝 TRANSCRIPTION", heading_style))
+    story.append(Spacer(1, 10))
+    story.append(Paragraph(results['transcription'], styles['Normal']))
+    story.append(Spacer(1, 20))
+    
+    # Sentiment Analysis
+    story.append(Paragraph("😊 SENTIMENT ANALYSIS", heading_style))
+    story.append(Spacer(1, 10))
+    
+    sentiment_data = [
+        ['Polarity Score:', f"{results['sentiment']['polarity']:.2f}", '(−1 = negative, +1 = positive)'],
+        ['Subjectivity Score:', f"{results['sentiment']['subjectivity']:.2f}", '(0 = objective, 1 = subjective)']
+    ]
+    
+    sentiment_table = Table(sentiment_data, colWidths=[2*inch, 1*inch, 3*inch])
+    sentiment_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#fef3c7')),
+        ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e5e7eb')),
+    ]))
+    
+    story.append(sentiment_table)
+    story.append(Spacer(1, 20))
+    
+    # Lexical Diversity
+    story.append(Paragraph("📚 LEXICAL DIVERSITY", heading_style))
+    story.append(Spacer(1, 10))
+    
+    lexical_data = [
+        ['Total Words:', str(results['lexical']['total_words'])],
+        ['Unique Words:', str(results['lexical']['unique_words'])],
+        ['Diversity Score:', f"{results['lexical']['diversity_score']:.2f} (Unique / Total)"],
+        ['Pattern Assessment:', results['lexical']['pattern']]
+    ]
+    
+    lexical_table = Table(lexical_data, colWidths=[2*inch, 4*inch])
+    lexical_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#dbeafe')),
+        ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e5e7eb')),
+    ]))
+    
+    story.append(lexical_table)
+    story.append(Spacer(1, 20))
+    
+    # Sentence Complexity
+    story.append(Paragraph("🧠 SENTENCE COMPLEXITY", heading_style))
+    story.append(Spacer(1, 10))
+    
+    complexity_data = [
+        ['Average Sentence Length:', f"{results['complexity']['avg_sentence_length']:.1f} words"],
+        ['Conjunction Count:', str(results['complexity']['conjunction_count'])],
+        ['Complexity Feedback:', results['complexity']['feedback']]
+    ]
+    
+    complexity_table = Table(complexity_data, colWidths=[2*inch, 4*inch])
+    complexity_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#f3e8ff')),
+        ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e5e7eb')),
+    ]))
+    
+    story.append(complexity_table)
+    story.append(Spacer(1, 20))
+    
+    # Recommendations
+    if cognitive_results['recommendations']:
+        story.append(Paragraph("💡 PERSONALIZED RECOMMENDATIONS", heading_style))
+        story.append(Spacer(1, 10))
+        
+        for i, rec in enumerate(cognitive_results['recommendations'], 1):
+            story.append(Paragraph(f"{i}. {rec}", styles['Normal']))
+            story.append(Spacer(1, 5))
+        
+        story.append(Spacer(1, 20))
+    
+    # Footer
+    footer_style = ParagraphStyle(
+        'Footer',
+        parent=styles['Normal'],
+        fontSize=10,
+        textColor=colors.HexColor('#6b7280'),
+        alignment=1  # Center alignment
+    )
+    story.append(Paragraph("Generated by Kina - Speech to Cognitive Insights", footer_style))
+    
+    # Build PDF
+    doc.build(story)
+    buffer.seek(0)
+    return buffer.getvalue()
 
 def analyze_audio(audio_bytes, language='en-US'):
     """Analyze audio and return results"""
@@ -373,9 +729,148 @@ with col2:
                 else:
                     st.warning(results['complexity']['feedback'])
             
-            # Show saved file path
+            # Calculate and display cognitive score
+            cognitive_results = calculate_cognitive_score(results)
+            
             st.markdown("---")
-            st.caption(f"📁 Recording saved to: `{results['audio_path']}`")
+            st.markdown("### 🎯 Cognitive Health Assessment")
+            
+            # Main score display
+            score_col1, score_col2, score_col3 = st.columns([2, 1, 1])
+            
+            with score_col1:
+                st.markdown(f"""
+                    <div style="
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        padding: 20px;
+                        border-radius: 15px;
+                        text-align: center;
+                        margin: 10px 0;
+                    ">
+                        <h2 style="margin: 0; font-size: 48px;">{cognitive_results['overall_score']}</h2>
+                        <p style="margin: 5px 0; font-size: 18px;">Overall Cognitive Score</p>
+                        <p style="margin: 0; font-size: 14px; opacity: 0.9;">Out of 100</p>
+                    </div>
+                """, unsafe_allow_html=True)
+            
+            with score_col2:
+                st.markdown(f"""
+                    <div style="
+                        background: #f8f9fa;
+                        padding: 20px;
+                        border-radius: 15px;
+                        text-align: center;
+                        margin: 10px 0;
+                        border: 2px solid #e9ecef;
+                    ">
+                        <h3 style="margin: 0; color: #495057; font-size: 32px;">{cognitive_results['cognitive_age']}</h3>
+                        <p style="margin: 5px 0; color: #6c757d; font-size: 16px;">Estimated</p>
+                        <p style="margin: 0; color: #6c757d; font-size: 16px;">Cognitive Age</p>
+                    </div>
+                """, unsafe_allow_html=True)
+            
+            with score_col3:
+                st.markdown(f"""
+                    <div style="
+                        background: #f8f9fa;
+                        padding: 20px;
+                        border-radius: 15px;
+                        text-align: center;
+                        margin: 10px 0;
+                        border: 2px solid #e9ecef;
+                    ">
+                        <h3 style="margin: 0; color: #495057; font-size: 24px;">{cognitive_results['risk_color']}</h3>
+                        <p style="margin: 5px 0; color: #6c757d; font-size: 14px;">{cognitive_results['risk_level']}</p>
+                        <p style="margin: 0; color: #6c757d; font-size: 12px;">Risk Level</p>
+                    </div>
+                """, unsafe_allow_html=True)
+            
+            # Risk description
+            if cognitive_results['overall_score'] >= 80:
+                st.success(f"🎉 {cognitive_results['risk_description']}")
+            elif cognitive_results['overall_score'] >= 65:
+                st.info(f"ℹ️ {cognitive_results['risk_description']}")
+            elif cognitive_results['overall_score'] >= 50:
+                st.warning(f"⚠️ {cognitive_results['risk_description']}")
+            else:
+                st.error(f"🚨 {cognitive_results['risk_description']}")
+            
+            # Component breakdown
+            with st.expander("📊 Detailed Score Breakdown"):
+                breakdown_col1, breakdown_col2 = st.columns(2)
+                
+                with breakdown_col1:
+                    st.metric("Lexical Diversity", f"{cognitive_results['component_scores']['lexical_diversity']:.1f}/100")
+                    st.metric("Speech Fluency", f"{cognitive_results['component_scores']['speech_fluency']:.1f}/100")
+                    st.caption(f"Speaking rate: {cognitive_results['words_per_second']} words/second")
+                
+                with breakdown_col2:
+                    st.metric("Sentence Complexity", f"{cognitive_results['component_scores']['sentence_complexity']:.1f}/100")
+                    st.metric("Emotional Expression", f"{cognitive_results['component_scores']['emotional_expression']:.1f}/100")
+            
+            # Recommendations
+            if cognitive_results['recommendations']:
+                with st.expander("💡 Personalized Recommendations"):
+                    for rec in cognitive_results['recommendations']:
+                        st.write(f"• {rec}")
+            
+            # Download button for analysis results
+            st.markdown("---")
+            
+            col_download, col_info = st.columns([1, 2])
+            
+            with col_download:
+                try:
+                    # Generate PDF report
+                    pdf_data = generate_pdf_report(results, language[0])
+                    
+                    st.download_button(
+                        label="📥 Download PDF Report",
+                        data=pdf_data,
+                        file_name=f"kina_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+                        mime="application/pdf",
+                        help="Download a detailed PDF report of your speech analysis"
+                    )
+                except Exception as e:
+                    st.error(f"Error generating PDF: {e}")
+                    # Fallback to text report
+                    report_content = f"""KINA Speech Analysis Report
+Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+Recording Duration: {results['duration']:.1f} seconds
+
+=== TRANSCRIPTION ===
+{results['transcription']}
+
+=== SENTIMENT ANALYSIS ===
+Polarity Score: {results['sentiment']['polarity']:.2f} (−1 = negative, +1 = positive)
+Subjectivity Score: {results['sentiment']['subjectivity']:.2f} (0 = objective, 1 = subjective)
+
+=== LEXICAL DIVERSITY ===
+Total Words: {results['lexical']['total_words']}
+Unique Words: {results['lexical']['unique_words']}
+Diversity Score: {results['lexical']['diversity_score']:.2f} (Unique / Total)
+Pattern Assessment: {results['lexical']['pattern']}
+
+=== SENTENCE COMPLEXITY ===
+Average Sentence Length: {results['complexity']['avg_sentence_length']:.1f} words
+Conjunction Count: {results['complexity']['conjunction_count']}
+Complexity Feedback: {results['complexity']['feedback']}
+
+=== TECHNICAL INFO ===
+Language: {language[0]}
+Audio File: {results['audio_path']}
+"""
+                    st.download_button(
+                        label="📥 Download Text Report",
+                        data=report_content,
+                        file_name=f"kina_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
+                        mime="text/plain",
+                        help="Download a detailed text report of your speech analysis"
+                    )
+            
+            with col_info:
+                st.caption(f"📁 Recording saved to: `{results['audio_path']}`")
             
         elif results:
             st.error(f"❌ {results['error']}")
