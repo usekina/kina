@@ -6,7 +6,10 @@ AImoji LLC｜KinaBot（キナボット）
 CES 2026｜Japan Pavilion 出展
 カテゴリ： Speech AI / デジタルヘルス / 高齢者ケア支援
 取材・お問い合わせ： Aoi Minamoto（Founder, AImoji LLC）
-[Email]aoi@aimojitech.com｜[Website]https://www.aimojitech.com/｜[Press Kit Link]https://github.com/usekina/kina/edit/main/press%20kit/%20CES2026-Japanese.md
+Email: aoi@aimojitech.com
+Website: https://www.aimojitech.com/ 
+Press images: https://docs.google.com/document/d/1NF_GVzUD7YVzAHB7QdEjprhXmMEO2QenEPzR6Rn1rbk/edit?usp=sharing 
+Press Kit Link https://github.com/usekina/kina/edit/main/press%20kit/%20CES2026-Japanese.md
 
 (1)1行サマリー（Headline）
 
