@@ -9,6 +9,16 @@ KinaBot helps users and families notice possible changes in speech and communica
 KinaBot is **not a medical device**, **not a diagnostic tool**, and **not a replacement for licensed healthcare professionals**.
 > This repository preserves earlier exploratory prototype work for transparency. Current development focuses on a new KinaBot implementation maintained by Aoi Minamoto. Future public-facing releases will be developed separately from the earlier exploratory prototype, with clearer safety, privacy, and responsible-use boundaries.
 
+## Current Development Status
+
+Earlier prototype code remains in this repository for transparency and project history. It may not reflect the current KinaBot V1 design.
+
+Current Aoi-maintained development is in `aoi_kinabot_app/`.
+
+KinaBot V1 does not use cognitive age, biological age, dementia risk, medical risk labels, or diagnosis-like composite scores. V1 focuses on separate speech and language feature scores, trend reflection, consent-first access, and privacy-aware data handling.
+
+Please treat files outside `aoi_kinabot_app/` as earlier exploratory work unless otherwise stated.
+
 <img width="462" height="235" alt="image backed by-1229" src="https://github.com/user-attachments/assets/ea03453b-df66-4561-b5bd-719c2f63e27c" />
 
 <img width="720" height="278" alt="1229 team background" src="https://github.com/user-attachments/assets/514f3348-2d1f-4aa4-bea5-7dbd46fbddd3" />
