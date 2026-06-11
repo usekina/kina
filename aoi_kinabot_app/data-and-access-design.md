@@ -101,6 +101,24 @@ Raw audio should be processed temporarily and deleted after feature extraction u
 
 Transcripts should not be saved by default. If transcripts are needed for debugging or research, separate consent should be required.
 
+## Temporary Audio Handling
+
+KinaBot V1 should not write uploaded audio into a persistent `recordings/` folder by default.
+
+Audio files should be processed as temporary files only.
+
+Temporary audio files must be deleted after processing, including cases where:
+
+- Transcription succeeds
+- Transcription fails
+- Audio is unrecognized
+- Feature scoring fails
+- The user receives no useful result
+
+Audio cleanup should be implemented with a `finally` block or equivalent guaranteed cleanup mechanism.
+
+Raw audio should only be retained if the user gives separate explicit consent for a clearly defined research or debugging purpose.
+
 ## Trend View Design
 
 The system should support trend views over:
