@@ -50,6 +50,7 @@ Before opening a pull request, please make sure your contribution:
 - Is aligned with the current V1 direction
 - Does not add medical diagnosis-like claims
 - Does not store raw audio or transcripts by default
+- Deletes temporary audio files even when transcription or scoring fails
 - Does not add sensitive personal data collection without clear justification
 - Includes clear documentation when behavior changes
 
