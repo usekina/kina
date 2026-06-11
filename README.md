@@ -8,6 +8,14 @@ KinaBot helps users and families notice possible changes in speech and communica
 
 KinaBot is **not a medical device**, **not a diagnostic tool**, and **not a replacement for licensed healthcare professionals**.
 > This repository preserves earlier exploratory prototype work for transparency. Current development focuses on a new KinaBot implementation maintained by Aoi Minamoto. Future public-facing releases will be developed separately from the earlier exploratory prototype, with clearer safety, privacy, and responsible-use boundaries.
+>
+## Current Ownership And Maintainership
+
+KinaBot is currently maintained by Aoi Minamoto through AImoji LLC.
+
+Earlier exploratory materials may remain in this repository for transparency and project history. They do not indicate current ownership, employment, maintainership, or product rights.
+
+Current Aoi-maintained development is located in `aoi_kinabot_app/`.
 
 ## Current Development Status
 
