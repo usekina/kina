@@ -5,8 +5,12 @@ Event: CES 2026 — Japan Pavilion
 Company: AImoji LLC (Digital Health / Speech Analytics)
 Press Contact: Aoi Minamoto, Founder & CEO
 Email: aoi@aimojitech.com 
-Website: https://www.aimojitech.com/ | Product/Demo:https://www.youtube.com/watch?v=6WJA5m7fBrA  | 
-Press Kit Folder: https://docs.google.com/document/d/1NF_GVzUD7YVzAHB7QdEjprhXmMEO2QenEPzR6Rn1rbk/edit?usp=sharing
+
+Website: https://www.aimojitech.com
+
+Product/Demo:https://www.youtube.com/watch?v=6WJA5m7fBrA  
+
+Press Kit Images Folder: https://docs.google.com/document/d/1NF_GVzUD7YVzAHB7QdEjprhXmMEO2QenEPzR6Rn1rbk/edit?usp=sharing
 
 1) Headline 
 
