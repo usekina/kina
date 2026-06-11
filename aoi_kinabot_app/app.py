@@ -7,6 +7,7 @@ from datetime import date
 import pandas as pd
 import streamlit as st
 
+from audio_processing import SUPPORTED_AUDIO_TYPES, accept_audio_upload
 from auth import create_local_verification_code, verify_code
 from config import APP_VERSION, CONSENT_VERSION, MAX_TESTS_PER_DAY, SCORING_MODEL_VERSION
 from database import (
@@ -22,6 +23,7 @@ from database import (
     update_user_profile,
     upsert_user,
 )
+from email_delivery import send_verification_email
 from scoring import calculate_feature_scores
 
 
@@ -44,14 +46,19 @@ if "verified" not in st.session_state:
 with st.sidebar:
     st.header("Access")
     email = st.text_input("Email", value=st.session_state.email)
-    if st.button("Generate local verification code"):
+    if st.button("Send verification code"):
         if not email.strip():
             st.warning("Enter an email address first.")
         else:
             st.session_state.email = email.strip()
             _, code = create_local_verification_code(email)
-            st.info(f"Local dev code: {code}")
-            st.caption("Production will send this code by email.")
+            sent, message = send_verification_email(st.session_state.email, code)
+            if sent:
+                st.success(message)
+            else:
+                st.warning(message)
+                st.info(f"Local dev code: {code}")
+                st.caption("Set SMTP environment variables to send this code by email.")
 
     code = st.text_input("Verification code")
     if st.button("Verify code"):
@@ -136,7 +143,7 @@ if remaining <= 0:
     st.warning("You have reached today's V1 pilot limit.")
     st.stop()
 
-st.subheader("V1 Text-Based Skeleton Test")
+st.subheader("V1 Speech Upload Test")
 
 language = st.radio(
     "Language",
@@ -177,12 +184,30 @@ session_type = st.radio(
 )
 default_duration = 180.0 if session_type == "Daily full reflection" else 60.0
 
-st.caption("Audio upload comes next. This skeleton uses transcript text so we can verify scoring and storage first.")
+st.caption(
+    "Upload a speech audio file for the V1 pilot flow. The local skeleton accepts the file, "
+    "temporarily processes it, and deletes the temporary copy. Speech-to-text is not connected yet."
+)
+
+uploaded_audio = st.file_uploader(
+    "Upload speech audio",
+    type=SUPPORTED_AUDIO_TYPES,
+    help="Supported local test formats: WAV, MP3, M4A, AAC, OGG, FLAC.",
+)
+
+audio_metadata = None
+if uploaded_audio is not None:
+    st.audio(uploaded_audio)
+    st.caption(
+        f"Selected file: {uploaded_audio.name} "
+        f"({uploaded_audio.size / 1024:.1f} KB). Raw audio will not be stored by this app."
+    )
 
 sample_text = st.text_area(
-    "Paste sample speech transcript",
+    "Paste transcript for this uploaded speech sample",
     height=160,
     placeholder="Example: Today I went to the store and talked with my family...",
+    help="Until speech-to-text is connected, paste a transcript here so the scoring skeleton can run.",
 )
 duration_seconds = st.number_input(
     "Optional speaking duration in seconds",
@@ -192,9 +217,12 @@ duration_seconds = st.number_input(
 )
 
 if st.button("Calculate feature scores"):
-    if not sample_text.strip():
+    if uploaded_audio is None:
+        st.warning("Upload a speech audio file first.")
+    elif not sample_text.strip():
         st.warning("Enter transcript text first.")
     else:
+        audio_metadata = accept_audio_upload(uploaded_audio, uploaded_audio.name)
         scores = calculate_feature_scores(sample_text, duration_seconds)
         session_number = tests_today + 1
         test_session_id = create_test_session(
@@ -210,7 +238,18 @@ if st.button("Calculate feature scores"):
         )
         save_feature_scores(test_session_id, scores)
 
-        st.success(f"Session {session_number} saved. No raw audio or transcript stored by this skeleton.")
+        st.success(
+            f"Session {session_number} saved. Audio upload accepted and temporary audio deleted. "
+            "No raw audio or transcript stored by this skeleton."
+        )
+        st.json(
+            {
+                "audio_filename": audio_metadata["filename"],
+                "audio_size_bytes": audio_metadata["bytes"],
+                "detected_wav_duration_seconds": audio_metadata["duration_seconds"],
+                "temporary_audio_deleted": True,
+            }
+        )
         df = pd.DataFrame(scores)[["feature_name", "score", "raw_metric", "explanation"]]
         st.dataframe(df, width="stretch", hide_index=True)
 

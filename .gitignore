@@ -5,3 +5,4 @@ __pycache__/
 
 # Local KinaBot runtime data. The app recreates this folder/database locally.
 aoi_kinabot_app/data/
+aoi_kinabot_app/streamlit.*.log
