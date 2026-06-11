@@ -7,8 +7,7 @@
 KinaBot helps users and families notice possible changes in speech and communication patterns through natural conversation analysis. It is designed to support awareness, reflection, and better conversations with care professionals.
 
 KinaBot is **not a medical device**, **not a diagnostic tool**, and **not a replacement for licensed healthcare professionals**.
-> This repository preserves earlier exploratory work and product-direction discussions for transparency. Current development focuses on a new KinaBot implementation maintained by Aoi Minamoto through AImoji LLC. Future public-facing releases will be developed separately from earlier exploratory materials, with clearer safety, privacy, and responsible-use boundaries.
->
+
 ## Current Ownership And Maintainership
 
 KinaBot is currently maintained by Aoi Minamoto through AImoji LLC.
