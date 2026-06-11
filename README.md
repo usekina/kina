@@ -49,6 +49,7 @@ The official product name is **KinaBot**. **Kina** is the short name used throug
 ## What KinaBot V1 Focuses On
 
 The current Aoi-maintained V1 direction focuses on:
+
 - Record short speech samples
 - Convert speech to text
 - Analyze basic language patterns such as word variety, sentence structure, speaking pace, and emotional tone
@@ -74,8 +75,8 @@ KinaBot works with sensitive voice and language data. Users should only record o
 Current V1 design direction:
 
 - Audio may be processed for speech-to-text transcription.
-- The current Python prototype uses the `SpeechRecognition` library and may use Google speech recognition services unless replaced by a local or private transcription backend.
-- Recordings may be saved locally by the prototype during analysis.
+- The current local Python implementation uses the `SpeechRecognition` library and may use Google speech recognition services unless replaced by a local or private transcription backend.
+- In local development, recordings may be temporarily saved during analysis.
 - Generated reports may include transcripts and speech pattern summaries.
 
 Before using KinaBot with real users, review [Privacy.md](Privacy.md), [Medical-Disclaimers.md](Medical-Disclaimers.md), and [LEGAL-DISCLAIMER.md](LEGAL-DISCLAIMER.md).
