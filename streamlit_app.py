@@ -232,12 +232,7 @@ with st.sidebar:
         "Language",
         options=[
             ("English (US)", "en-US"),
-            ("English (UK)", "en-GB"),
-            ("Spanish", "es-ES"),
-            ("French", "fr-FR"),
-            ("German", "de-DE"),
             ("Japanese", "ja-JP"),
-            ("Chinese (Simplified)", "zh-CN")
         ],
         format_func=lambda x: x[0]
     )
