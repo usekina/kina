@@ -5,3 +5,5 @@ streamlit>=1.28.0
 sounddevice>=0.4.6
 numpy>=1.24.0
 audio-recorder-streamlit>=0.0.8
+pytest>=7.4.0
+hypothesis>=6.92.0
