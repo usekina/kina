@@ -19,7 +19,7 @@ Current Aoi-maintained development is located in `aoi_kinabot_app/`.
 
 ## Current Development Status
 
-This repository preserves earlier exploratory work and product-direction discussions for transparency and project history. Those earlier materials do not represent the current KinaBot V1 design or implementation.
+This repository preserves earlier exploratory work and product-direction discussions for transparency. Current development focuses on a new KinaBot implementation maintained by Aoi Minamoto through AImoji LLC. Future public-facing releases will be developed separately from earlier exploratory materials, with clearer safety, privacy, and responsible-use boundaries.
 
 Current Aoi-maintained development is in `aoi_kinabot_app/`.
 
@@ -47,10 +47,9 @@ The project focuses on:
 
 The official product name is **KinaBot**. **Kina** is the short name used throughout the project. The project was originally launched under the name **Kizuna** in May 2025, and some early public references may still use that name.
 
-## What KinaBot Does
+## What KinaBot V1 Focuses On
 
-The current prototype can:
-
+The current Aoi-maintained V1 direction focuses on:
 - Record short speech samples
 - Convert speech to text
 - Analyze basic language patterns such as word variety, sentence structure, speaking pace, and emotional tone
