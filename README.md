@@ -1,7 +1,9 @@
 <img width="200" height="200" alt="image" src="https://github.com/user-attachments/assets/6101cefa-ff62-4511-a290-0b3dba87160d" />
 
 # kina: Transforming Speech into Cognitive Insights.
+
 Detect cognitive changes through natural conversation patterns.
+
 <img width="462" height="235" alt="image backed by-1229" src="https://github.com/user-attachments/assets/ea03453b-df66-4561-b5bd-719c2f63e27c" />
 
 <img width="720" height="278" alt="1229 team background" src="https://github.com/user-attachments/assets/514f3348-2d1f-4aa4-bea5-7dbd46fbddd3" />
