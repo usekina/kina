@@ -21,9 +21,6 @@ Please treat files outside `aoi_kinabot_app/` as historical exploratory material
 
 <img width="462" height="235" alt="image backed by-1229" src="https://github.com/user-attachments/assets/ea03453b-df66-4561-b5bd-719c2f63e27c" />
 
-<img width="720" height="278" alt="1229 team background" src="https://github.com/user-attachments/assets/514f3348-2d1f-4aa4-bea5-7dbd46fbddd3" />
-<img width="780" height="329" alt="team 4 people" src="https://github.com/user-attachments/assets/47648fa8-7225-4ae1-af25-467ede08b849" />
-
 <a href="https://www.producthunt.com/products/kinabot?embed=true&utm_source=badge-featured&utm_medium=badge&utm_source=badge-kizuna" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=960544&theme=light&t=1764382304451" alt="Kina - From words to wellbeing" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
 ## Mission
