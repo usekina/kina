@@ -143,43 +143,52 @@ Scores should be presented as feature levels, not medical grades.
 
 Example:
 
-```text
 Vocabulary Variety: 68 / 100
 
 Supporting explanation:
+
 This score reflects word variety in this sample. It is not a diagnosis.
-Raw Metrics And Feature Scores
+
+## Raw Metrics And Feature Scores
+
 KinaBot should keep a clear difference between raw metrics and feature scores.
 
 Example:
+
 Raw metric: unique words / total words = 0.62
+
 Feature score: Vocabulary Variety = 68 / 100
+
 This allows the scoring model to improve over time while preserving version history.
 
-Trend Tracking
+## Trend Tracking
+
 Feature scores should be tracked over time.
 
 Trend views may include:
 
-Current session
-7-day view
-30-day view
-90-day view
+- Current session
+- 7-day view
+- 30-day view
+- 90-day view
+
 If a user tests twice in one day, both sessions should appear as separate data points.
 
-Responsible Boundary
+## Responsible Boundary
+
 KinaBot should not display:
 
-Cognitive age
-Dementia risk
-Medical risk level
-Disease probability
-Diagnosis
-Treatment recommendation
-One overall cognitive score without validation
+- Cognitive age
+- Dementia risk
+- Medical risk level
+- Disease probability
+- Diagnosis
+- Treatment recommendation
+- One overall cognitive score without validation
+
 KinaBot should display:
 
-Feature-level scores
-Trend changes
-Non-alarming explanations
-Suggestions to consult a qualified professional if users have concerns
+- Feature-level scores
+- Trend changes
+- Non-alarming explanations
+- Suggestions to consult a qualified professional if users have concerns
