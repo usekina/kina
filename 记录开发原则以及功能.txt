@@ -1,0 +1,70 @@
+更简单的 V1：
+
+保存 email 明文，但只 admin 可见
+README / consent 里说明：email is stored for access management and deletion requests
+不保存 audio
+不保存 transcript
+这对 100 人 pilot 是合理的。
+等以后更成熟，再改成 encrypted email。
+
+2. 要不要收性别、年龄、健康情况？
+V1 我建议：不要收健康情况。
+
+原因：
+
+一收 health condition，就更像 health data
+隐私风险上升
+合规压力上升
+用户心理压力上升
+项目从 reflection tool 更接近 screening tool
+但是可以收极少量 optional profile，用于数据解释：
+//你离真正的 AWS pilot website 已经不远了，但还差几个关键台阶。
+
+现在你已经完成了大约 55%-60% 的 V1 pilot 基础。
+
+已经完成：
+
+GitHub repo 治理
+README / privacy / medical boundary
+roadmap
+maintainer principles
+V1 pilot plan
+data access design
+feature score design
+implementation plan
+本地 Streamlit skeleton
+email verification 本地版
+SQLite 数据库
+feature scoring
+trend history
+admin metrics
+pilot user profile
+GitHub 同步
+还没完成的关键部分：
+
+Audio upload
+用户真正上传语音文件，还不是粘贴 transcript。
+
+Speech-to-text
+把音频转成文字。先可以用简单 API，后面再换更专业方案。
+
+Temporary audio deletion
+上传后临时处理，算完立刻删除。
+
+Production email verification
+现在验证码显示在页面上。上线后要用 SES 或其他 email service 发到用户邮箱。
+
+AWS deployment
+需要选择架构。建议 serverless 或轻量托管，不要一开始搞太重。
+
+Admin access security
+现在 admin key 是本地测试。上线后要真正保护。
+
+Cost monitor / usage limit
+防止别人无限用，保护你的 AWS credit。
+
+如果按节奏做，我估计：
+
+本地 V1 可用版：还需要 1-3 天认真开发
+AWS pilot demo：再需要 2-5 天
+比较稳的 100 人 pilot：大约 1-2 周

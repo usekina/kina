@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+
+.pytest_cache/
+
+# Local KinaBot runtime data. The app recreates this folder/database locally.
+aoi_kinabot_app/data/
