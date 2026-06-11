@@ -7,6 +7,7 @@
 KinaBot helps users and families notice possible changes in speech and communication patterns through natural conversation analysis. It is designed to support awareness, reflection, and better conversations with care professionals.
 
 KinaBot is **not a medical device**, **not a diagnostic tool**, and **not a replacement for licensed healthcare professionals**.
+> This repository preserves earlier exploratory prototype work for transparency. Current development focuses on a new KinaBot implementation maintained by Aoi Minamoto. Future public-facing releases will be developed separately from the earlier exploratory prototype, with clearer safety, privacy, and responsible-use boundaries.
 
 <img width="462" height="235" alt="image backed by-1229" src="https://github.com/user-attachments/assets/ea03453b-df66-4561-b5bd-719c2f63e27c" />
 
@@ -26,6 +27,10 @@ The project focuses on:
 - Family and caregiver support
 - Privacy-aware design
 - Clear boundaries between wellness insight and medical diagnosis
+  
+## Naming
+
+The official product name is **KinaBot**. **Kina** is the short name used throughout the project. The project was originally launched under the name **Kizuna** in May 2025, and some early public references may still use that name.
 
 ## What KinaBot Does
 
