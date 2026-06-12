@@ -25,6 +25,11 @@ from database import (
 )
 from email_delivery import send_verification_email
 from scoring import calculate_feature_scores
+from speech_to_text import (
+    OPENAI_TRANSCRIPTION_TYPES,
+    speech_to_text_configured,
+    transcribe_audio_upload,
+)
 
 
 st.set_page_config(page_title="KinaBot V1", layout="wide")
@@ -41,6 +46,8 @@ if "user_id" not in st.session_state:
     st.session_state.user_id = None
 if "verified" not in st.session_state:
     st.session_state.verified = False
+if "transcript_text" not in st.session_state:
+    st.session_state.transcript_text = ""
 
 
 with st.sidebar:
@@ -186,7 +193,7 @@ default_duration = 180.0 if session_type == "Daily full reflection" else 60.0
 
 st.caption(
     "Upload a speech audio file for the V1 pilot flow. The local skeleton accepts the file, "
-    "temporarily processes it, and deletes the temporary copy. Speech-to-text is not connected yet."
+    "temporarily processes it, and deletes the temporary copy."
 )
 
 uploaded_audio = st.file_uploader(
@@ -202,12 +209,33 @@ if uploaded_audio is not None:
         f"Selected file: {uploaded_audio.name} "
         f"({uploaded_audio.size / 1024:.1f} KB). Raw audio will not be stored by this app."
     )
+    audio_extension = uploaded_audio.name.rsplit(".", 1)[-1].lower()
+    can_transcribe = audio_extension in OPENAI_TRANSCRIPTION_TYPES
+    if not can_transcribe:
+        st.info(
+            "This file can be uploaded for local flow testing, but automatic transcription supports "
+            "MP3, MP4, MPEG, MPGA, M4A, WAV, and WEBM."
+        )
+    elif not speech_to_text_configured():
+        st.info(
+            "Automatic speech-to-text is not enabled in this local environment. "
+            "Set OPENAI_API_KEY for pilot-style testing."
+        )
+    elif st.button("Transcribe uploaded audio"):
+        with st.spinner("Transcribing audio without storing the raw file..."):
+            transcribed, transcript_or_error = transcribe_audio_upload(uploaded_audio, uploaded_audio.name)
+        if transcribed:
+            st.session_state.transcript_text = transcript_or_error
+            st.success("Transcript generated. Review it before calculating scores.")
+        else:
+            st.warning(transcript_or_error)
 
 sample_text = st.text_area(
-    "Paste transcript for this uploaded speech sample",
+    "Transcript generated from uploaded speech",
+    value=st.session_state.transcript_text,
     height=160,
     placeholder="Example: Today I went to the store and talked with my family...",
-    help="Until speech-to-text is connected, paste a transcript here so the scoring skeleton can run.",
+    help="When speech-to-text is configured, this is filled automatically. In local dev without an API key, enter test text here.",
 )
 duration_seconds = st.number_input(
     "Optional speaking duration in seconds",

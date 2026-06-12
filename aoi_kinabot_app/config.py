@@ -6,6 +6,7 @@ from pathlib import Path
 APP_VERSION = "v1-local-skeleton"
 CONSENT_VERSION = "consent-v1"
 SCORING_MODEL_VERSION = "score-v1"
+OPENAI_TRANSCRIPTION_MODEL = os.getenv("KINABOT_TRANSCRIPTION_MODEL", "gpt-4o-transcribe")
 
 APP_DIR = Path(__file__).resolve().parent
 DATA_DIR = APP_DIR / "data"

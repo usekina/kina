@@ -16,7 +16,7 @@ Earlier prototype work remains in the repository for transparency, but future pu
 - Keep reports respectful, non-alarming, and suitable for family discussion
 
 ## App UI Image
-<img width="624" height="412" alt="Picture2" src="https://github.com/user-attachments/assets/0257e1bd-48ea-48de-94ed-0c308a0faedd" />
+![KinaBot V1 local UI](assets/kinabot-v1-ui.png)
 
 ## Local Audio Upload
 
@@ -24,7 +24,12 @@ The V1 local app accepts speech audio uploads for pilot-flow testing.
 Uploaded audio is temporarily written for processing and then deleted immediately.
 The local SQLite database stores session metadata and calculated feature scores, not raw audio or transcripts.
 
-Speech-to-text is not connected yet, so the local skeleton still asks for a transcript text field after upload.
+Automatic speech-to-text is available when `OPENAI_API_KEY` is configured.
+If the key is missing, the local skeleton still accepts manual transcript text after upload.
+
+Optional environment variable:
+
+- `KINABOT_TRANSCRIPTION_MODEL` (`gpt-4o-transcribe` by default)
 
 ## Local Email Verification
 
