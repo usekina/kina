@@ -1,0 +1,79 @@
+from pathlib import Path
+
+import database
+from language_analysis import LANGUAGE_CODES, analyze_transcript
+from insight_service import anonymous_trend_payload, generate_wellness_insight
+from scoring import calculate_feature_scores, tokenize
+from wellness_guidance import wellness_suggestions
+
+
+def test_supported_language_codes():
+    assert LANGUAGE_CODES == {"English": "en", "日本語": "ja", "中文": "zh"}
+
+
+def test_tokenization_supports_all_three_languages():
+    assert tokenize("A short English reflection.", "English")
+    assert tokenize("今日は家族と散歩しました。", "日本語")
+    assert tokenize("今天我和家人一起散步。", "中文")
+
+
+def test_local_nlp_scores_multilingual():
+    for language, text in [
+        ("English", "Today I spoke with my family and took a comfortable walk."),
+        ("日本語", "今日は家族と話してから、ゆっくり散歩しました。"),
+        ("中文", "今天我和家人聊天，然后慢慢散步。"),
+    ]:
+        scores, summary = analyze_transcript(text, language, 30)
+        assert len(scores) == 8
+        assert all(0 <= item["score"] <= 100 for item in scores)
+        assert summary
+
+
+def test_wellness_menu_is_not_selected_from_scores():
+    low = wellness_suggestions("English", [{"feature_name": "Expression Variety", "score": 5}])
+    high = wellness_suggestions("English", [{"feature_name": "Expression Variety", "score": 95}])
+    assert low["suggestions"] == high["suggestions"]
+    assert len(low["suggestions"]) == 3
+
+
+def test_habit_checkins_are_upserted(tmp_path: Path, monkeypatch):
+    monkeypatch.setattr(database, "DATABASE_PATH", tmp_path / "kina.sqlite3")
+    database.init_db()
+    user_id = database.upsert_user("test-user")
+    database.save_habit_checkins(
+        user_id,
+        "2026-07-28",
+        {"social_connection": True, "physical_activity": False},
+    )
+    database.save_habit_checkins(
+        user_id,
+        "2026-07-28",
+        {"social_connection": False, "physical_activity": True},
+    )
+    rows = database.get_user_habit_checkins(user_id)
+    values = {row["habit_name"]: row["completed"] for row in rows}
+    assert values == {"physical_activity": 1, "social_connection": 0}
+
+
+def test_calculate_feature_scores_accepts_language():
+    scores = calculate_feature_scores("今日は友人と話しました。", 20, "日本語")
+    assert len(scores) == 8
+
+
+def test_insight_payload_contains_scores_only(monkeypatch):
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    history = [
+        {
+            "created_at": f"2026-07-0{index}",
+            "session_number": 1,
+            "feature_name": "Vocabulary Variety",
+            "score": score,
+        }
+        for index, score in enumerate([72, 68, 61], start=1)
+    ]
+    payload = anonymous_trend_payload(history, "English")
+    assert set(payload) == {"language", "sessions_compared", "feature_scores"}
+    assert "email" not in str(payload).lower()
+    insight = generate_wellness_insight(history, "English")
+    assert insight["action"]
+    assert insight["source"].startswith("https://")
