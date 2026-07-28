@@ -75,37 +75,59 @@ if "user_id" not in st.session_state:
     st.session_state.user_id = None
 if "verified" not in st.session_state:
     st.session_state.verified = False
+if "code_sent" not in st.session_state:
+    st.session_state.code_sent = False
+if "staging_code" not in st.session_state:
+    st.session_state.staging_code = ""
 if not st.session_state.verified:
-    st.subheader("Sign in")
-    st.caption("We use your email to keep your private history together.")
+    st.subheader("Start")
+    st.caption("Enter an email to keep your scores and history together.")
     email = st.text_input("Email", value=st.session_state.email)
-    if st.button("Send code", use_container_width=True):
-        if not email.strip():
-            st.warning("Enter an email address first.")
+    if not st.session_state.code_sent:
+        send_code = st.button("Send code", type="primary", use_container_width=True)
+    else:
+        send_code = False
+    if send_code:
+        normalized_email = email.strip().lower()
+        if (
+            not normalized_email
+            or "@" not in normalized_email
+            or normalized_email.startswith("@")
+            or normalized_email.endswith("@")
+        ):
+            st.error("Enter a valid email address.")
         else:
-            st.session_state.email = email.strip()
-            _, code = create_local_verification_code(email)
-            sent, message = send_verification_email(st.session_state.email, code)
+            st.session_state.email = normalized_email
+            _, code = create_local_verification_code(normalized_email)
+            sent, message = send_verification_email(normalized_email, code)
             if sent:
+                st.session_state.code_sent = True
+                st.session_state.staging_code = ""
                 st.success(message)
+            elif ALLOW_LOCAL_VERIFICATION_CODES:
+                st.session_state.code_sent = True
+                st.session_state.staging_code = code
             else:
-                st.warning(message)
-                if ALLOW_LOCAL_VERIFICATION_CODES:
-                    st.info(f"Local dev code: {code}")
-                else:
-                    st.error("Email delivery is unavailable. Please try again later.")
-
-    code = st.text_input("6-digit code")
-    if st.button("Continue", type="primary", use_container_width=True):
-        email_hash = verify_code(email, code)
-        if not email_hash:
-            st.error("Invalid or expired code.")
-        else:
-            st.session_state.email = email.strip()
-            st.session_state.email_hash = email_hash
-            st.session_state.user_id = upsert_user(email_hash, email=st.session_state.email)
-            st.session_state.verified = True
+                st.error("Email delivery is unavailable. Please try again later.")
             st.rerun()
+
+    if st.session_state.code_sent:
+        if st.session_state.staging_code:
+            st.info(f"Private staging code: {st.session_state.staging_code}")
+        code = st.text_input("6-digit code", max_chars=6)
+        if st.button("Continue", type="primary", use_container_width=True):
+            email_hash = verify_code(st.session_state.email, code)
+            if not email_hash:
+                st.error("Invalid or expired code.")
+            else:
+                st.session_state.email_hash = email_hash
+                st.session_state.user_id = upsert_user(
+                    email_hash,
+                    email=st.session_state.email,
+                )
+                st.session_state.verified = True
+                st.session_state.staging_code = ""
+                st.rerun()
 
     st.caption("KinaBot is a wellness reflection tool, not a medical device.")
     st.stop()
