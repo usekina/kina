@@ -14,7 +14,8 @@ def utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
-def get_connection(db_path: Path = DATABASE_PATH) -> sqlite3.Connection:
+def get_connection(db_path: Path | None = None) -> sqlite3.Connection:
+    db_path = db_path or DATABASE_PATH
     db_path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
@@ -35,6 +36,7 @@ def init_db() -> None:
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 email_hash TEXT NOT NULL UNIQUE,
                 email TEXT,
+                display_name TEXT,
                 age_range TEXT,
                 primary_language TEXT,
                 country_region TEXT,
@@ -84,9 +86,22 @@ def init_db() -> None:
                 created_at TEXT NOT NULL,
                 FOREIGN KEY (test_session_id) REFERENCES test_sessions(id)
             );
+
+            CREATE TABLE IF NOT EXISTS habit_checkins (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                checkin_date TEXT NOT NULL,
+                habit_name TEXT NOT NULL,
+                completed INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                UNIQUE(user_id, checkin_date, habit_name),
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            );
             """
         )
         ensure_column(conn, "users", "email", "TEXT")
+        ensure_column(conn, "users", "display_name", "TEXT")
         ensure_column(conn, "users", "age_range", "TEXT")
         ensure_column(conn, "users", "primary_language", "TEXT")
         ensure_column(conn, "users", "country_region", "TEXT")
@@ -118,6 +133,7 @@ def upsert_user(email_hash: str, email: str | None = None) -> int:
 
 def update_user_profile(
     user_id: int,
+    display_name: str | None,
     age_range: str | None,
     primary_language: str | None,
     country_region: str | None,
@@ -126,10 +142,18 @@ def update_user_profile(
         conn.execute(
             """
             UPDATE users
-            SET age_range = ?, primary_language = ?, country_region = ?, last_active_at = ?
+            SET display_name = ?, age_range = ?, primary_language = ?,
+                country_region = ?, last_active_at = ?
             WHERE id = ?
             """,
-            (age_range, primary_language, country_region, utc_now_iso(), user_id),
+            (
+                display_name,
+                age_range,
+                primary_language,
+                country_region,
+                utc_now_iso(),
+                user_id,
+            ),
         )
 
 
@@ -138,9 +162,14 @@ def record_consent(user_id: int, consent_version: str) -> None:
         conn.execute(
             """
             INSERT INTO consent_events (user_id, consent_version, accepted_at)
-            VALUES (?, ?, ?)
+            SELECT ?, ?, ?
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM consent_events
+                WHERE user_id = ? AND consent_version = ?
+            )
             """,
-            (user_id, consent_version, utc_now_iso()),
+            (user_id, consent_version, utc_now_iso(), user_id, consent_version),
         )
 
 
@@ -272,6 +301,37 @@ def get_user_scores(user_id: int) -> list[sqlite3.Row]:
         ).fetchall()
 
 
+def save_habit_checkins(user_id: int, checkin_date: str, habits: dict[str, bool]) -> None:
+    now = utc_now_iso()
+    with get_connection() as conn:
+        conn.executemany(
+            """
+            INSERT INTO habit_checkins
+                (user_id, checkin_date, habit_name, completed, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT(user_id, checkin_date, habit_name)
+            DO UPDATE SET completed = excluded.completed, updated_at = excluded.updated_at
+            """,
+            [
+                (user_id, checkin_date, name, int(completed), now, now)
+                for name, completed in habits.items()
+            ],
+        )
+
+
+def get_user_habit_checkins(user_id: int) -> list[sqlite3.Row]:
+    with get_connection() as conn:
+        return conn.execute(
+            """
+            SELECT checkin_date, habit_name, completed, updated_at
+            FROM habit_checkins
+            WHERE user_id = ?
+            ORDER BY checkin_date ASC, habit_name ASC
+            """,
+            (user_id,),
+        ).fetchall()
+
+
 def get_admin_metrics() -> dict:
     with get_connection() as conn:
         total_users = conn.execute("SELECT COUNT(*) AS count FROM users").fetchone()["count"]
@@ -293,7 +353,8 @@ def list_admin_users() -> list[sqlite3.Row]:
     with get_connection() as conn:
         return conn.execute(
             """
-            SELECT id, email, age_range, primary_language, country_region, created_at, last_active_at
+            SELECT id, email, display_name, age_range, primary_language,
+                   country_region, created_at, last_active_at
             FROM users
             ORDER BY created_at DESC
             """
@@ -306,6 +367,7 @@ def list_admin_test_records() -> list[sqlite3.Row]:
             """
             SELECT
                 u.email,
+                u.display_name,
                 u.age_range,
                 u.primary_language,
                 u.country_region,

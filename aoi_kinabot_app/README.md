@@ -1,51 +1,147 @@
-# Aoi-Maintained KinaBot App
+# KinaBot — Aoi-Maintained Application
 
-This folder is reserved for the new Aoi-maintained KinaBot implementation.
+> **Current implementation and product direction maintained by Aoi Minamoto through AImoji LLC.**
 
-The goal of this implementation is to build a safer, dignity-first, consent-first, and privacy-aware web application for speech reflection and family support.
+This folder contains the current KinaBot application. Files elsewhere in this
+repository are retained as historical exploratory work and do not define this
+implementation's architecture, scoring policy, privacy policy, or product
+claims.
 
-Earlier prototype work remains in the repository for transparency, but future public-facing development should be organized here with clearer ownership, safety wording, privacy handling, and responsible-use boundaries.
+KinaBot is a multilingual speech and language reflection tool. Its core value
+is a versioned Python/NLP feature engine that calculates consistent features
+from each user's voice sample and helps that user observe personal patterns
+over time.
 
-## Development Priorities
+KinaBot is not a medical device. It does not diagnose a condition, calculate
+disease risk, estimate cognitive age, or replace professional care.
 
-- Use communication pattern summaries instead of diagnosis-like language
-- Avoid estimated cognitive age or medical risk claims
-- Add clear consent notice before recording
-- Explain whether audio is saved, deleted, or processed by external services
-- Minimize data retention
-- Keep reports respectful, non-alarming, and suitable for family discussion
+## Simple User Experience
 
-## App UI Image
-![KinaBot V1 local UI](assets/kinabot-v1-ui.png)
+1. Sign in with an email verification code.
+2. Choose English, Japanese, or Chinese.
+3. Select a recording stored on the user's phone or computer.
+4. Run one analysis and see that sample's feature scores.
+5. After three or more sessions, see personal trends and changes.
+6. Receive a small, practical daily wellness action when appropriate.
 
-## Local Audio Upload
+The pilot allows up to two analyses per user per day.
 
-The V1 local app accepts speech audio uploads for pilot-flow testing.
-Uploaded audio is temporarily written for processing and then deleted immediately.
-The local SQLite database stores session metadata and calculated feature scores, not raw audio or transcripts.
+## Core NLP Work
 
-Automatic speech-to-text is available when `OPENAI_API_KEY` is configured.
-If the key is missing, the local skeleton still accepts manual transcript text after upload.
+KinaBot itself calculates the feature scores. OpenAI does **not** calculate
+them.
 
-Optional environment variable:
+The versioned NLP pipeline measures observable properties such as:
 
-- `KINABOT_TRANSCRIPTION_MODEL` (`gpt-4o-transcribe` by default)
+- vocabulary or expression variety;
+- response development and amount of speech;
+- sentence structure and organization;
+- speaking pace;
+- pause behavior;
+- repetition patterns;
+- emotional expression in language; and
+- transcription clarity.
 
-## Local Email Verification
+These are feature levels for one sample. A higher or lower value is not, by
+itself, evidence of better or worse health. Trend insights compare a user with
+their own prior samples across multiple sessions and preserve the scoring
+version used for every result.
 
-The local app can send verification codes by email when SMTP settings are configured.
-If these settings are missing, the app shows the code on screen for local development.
+English, Japanese, and Chinese are the first supported languages. Future
+languages must use language-appropriate segmentation, grammar features,
+normalization, testing, and calibration rather than treating English rules as
+universal.
 
-Required environment variables:
+See [ARCHITECTURE.md](ARCHITECTURE.md) and
+[feature-score-design.md](feature-score-design.md).
 
-- `KINABOT_SMTP_HOST`
-- `KINABOT_SMTP_PORT`
-- `KINABOT_SMTP_FROM_EMAIL`
+## OpenAI's Limited Role
 
-Optional environment variables:
+OpenAI is an optional insight layer used only after KinaBot has calculated the
+scores. A future request may contain minimum anonymous structured data such as:
 
-- `KINABOT_SMTP_USERNAME`
-- `KINABOT_SMTP_PASSWORD`
-- `KINABOT_SMTP_USE_TLS` (`true` by default)
+```json
+{
+  "language": "Japanese",
+  "sessions_compared": 4,
+  "feature_changes": {
+    "expression_variety": [72, 68, 61],
+    "speech_pace": [64, 65, 64],
+    "repetition_consistency": [74, 65, 58]
+  }
+}
+```
 
-For AWS deployment, these values can be connected to Amazon SES SMTP credentials.
+The request must not contain raw audio, a full transcript, name, email, or
+direct identifiers. OpenAI must never be the feature-scoring authority.
+
+The resulting insight should be a practical action for ordinary daily life:
+
+- talk with a friend or family member for 20 minutes tomorrow;
+- take a safe walk and tell someone one story from the day;
+- read for 10 minutes and summarize the main idea;
+- contact a friend the user has not spoken with recently; or
+- choose an appropriate Mediterranean-style meal.
+
+Every action should say what to do, when, for how long, how often, why it may
+support general cognitive wellness, and which research source supports the
+general habit. It must not claim to treat a condition, repair a score, or prove
+that a score change represents cognitive decline.
+
+## Privacy and Data
+
+The source recording remains on the user's phone or computer. When selected
+for analysis, KinaBot creates only a temporary server-side working copy.
+
+- Speech-to-text is processed locally/private to the KinaBot environment.
+- Python/NLP feature calculation is performed by KinaBot.
+- Temporary audio is deleted after processing, including error paths.
+- Raw audio and full transcripts are not stored.
+- Audio and full transcripts are not sent to OpenAI.
+
+KinaBot stores the minimum data needed for accounts and longitudinal use:
+
+- name and email;
+- optional profile fields and consent version;
+- session date, language, duration, and software/scoring versions;
+- calculated raw feature metrics and feature scores; and
+- optional self-reported wellness habit check-ins.
+
+Public research or publication requires separate consent, governance,
+de-identification, and ethics review as applicable.
+
+## Evidence-Informed Wellness Actions
+
+Advice is general wellness information, not medical advice. Sources used to
+shape the action library include:
+
+- [WHO cognitive-decline and dementia risk-reduction guidelines](https://www.who.int/publications/i/item/9789241550543)
+- [Mediterranean diet trial — PubMed](https://pubmed.ncbi.nlm.nih.gov/23670794/)
+- [Social engagement and cognitive function study](https://pmc.ncbi.nlm.nih.gov/articles/PMC6778491/)
+
+A source supports the general habit; it does not establish that the habit will
+change an individual user's KinaBot score.
+
+## Run on a Local PC
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+streamlit run app.py
+```
+
+Open the local URL shown by Streamlit, normally `http://localhost:8501`.
+Local transcription uses `faster-whisper`. The first analysis may take longer
+while its model is downloaded and loaded; later analyses reuse the model.
+
+OpenAI is not required for transcription or NLP scoring. If the optional
+anonymous insight layer is later enabled, keep its API key in a local
+environment variable or AWS Secrets Manager—never in GitHub.
+
+## Deployment Direction
+
+The application is packaged for Docker and future 24/7 AWS hosting. Production
+should use HTTPS, a continuously running container service, managed relational
+storage, secrets management, email delivery, health checks, backups, and
+centralized logs. It must remain isolated from existing applications.

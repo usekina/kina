@@ -9,34 +9,63 @@ import streamlit as st
 
 from audio_processing import SUPPORTED_AUDIO_TYPES, accept_audio_upload
 from auth import create_local_verification_code, verify_code
-from config import APP_VERSION, CONSENT_VERSION, MAX_TESTS_PER_DAY, SCORING_MODEL_VERSION
+from config import (
+    ADMIN_KEY,
+    ALLOW_LOCAL_VERIFICATION_CODES,
+    APP_VERSION,
+    CONSENT_VERSION,
+    MAX_AUDIO_BYTES,
+    MAX_TESTS_PER_DAY,
+    SCORING_MODEL_VERSION,
+)
 from database import (
     count_tests_today,
     create_test_session,
     get_admin_metrics,
+    get_user_habit_checkins,
     get_user_scores,
     init_db,
     list_admin_test_records,
     list_admin_users,
     record_consent,
     save_feature_scores,
+    save_habit_checkins,
     update_user_profile,
     upsert_user,
 )
 from email_delivery import send_verification_email
-from scoring import calculate_feature_scores
+from insight_service import generate_wellness_insight
+from language_analysis import LANGUAGE_CODES, analyze_transcript
 from speech_to_text import (
-    OPENAI_TRANSCRIPTION_TYPES,
+    LOCAL_TRANSCRIPTION_TYPES,
     speech_to_text_configured,
     transcribe_audio_upload,
 )
+from wellness_guidance import wellness_suggestions
 
 
-st.set_page_config(page_title="KinaBot V1", layout="wide")
+st.set_page_config(page_title="KinaBot", page_icon="🎙️", layout="centered")
 init_db()
 
-st.title("KinaBot V1")
-st.caption("Speech and language-based cognitive wellness reflection. Not a medical diagnosis.")
+st.markdown(
+    """
+    <style>
+    .block-container {max-width: 760px; padding-top: 2rem; padding-bottom: 4rem;}
+    h1 {letter-spacing: -0.04em;}
+    .privacy-card {
+        padding: 0.9rem 1rem; border-radius: 0.8rem;
+        background: rgba(46, 160, 67, 0.08);
+        border: 1px solid rgba(46, 160, 67, 0.20);
+        margin: 0.5rem 0 1rem;
+    }
+    .privacy-card strong {color: #238636;}
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.title("KinaBot")
+st.caption("A simple reflection on one voice sample · English · 日本語 · 中文")
 
 if "email" not in st.session_state:
     st.session_state.email = ""
@@ -46,14 +75,11 @@ if "user_id" not in st.session_state:
     st.session_state.user_id = None
 if "verified" not in st.session_state:
     st.session_state.verified = False
-if "transcript_text" not in st.session_state:
-    st.session_state.transcript_text = ""
-
-
-with st.sidebar:
-    st.header("Access")
+if not st.session_state.verified:
+    st.subheader("Sign in")
+    st.caption("We use your email to keep your private history together.")
     email = st.text_input("Email", value=st.session_state.email)
-    if st.button("Send verification code"):
+    if st.button("Send code", use_container_width=True):
         if not email.strip():
             st.warning("Enter an email address first.")
         else:
@@ -64,11 +90,13 @@ with st.sidebar:
                 st.success(message)
             else:
                 st.warning(message)
-                st.info(f"Local dev code: {code}")
-                st.caption("Set SMTP environment variables to send this code by email.")
+                if ALLOW_LOCAL_VERIFICATION_CODES:
+                    st.info(f"Local dev code: {code}")
+                else:
+                    st.error("Email delivery is unavailable. Please try again later.")
 
-    code = st.text_input("Verification code")
-    if st.button("Verify code"):
+    code = st.text_input("6-digit code")
+    if st.button("Continue", type="primary", use_container_width=True):
         email_hash = verify_code(email, code)
         if not email_hash:
             st.error("Invalid or expired code.")
@@ -77,66 +105,52 @@ with st.sidebar:
             st.session_state.email_hash = email_hash
             st.session_state.user_id = upsert_user(email_hash, email=st.session_state.email)
             st.session_state.verified = True
-            st.success("Verified.")
+            st.rerun()
 
-    st.divider()
-    st.caption(f"App: {APP_VERSION}")
-    st.caption(f"Consent: {CONSENT_VERSION}")
-    st.caption(f"Scoring: {SCORING_MODEL_VERSION}")
-
-    st.divider()
-    with st.expander("Local admin metrics"):
-        admin_key = st.text_input("Admin key", type="password")
-        if admin_key == "local-admin":
-            metrics = get_admin_metrics()
-            st.metric("Users", metrics["total_users"])
-            st.metric("Tests", metrics["total_tests"])
-            st.metric("Scores", metrics["total_scores"])
-            st.metric("Active today", metrics["active_users_today"])
-        elif admin_key:
-            st.warning("Invalid local admin key.")
-
-
-if not st.session_state.verified:
-    st.info("Enter your email and local verification code to start.")
+    st.caption("KinaBot is a wellness reflection tool, not a medical device.")
     st.stop()
 
 
-st.subheader("Pilot Profile")
-st.caption("These fields are optional and help KinaBot understand pilot usage. Do not enter medical history.")
-profile_col1, profile_col2, profile_col3 = st.columns(3)
-with profile_col1:
+with st.expander("Account"):
+    st.caption(st.session_state.email)
+    display_name = st.text_input("Name", placeholder="Your name")
     age_range = st.selectbox(
         "Age range (optional)",
         ["Prefer not to say", "Under 30", "30-44", "45-59", "60-74", "75+"],
     )
-with profile_col2:
     primary_language = st.selectbox(
         "Primary language (optional)",
         ["Prefer not to say", "English", "Japanese", "Chinese", "Spanish", "Other"],
     )
-with profile_col3:
     country_region = st.text_input("Country / region (optional)", placeholder="Example: US")
+    if st.button("Save account"):
+        update_user_profile(
+            st.session_state.user_id,
+            display_name.strip() or None,
+            None if age_range == "Prefer not to say" else age_range,
+            None if primary_language == "Prefer not to say" else primary_language,
+            country_region.strip() or None,
+        )
+        st.success("Account saved.")
 
-if st.button("Save pilot profile"):
-    update_user_profile(
-        st.session_state.user_id,
-        None if age_range == "Prefer not to say" else age_range,
-        None if primary_language == "Prefer not to say" else primary_language,
-        country_region.strip() or None,
-    )
-    st.success("Pilot profile saved.")
+st.markdown(
+    """
+    <div class="privacy-card">
+      <strong>Your recording is not saved.</strong><br>
+      Your selected file is processed privately on the KinaBot server with local Python,
+      then the temporary copy is deleted. It is not sent to OpenAI. KinaBot stores your account, scores, usage
+      history, and optional habit check-ins—not the raw audio or full transcript.
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
-
-st.subheader("Consent")
 consent = st.checkbox(
-    "I understand KinaBot is for personal reflection, not medical diagnosis. "
-    "For the V1 pilot, KinaBot may store my email, optional profile fields, usage records, "
-    "and calculated feature scores. Raw audio and transcripts should not be stored by default."
+    "I understand and agree. KinaBot describes this sample only; it does not assess health."
 )
 
 if not consent:
-    st.warning("Please accept the consent notice before starting a test.")
+    st.caption("Please agree before analyzing a recording.")
     st.stop()
 
 record_consent(st.session_state.user_id, CONSENT_VERSION)
@@ -144,65 +158,27 @@ record_consent(st.session_state.user_id, CONSENT_VERSION)
 today = date.today().isoformat()
 tests_today = count_tests_today(st.session_state.user_id, today)
 remaining = MAX_TESTS_PER_DAY - tests_today
-st.metric("Tests remaining today", max(0, remaining))
-
 if remaining <= 0:
-    st.warning("You have reached today's V1 pilot limit.")
+    st.info("You have completed today's two reflections. Come back tomorrow.")
     st.stop()
 
-st.subheader("V1 Speech Upload Test")
+st.subheader("New reflection")
 
 language = st.radio(
-    "Language",
-    [
-        "English",
-        "Japanese (planned)",
-        "Chinese (planned)",
-        "Spanish (planned)",
-    ],
+    "1 · Choose the language spoken",
+    ["English", "日本語", "中文"],
     horizontal=True,
-    help="English scoring is active in V1. Japanese, Chinese, and Spanish are planned before the end of 2026.",
+    help="Choose the language actually spoken in the uploaded recording.",
 )
 
-st.markdown(
-    """
-    <div style="display:flex; gap:10px; flex-wrap:wrap; margin: 0.5rem 0 1rem 0;">
-      <span style="background:#e8f5e9; color:#1b5e20; border:1px solid #a5d6a7; border-radius:6px; padding:6px 10px; font-size:0.9rem;">English: active</span>
-      <span style="background:#f3f4f6; color:#6b7280; border:1px solid #d1d5db; border-radius:6px; padding:6px 10px; font-size:0.9rem;">Japanese: planned by end of 2026</span>
-      <span style="background:#f3f4f6; color:#6b7280; border:1px solid #d1d5db; border-radius:6px; padding:6px 10px; font-size:0.9rem;">Chinese: planned by end of 2026</span>
-      <span style="background:#f3f4f6; color:#6b7280; border:1px solid #d1d5db; border-radius:6px; padding:6px 10px; font-size:0.9rem;">Spanish: planned by end of 2026</span>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-
-if language != "English":
-    st.info(
-        f"{language.replace(' (planned)', '')} support is planned before the end of 2026. "
-        "For now, please use English to test the V1 scoring skeleton."
-    )
-    st.stop()
-
-session_type = st.radio(
-    "Session type",
-    ["Daily full reflection", "Quick check-in"],
-    horizontal=True,
-    help="Daily full reflection is intended for 2-3 minutes. Quick check-in is intended for about 60 seconds.",
-)
-default_duration = 180.0 if session_type == "Daily full reflection" else 60.0
-
-st.caption(
-    "Upload a speech audio file for the V1 pilot flow. The local skeleton accepts the file, "
-    "temporarily processes it, and deletes the temporary copy."
-)
+session_type = "Daily reflection"
 
 uploaded_audio = st.file_uploader(
-    "Upload speech audio",
+    "2 · Choose a recording from your phone or computer",
     type=SUPPORTED_AUDIO_TYPES,
     help="Supported local test formats: WAV, MP3, M4A, AAC, OGG, FLAC.",
 )
 
-audio_metadata = None
 if uploaded_audio is not None:
     st.audio(uploaded_audio)
     st.caption(
@@ -210,103 +186,157 @@ if uploaded_audio is not None:
         f"({uploaded_audio.size / 1024:.1f} KB). Raw audio will not be stored by this app."
     )
     audio_extension = uploaded_audio.name.rsplit(".", 1)[-1].lower()
-    can_transcribe = audio_extension in OPENAI_TRANSCRIPTION_TYPES
+    can_transcribe = audio_extension in LOCAL_TRANSCRIPTION_TYPES
     if not can_transcribe:
         st.info(
             "This file can be uploaded for local flow testing, but automatic transcription supports "
             "MP3, MP4, MPEG, MPGA, M4A, WAV, and WEBM."
         )
-    elif not speech_to_text_configured():
-        st.info(
-            "Automatic speech-to-text is not enabled in this local environment. "
-            "Set OPENAI_API_KEY for pilot-style testing."
-        )
-    elif st.button("Transcribe uploaded audio"):
-        with st.spinner("Transcribing audio without storing the raw file..."):
-            transcribed, transcript_or_error = transcribe_audio_upload(uploaded_audio, uploaded_audio.name)
-        if transcribed:
-            st.session_state.transcript_text = transcript_or_error
-            st.success("Transcript generated. Review it before calculating scores.")
-        else:
-            st.warning(transcript_or_error)
-
-sample_text = st.text_area(
-    "Transcript generated from uploaded speech",
-    value=st.session_state.transcript_text,
-    height=160,
-    placeholder="Example: Today I went to the store and talked with my family...",
-    help="When speech-to-text is configured, this is filled automatically. In local dev without an API key, enter test text here.",
-)
-duration_seconds = st.number_input(
-    "Optional speaking duration in seconds",
-    min_value=0.0,
-    value=default_duration,
-    step=1.0,
-)
-
-if st.button("Calculate feature scores"):
+st.caption(f"{max(0, remaining)} of {MAX_TESTS_PER_DAY} reflections available today")
+if st.button("3 · Analyze", type="primary", use_container_width=True):
     if uploaded_audio is None:
         st.warning("Upload a speech audio file first.")
-    elif not sample_text.strip():
-        st.warning("Enter transcript text first.")
+    elif uploaded_audio.size > MAX_AUDIO_BYTES:
+        st.warning(f"Audio must be {MAX_AUDIO_BYTES // (1024 * 1024)} MB or smaller.")
+    elif uploaded_audio.name.rsplit(".", 1)[-1].lower() not in LOCAL_TRANSCRIPTION_TYPES:
+        st.warning("Use MP3, MP4, MPEG, MPGA, M4A, WAV, or WEBM for automatic analysis.")
     else:
-        audio_metadata = accept_audio_upload(uploaded_audio, uploaded_audio.name)
-        scores = calculate_feature_scores(sample_text, duration_seconds)
-        session_number = tests_today + 1
-        test_session_id = create_test_session(
-            user_id=st.session_state.user_id,
-            session_date=today,
-            session_number=session_number,
-            app_version=APP_VERSION,
-            consent_version=CONSENT_VERSION,
-            scoring_model_version=SCORING_MODEL_VERSION,
-            session_type=session_type,
-            language="English",
-            duration_seconds=duration_seconds,
-        )
-        save_feature_scores(test_session_id, scores)
+        with st.status("Processing your recording…", expanded=True) as analysis_status:
+            st.write("Transcribing privately on the KinaBot server…")
+            transcribed, transcript_or_error, detected_duration = transcribe_audio_upload(
+                uploaded_audio,
+                uploaded_audio.name,
+                LANGUAGE_CODES[language],
+            )
+            if not transcribed:
+                analysis_status.update(label="Transcription failed", state="error")
+                st.error(transcript_or_error)
+                st.stop()
 
-        st.success(
-            f"Session {session_number} saved. Audio upload accepted and temporary audio deleted. "
-            "No raw audio or transcript stored by this skeleton."
-        )
-        st.json(
-            {
-                "audio_filename": audio_metadata["filename"],
-                "audio_size_bytes": audio_metadata["bytes"],
-                "detected_wav_duration_seconds": audio_metadata["duration_seconds"],
-                "temporary_audio_deleted": True,
-            }
-        )
-        df = pd.DataFrame(scores)[["feature_name", "score", "raw_metric", "explanation"]]
-        st.dataframe(df, width="stretch", hide_index=True)
+            st.write("Analyzing observable communication patterns…")
+            scores, session_summary = analyze_transcript(
+                transcript_or_error,
+                language,
+                detected_duration,
+            )
+            audio_metadata = accept_audio_upload(uploaded_audio, uploaded_audio.name)
+            session_number = tests_today + 1
+            test_session_id = create_test_session(
+                user_id=st.session_state.user_id,
+                session_date=today,
+                session_number=session_number,
+                app_version=APP_VERSION,
+                consent_version=CONSENT_VERSION,
+                scoring_model_version=SCORING_MODEL_VERSION,
+                session_type=session_type,
+                language=language,
+                duration_seconds=detected_duration or audio_metadata["duration_seconds"],
+            )
+            save_feature_scores(test_session_id, scores)
+            analysis_status.update(label="Analysis complete", state="complete", expanded=False)
 
+        st.success(f"Session {session_number} saved. Raw audio and full transcript were not retained.")
+        st.info(session_summary)
+        score_df = pd.DataFrame(scores)[["feature_name", "score", "explanation"]]
+        st.dataframe(
+            score_df,
+            width="stretch",
+            hide_index=True,
+            column_config={
+                "score": st.column_config.ProgressColumn("Score", min_value=0, max_value=100)
+            },
+        )
+        st.caption(
+            "Scores describe observable features in this sample only. "
+            "They do not indicate health, ability, improvement, decline, or risk."
+        )
 
-st.subheader("Trend History")
+st.subheader("Your history")
 rows = get_user_scores(st.session_state.user_id)
 if not rows:
     st.caption("No saved scores yet.")
 else:
     history = pd.DataFrame([dict(row) for row in rows])
-    st.dataframe(history, width="stretch", hide_index=True)
-    chart_df = history.pivot_table(
-        index="created_at",
-        columns="feature_name",
-        values="score",
-        aggfunc="mean",
+    session_count = len(history[["created_at", "session_number"]].drop_duplicates())
+    if session_count < 3:
+        st.info(f"{session_count} of 3 sessions completed. Trends unlock after session 3.")
+    else:
+        chart_df = history.pivot_table(
+            index="created_at",
+            columns="feature_name",
+            values="score",
+            aggfunc="mean",
+        )
+        st.line_chart(chart_df)
+
+        ordered = history.sort_values("created_at")
+        first_scores = ordered.groupby("feature_name").first()["score"]
+        latest_scores = ordered.groupby("feature_name").last()["score"]
+        change = (latest_scores - first_scores).rename("observed_change").reset_index()
+        change["pattern"] = change["observed_change"].apply(
+            lambda value: "Higher in latest sample"
+            if value > 2
+            else ("Lower in latest sample" if value < -2 else "Similar")
+        )
+        st.markdown("#### Observed change since the first sample")
+        st.dataframe(change, width="stretch", hide_index=True)
+        st.caption(
+            "These are descriptive sample-to-sample differences only. "
+            "KinaBot does not infer health, improvement, decline, cause, or risk."
+        )
+        insight = generate_wellness_insight(
+            [dict(row) for row in rows],
+            language,
+        )
+        st.markdown("#### One small action")
+        if insight.get("encouragement"):
+            st.write(insight["encouragement"])
+        st.info(insight["action"])
+        st.caption(f"{insight['why']} [Research source]({insight['source']})")
+        st.caption(insight["boundary"])
+
+st.subheader("Optional wellness habits")
+habit_copy = wellness_suggestions(language, [])
+st.caption(
+    "Optional habit tracking is separate from speech scores. KinaBot does not claim "
+    "that a habit caused any score or sample change."
+)
+habit_values = {
+    habit_name: st.checkbox(label, key=f"habit_{today}_{habit_name}")
+    for habit_name, label in habit_copy["habit_labels"].items()
+}
+if st.button("Save today's habit check-in"):
+    save_habit_checkins(st.session_state.user_id, today, habit_values)
+    st.success("Today's optional wellness habits were saved.")
+
+habit_rows = get_user_habit_checkins(st.session_state.user_id)
+if habit_rows:
+    habit_history = pd.DataFrame([dict(row) for row in habit_rows])
+    habit_daily = (
+        habit_history.groupby("checkin_date", as_index=False)["completed"]
+        .sum()
+        .rename(columns={"completed": "habits_completed"})
     )
-    st.line_chart(chart_df)
+    st.bar_chart(habit_daily.set_index("checkin_date"))
+    st.caption("This chart shows self-reported habit completion only.")
 
 
-st.subheader("Local Admin Records")
-st.caption("Local development view. Production needs real admin authentication.")
-admin_view_key = st.text_input("Admin records key", type="password")
-if admin_view_key == "local-admin":
-    users_df = pd.DataFrame([dict(row) for row in list_admin_users()])
-    tests_df = pd.DataFrame([dict(row) for row in list_admin_test_records()])
-    st.markdown("#### Users")
-    st.dataframe(users_df, width="stretch", hide_index=True)
-    st.markdown("#### Test score records")
-    st.dataframe(tests_df, width="stretch", hide_index=True)
-elif admin_view_key:
-    st.warning("Invalid local admin key.")
+if ADMIN_KEY:
+    with st.sidebar.expander("Admin"):
+        admin_view_key = st.text_input("Admin key", type="password")
+        if admin_view_key == ADMIN_KEY:
+            metrics = get_admin_metrics()
+            st.metric("Users", metrics["total_users"])
+            st.metric("Tests", metrics["total_tests"])
+            users_df = pd.DataFrame([dict(row) for row in list_admin_users()])
+            tests_df = pd.DataFrame([dict(row) for row in list_admin_test_records()])
+            st.dataframe(users_df, hide_index=True)
+            st.dataframe(tests_df, hide_index=True)
+        elif admin_view_key:
+            st.warning("Invalid admin key.")
+
+st.divider()
+st.caption(
+    "KinaBot is for personal wellness reflection, not diagnosis or medical advice. "
+    f"{APP_VERSION}"
+)

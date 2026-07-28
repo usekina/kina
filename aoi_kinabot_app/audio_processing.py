@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import BinaryIO
 
 
-SUPPORTED_AUDIO_TYPES = ["wav", "mp3", "m4a", "aac", "ogg", "flac"]
+SUPPORTED_AUDIO_TYPES = ["wav", "mp3", "mp4", "mpeg", "mpga", "m4a", "webm"]
 
 
 def _wav_duration_seconds(path: Path) -> float | None:
