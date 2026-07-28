@@ -53,7 +53,14 @@ normalization, testing, and calibration rather than treating English rules as
 universal.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) and
-[feature-score-design.md](feature-score-design.md).
+[SCORING-METHODOLOGY.md](SCORING-METHODOLOGY.md).
+
+Project records:
+
+- [Changelog](CHANGELOG.md)
+- [Verifiable impact](IMPACT.md)
+- [Founder and maintainership](OWNERSHIP-AND-MAINTAINERSHIP.md)
+- [V1.1 release checklist](RELEASE-CHECKLIST.md)
 
 ## OpenAI's Limited Role
 

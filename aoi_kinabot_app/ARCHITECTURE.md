@@ -5,6 +5,22 @@ This document applies only to the Aoi-maintained implementation in
 
 ## Data Flow
 
+```mermaid
+flowchart TD
+    A["Recording on user's phone or PC"] --> B["Temporary KinaBot processing copy"]
+    B --> C["Private/local Whisper transcription and timestamps"]
+    C --> D["English, Japanese, or Chinese NLP adapter"]
+    D --> E["Versioned Python feature scoring"]
+    E --> F["Store session metadata, raw metrics, and scores"]
+    B --> G["Delete temporary audio"]
+    C --> H["Discard full transcript"]
+    F --> I{"At least 3 sessions?"}
+    I -- No --> J["Show this sample only"]
+    I -- Yes --> K["Show personal descriptive trend"]
+    K --> L["Optional anonymous score-only insight request"]
+    L --> M["One evidence-bounded daily wellness action"]
+```
+
 ```text
 User's phone or PC
   └─ source recording remains on the user's device
