@@ -132,7 +132,9 @@ streamlit run app.py
 ```
 
 Open the local URL shown by Streamlit, normally `http://localhost:8501`.
-Local transcription uses `faster-whisper`. The first analysis may take longer
+Local transcription uses `faster-whisper`. Timestamped speech segments are
+also used to calculate voiced duration, pause count, mean/maximum pause, and
+pause ratio. The first analysis may take longer
 while its model is downloaded and loaded; later analyses reuse the model.
 
 OpenAI is not required for transcription or NLP scoring. If the optional

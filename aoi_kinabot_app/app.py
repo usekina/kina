@@ -203,7 +203,12 @@ if st.button("3 · Analyze", type="primary", use_container_width=True):
     else:
         with st.status("Processing your recording…", expanded=True) as analysis_status:
             st.write("Transcribing privately on the KinaBot server…")
-            transcribed, transcript_or_error, detected_duration = transcribe_audio_upload(
+            (
+                transcribed,
+                transcript_or_error,
+                detected_duration,
+                acoustic_metrics,
+            ) = transcribe_audio_upload(
                 uploaded_audio,
                 uploaded_audio.name,
                 LANGUAGE_CODES[language],
@@ -218,6 +223,7 @@ if st.button("3 · Analyze", type="primary", use_container_width=True):
                 transcript_or_error,
                 language,
                 detected_duration,
+                acoustic_metrics,
             )
             audio_metadata = accept_audio_upload(uploaded_audio, uploaded_audio.name)
             session_number = tests_today + 1
