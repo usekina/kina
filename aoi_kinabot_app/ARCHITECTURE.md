@@ -34,6 +34,7 @@ Optional OpenAI insight layer
 | Responsibility | Owner |
 |---|---|
 | Speech-to-text | Private/local transcription engine |
+| Pause and voiced-time extraction | KinaBot from local timestamped segments |
 | Linguistic and acoustic feature extraction | KinaBot Python/NLP |
 | Feature-score calculation | KinaBot versioned scoring engine |
 | Personal baseline and trend calculation | KinaBot application |

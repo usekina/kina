@@ -4,6 +4,7 @@ import database
 from language_analysis import LANGUAGE_CODES, analyze_transcript
 from insight_service import anonymous_trend_payload, generate_wellness_insight
 from scoring import calculate_feature_scores, tokenize
+from speech_to_text import calculate_pause_metrics
 from wellness_guidance import wellness_suggestions
 
 
@@ -77,3 +78,27 @@ def test_insight_payload_contains_scores_only(monkeypatch):
     insight = generate_wellness_insight(history, "English")
     assert insight["action"]
     assert insight["source"].startswith("https://")
+
+
+def test_pause_metrics_and_score_use_timestamps():
+    class Segment:
+        def __init__(self, start, end):
+            self.start = start
+            self.end = end
+
+    metrics = calculate_pause_metrics(
+        [Segment(0.0, 2.0), Segment(3.0, 5.0), Segment(6.5, 8.0)],
+        10.0,
+    )
+    assert metrics["pause_count"] == 2
+    assert metrics["max_pause_seconds"] == 1.5
+    assert metrics["pause_ratio"] == 0.45
+    scores = calculate_feature_scores(
+        "Today I spoke clearly about my day.",
+        10.0,
+        "English",
+        metrics,
+    )
+    pause = next(item for item in scores if item["feature_name"] == "Pause Pattern")
+    assert "pause_analysis=v1_placeholder" not in pause["raw_metric"]
+    assert 0 <= pause["score"] <= 100

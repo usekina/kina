@@ -130,9 +130,29 @@ def score_speech_pace(
     return clamp_score(score), f"units_per_minute={units_per_minute:.2f}; center={center}"
 
 
-def score_pause_pattern() -> tuple[float, str]:
-    # Placeholder until audio pause extraction is implemented.
-    return 50.0, "pause_analysis=v1_placeholder"
+def score_pause_pattern(acoustic_metrics: dict | None) -> tuple[float, str]:
+    if not acoustic_metrics:
+        return 50.0, "pause_analysis=unavailable; neutral_score_used=true"
+    pause_ratio = float(acoustic_metrics.get("pause_ratio", 0.0))
+    mean_pause = float(acoustic_metrics.get("mean_pause_seconds", 0.0))
+    # A broad descriptive center avoids treating one exact speaking style as ideal.
+    ratio_component = 100 - abs(pause_ratio - 0.25) * 140
+    duration_component = 100 - max(0.0, mean_pause - 1.5) * 18
+    score = ratio_component * 0.65 + duration_component * 0.35
+    raw = "; ".join(
+        f"{key}={value}"
+        for key, value in acoustic_metrics.items()
+        if key
+        in {
+            "voiced_seconds",
+            "pause_seconds",
+            "pause_count",
+            "mean_pause_seconds",
+            "max_pause_seconds",
+            "pause_ratio",
+        }
+    )
+    return clamp_score(score), raw
 
 
 def score_repetition_pattern(words: list[str]) -> tuple[float, str]:
@@ -172,6 +192,7 @@ def calculate_feature_scores(
     text: str,
     duration_seconds: float | None = None,
     language: str = "English",
+    acoustic_metrics: dict | None = None,
 ) -> list[dict]:
     words = tokenize(text, language)
     sentences = split_sentences(text)
@@ -183,7 +204,7 @@ def calculate_feature_scores(
             lambda: score_sentence_complexity(text, words, sentences, language),
         ),
         ("Speech Pace", lambda: score_speech_pace(words, duration_seconds, language)),
-        ("Pause Pattern", score_pause_pattern),
+        ("Pause Pattern", lambda: score_pause_pattern(acoustic_metrics)),
         ("Repetition Pattern", lambda: score_repetition_pattern(words)),
         ("Emotional Tone", lambda: score_emotional_tone(text, language)),
         ("Transcription Clarity", lambda: score_transcription_clarity(text, language)),
