@@ -28,7 +28,7 @@
 
 - [x] Dockerfile
 - [x] Health-check endpoint configuration
-- [ ] AWS ECS/RDS/SES/Secrets Manager deployment
+- [x] AWS ECS/ALB/EFS staging deployment
 - [ ] HTTPS and stable production URL
 - [ ] Backup and restore test
 - [ ] Logging, monitoring, and alerting

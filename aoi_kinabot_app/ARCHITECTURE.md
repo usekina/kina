@@ -153,3 +153,9 @@ Route 53 / stable domain
 
 The deployment must use its own service, database, secrets, logs, and backups
 and must not overwrite an existing application.
+
+The initial pilot deployment uses one ECS task with encrypted EFS-backed
+SQLite to keep operations simple and persistent. It must remain single-task.
+RDS PostgreSQL is the required migration before horizontal scaling or
+materially higher concurrent write traffic. Deployment code is documented in
+[`aws/`](aws/README.md).

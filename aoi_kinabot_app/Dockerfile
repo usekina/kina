@@ -4,7 +4,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     KINABOT_ENVIRONMENT=production \
     KINABOT_ALLOW_LOCAL_CODES=false \
-    KINABOT_DATABASE_PATH=/data/kinabot.sqlite3
+    KINABOT_DATABASE_PATH=/data/kinabot.sqlite3 \
+    HF_HOME=/models/huggingface
 
 WORKDIR /app
 
@@ -12,9 +13,9 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
-RUN mkdir -p /data
+RUN mkdir -p /data /models
 
-VOLUME ["/data"]
+VOLUME ["/data", "/models"]
 EXPOSE 8501
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \

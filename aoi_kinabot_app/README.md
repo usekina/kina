@@ -17,14 +17,15 @@ disease risk, estimate cognitive age, or replace professional care.
 
 ## Simple User Experience
 
-1. Sign in with an email verification code.
+1. Enter an email and a six-digit verification code on the same page.
 2. Choose English, Japanese, or Chinese.
 3. Select a recording stored on the user's phone or computer.
 4. Run one analysis and see that sample's feature scores.
 5. After three or more sessions, see personal trends and changes.
 6. Receive a small, practical daily wellness action when appropriate.
 
-The pilot allows up to two analyses per user per day.
+The pilot allows up to two analyses per verified email per day. Users do not
+create or remember a password.
 
 ## Core NLP Work
 
