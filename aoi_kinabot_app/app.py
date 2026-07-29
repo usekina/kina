@@ -19,6 +19,7 @@ from config import (
     SCORING_MODEL_VERSION,
 )
 from database import (
+    assign_timezone_to_legacy_sessions,
     count_tests_today,
     create_test_session,
     get_admin_metrics,
@@ -38,6 +39,7 @@ from database import (
 from email_delivery import send_verification_email
 from insight_service import generate_wellness_insight
 from language_analysis import LANGUAGE_CODES, analyze_transcript
+from local_time import local_date_iso
 from speech_to_text import (
     LOCAL_TRANSCRIPTION_TYPES,
     speech_to_text_configured,
@@ -50,6 +52,8 @@ from wellness_guidance import wellness_suggestions
 
 st.set_page_config(page_title="KinaBot", page_icon="🎙️", layout="centered")
 init_db()
+browser_timezone = st.context.timezone or "UTC"
+today = local_date_iso(browser_timezone)
 
 st.markdown(
     """
@@ -368,7 +372,7 @@ if not consent:
 
 record_consent(st.session_state.user_id, CONSENT_VERSION)
 
-today = date.today().isoformat()
+assign_timezone_to_legacy_sessions(st.session_state.user_id, browser_timezone)
 tests_today = count_tests_today(st.session_state.user_id, today)
 remaining = MAX_TESTS_PER_DAY - tests_today
 if remaining <= 0:
@@ -465,6 +469,7 @@ if st.button("3 · Analyze my reflection", type="primary", use_container_width=T
                 session_type=session_type,
                 language=language,
                 duration_seconds=detected_duration or audio_metadata["duration_seconds"],
+                timezone_name=browser_timezone,
             )
             save_feature_scores(test_session_id, scores)
             analysis_status.update(label="Analysis complete", state="complete", expanded=False)

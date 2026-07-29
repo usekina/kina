@@ -36,6 +36,8 @@ changelog.
   research admin view.
 - In-page browser microphone recording and a local four-dimension expression
   snapshot available from the first completed reflection.
+- Browser-timezone daily limits with UTC timestamps, local session dates, and
+  one-time correction of legacy UTC-dated sessions.
 
 ### Changed
 
