@@ -131,6 +131,19 @@ def upsert_user(email_hash: str, email: str | None = None) -> int:
         return int(row["id"])
 
 
+def get_user_profile(user_id: int) -> sqlite3.Row | None:
+    with get_connection() as conn:
+        return conn.execute(
+            """
+            SELECT id, email, display_name, age_range, primary_language,
+                   country_region
+            FROM users
+            WHERE id = ?
+            """,
+            (user_id,),
+        ).fetchone()
+
+
 def update_user_profile(
     user_id: int,
     display_name: str | None,

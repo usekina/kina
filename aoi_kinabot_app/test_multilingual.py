@@ -56,6 +56,22 @@ def test_habit_checkins_are_upserted(tmp_path: Path, monkeypatch):
     assert values == {"physical_activity": 1, "social_connection": 0}
 
 
+def test_saved_profile_is_restored_for_returning_user(tmp_path: Path, monkeypatch):
+    monkeypatch.setattr(database, "DATABASE_PATH", tmp_path / "kina.sqlite3")
+    database.init_db()
+    user_id = database.upsert_user("returning-user", "person@example.com")
+    database.update_user_profile(user_id, "Kina", "45-59", "Chinese", "US")
+
+    same_user_id = database.upsert_user("returning-user", "person@example.com")
+    profile = database.get_user_profile(same_user_id)
+
+    assert same_user_id == user_id
+    assert profile["display_name"] == "Kina"
+    assert profile["age_range"] == "45-59"
+    assert profile["primary_language"] == "Chinese"
+    assert profile["country_region"] == "US"
+
+
 def test_calculate_feature_scores_accepts_language():
     scores = calculate_feature_scores("今日は友人と話しました。", 20, "日本語")
     assert len(scores) == 8

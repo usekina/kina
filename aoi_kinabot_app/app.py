@@ -23,6 +23,7 @@ from database import (
     create_test_session,
     get_admin_metrics,
     get_user_habit_checkins,
+    get_user_profile,
     get_user_scores,
     init_db,
     list_admin_test_records,
@@ -108,6 +109,8 @@ if "code_sent" not in st.session_state:
     st.session_state.code_sent = False
 if "staging_code" not in st.session_state:
     st.session_state.staging_code = ""
+if "profile" not in st.session_state:
+    st.session_state.profile = None
 if not st.session_state.verified:
     st.subheader("Start")
     st.caption("Enter an email to keep your scores and history together.")
@@ -154,6 +157,8 @@ if not st.session_state.verified:
                     email_hash,
                     email=st.session_state.email,
                 )
+                profile = get_user_profile(st.session_state.user_id)
+                st.session_state.profile = dict(profile) if profile else {}
                 st.session_state.verified = True
                 st.session_state.staging_code = ""
                 st.rerun()
@@ -204,18 +209,55 @@ if ADMIN_KEY:
             st.warning("Invalid admin key.")
 
 
-with st.expander("Account"):
+if st.session_state.profile is None:
+    profile = get_user_profile(st.session_state.user_id)
+    st.session_state.profile = dict(profile) if profile else {}
+
+profile = st.session_state.profile
+saved_name = (profile.get("display_name") or "").strip()
+age_options = ["Prefer not to say", "Under 30", "30-44", "45-59", "60-74", "75+"]
+language_options = [
+    "Prefer not to say",
+    "English",
+    "Japanese",
+    "Chinese",
+    "Spanish",
+    "Other",
+]
+
+if saved_name:
+    st.markdown(f"### Welcome back, {saved_name}")
+
+with st.expander("Account settings" if saved_name else "Complete your account"):
     st.caption(st.session_state.email)
-    display_name = st.text_input("Name", placeholder="Your name")
+    display_name = st.text_input(
+        "Name",
+        value=saved_name,
+        placeholder="Your name",
+    )
     age_range = st.selectbox(
         "Age range (optional)",
-        ["Prefer not to say", "Under 30", "30-44", "45-59", "60-74", "75+"],
+        age_options,
+        index=(
+            age_options.index(profile.get("age_range"))
+            if profile.get("age_range") in age_options
+            else 0
+        ),
     )
     primary_language = st.selectbox(
         "Primary language (optional)",
-        ["Prefer not to say", "English", "Japanese", "Chinese", "Spanish", "Other"],
+        language_options,
+        index=(
+            language_options.index(profile.get("primary_language"))
+            if profile.get("primary_language") in language_options
+            else 0
+        ),
     )
-    country_region = st.text_input("Country / region (optional)", placeholder="Example: US")
+    country_region = st.text_input(
+        "Country / region (optional)",
+        value=profile.get("country_region") or "",
+        placeholder="Example: US",
+    )
     if st.button("Save account"):
         update_user_profile(
             st.session_state.user_id,
@@ -224,7 +266,10 @@ with st.expander("Account"):
             None if primary_language == "Prefer not to say" else primary_language,
             country_region.strip() or None,
         )
+        refreshed_profile = get_user_profile(st.session_state.user_id)
+        st.session_state.profile = dict(refreshed_profile) if refreshed_profile else {}
         st.success("Account saved.")
+        st.rerun()
 
 st.markdown(
     """
