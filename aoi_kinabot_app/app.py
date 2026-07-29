@@ -44,6 +44,7 @@ from speech_to_text import (
     transcribe_audio_upload,
 )
 from scoring import display_feature_name
+from reflection_profile import build_reflection_profile
 from wellness_guidance import wellness_suggestions
 
 
@@ -88,6 +89,24 @@ st.markdown(
     .score-card__explanation {
         color: rgba(49, 51, 63, 0.72);
         font-size: 0.9rem; line-height: 1.45; margin-top: 0.55rem;
+    }
+    .snapshot-card {
+        padding: 0.9rem 1rem; margin: 0.35rem 0;
+        border: 1px solid #f4d4c3; border-radius: 1rem;
+        background: linear-gradient(145deg, #fff7f1, #ffffff);
+    }
+    .snapshot-card__top {
+        display: flex; justify-content: space-between; align-items: center;
+    }
+    .snapshot-card__label {font-weight: 700; color: #303642;}
+    .snapshot-card__value {font-size: 1.25rem; font-weight: 750; color: #e65f3c;}
+    .snapshot-card__track {
+        height: 0.45rem; background: #f5e4dc; border-radius: 99px;
+        overflow: hidden; margin-top: 0.65rem;
+    }
+    .snapshot-card__fill {
+        height: 100%; background: linear-gradient(90deg, #f28a5c, #e55438);
+        border-radius: 99px;
     }
     </style>
     """,
@@ -365,37 +384,49 @@ language = st.radio(
     "1 · Choose the language spoken",
     ["English", "日本語", "中文"],
     horizontal=True,
-    help="Choose the language actually spoken in the uploaded recording.",
+    help="Choose the language you will speak in this recording.",
 )
 
 session_type = "Daily reflection"
-
-uploaded_audio = st.file_uploader(
-    "2 · Choose a recording from your phone or computer",
-    type=SUPPORTED_AUDIO_TYPES,
-    help="Supported local test formats: WAV, MP3, M4A, AAC, OGG, FLAC.",
+audio_method = st.radio(
+    "2 · Add your voice",
+    ["Record now", "Upload a recording"],
+    horizontal=True,
+    help="Record directly in the page, or use an audio file you already have.",
 )
 
-if uploaded_audio is not None:
-    st.audio(uploaded_audio)
-    st.caption(
-        f"Selected file: {uploaded_audio.name} "
-        f"({uploaded_audio.size / 1024:.1f} KB). Raw audio will not be stored by this app."
+if audio_method == "Record now":
+    selected_audio = st.audio_input(
+        "Tap the microphone, speak for 30–90 seconds, then stop",
     )
-    audio_extension = uploaded_audio.name.rsplit(".", 1)[-1].lower()
+    if selected_audio is None:
+        st.caption("Your browser may ask for microphone permission the first time.")
+else:
+    selected_audio = st.file_uploader(
+        "Choose a recording from your phone or computer",
+        type=SUPPORTED_AUDIO_TYPES,
+        help="Supported formats: WAV, MP3, M4A, AAC, OGG, and FLAC.",
+    )
+
+if selected_audio is not None:
+    st.audio(selected_audio)
+    st.caption(
+        f"Ready: {selected_audio.name} "
+        f"({selected_audio.size / 1024:.1f} KB). Raw audio will not be stored."
+    )
+    audio_extension = selected_audio.name.rsplit(".", 1)[-1].lower()
     can_transcribe = audio_extension in LOCAL_TRANSCRIPTION_TYPES
     if not can_transcribe:
         st.info(
-            "This file can be uploaded for local flow testing, but automatic transcription supports "
-            "MP3, MP4, MPEG, MPGA, M4A, WAV, and WEBM."
+            "Automatic transcription supports MP3, MP4, MPEG, MPGA, M4A, WAV, and WEBM."
         )
 st.caption(f"{max(0, remaining)} of {MAX_TESTS_PER_DAY} reflections available today")
-if st.button("3 · Analyze", type="primary", use_container_width=True):
-    if uploaded_audio is None:
-        st.warning("Upload a speech audio file first.")
-    elif uploaded_audio.size > MAX_AUDIO_BYTES:
+if st.button("3 · Analyze my reflection", type="primary", use_container_width=True):
+    if selected_audio is None:
+        st.warning("Record or upload a speech sample first.")
+    elif selected_audio.size > MAX_AUDIO_BYTES:
         st.warning(f"Audio must be {MAX_AUDIO_BYTES // (1024 * 1024)} MB or smaller.")
-    elif uploaded_audio.name.rsplit(".", 1)[-1].lower() not in LOCAL_TRANSCRIPTION_TYPES:
+    elif selected_audio.name.rsplit(".", 1)[-1].lower() not in LOCAL_TRANSCRIPTION_TYPES:
         st.warning("Use MP3, MP4, MPEG, MPGA, M4A, WAV, or WEBM for automatic analysis.")
     else:
         with st.status("Processing your recording…", expanded=True) as analysis_status:
@@ -406,8 +437,8 @@ if st.button("3 · Analyze", type="primary", use_container_width=True):
                 detected_duration,
                 acoustic_metrics,
             ) = transcribe_audio_upload(
-                uploaded_audio,
-                uploaded_audio.name,
+                selected_audio,
+                selected_audio.name,
                 LANGUAGE_CODES[language],
             )
             if not transcribed:
@@ -422,7 +453,7 @@ if st.button("3 · Analyze", type="primary", use_container_width=True):
                 detected_duration,
                 acoustic_metrics,
             )
-            audio_metadata = accept_audio_upload(uploaded_audio, uploaded_audio.name)
+            audio_metadata = accept_audio_upload(selected_audio, selected_audio.name)
             session_number = tests_today + 1
             test_session_id = create_test_session(
                 user_id=st.session_state.user_id,
@@ -462,27 +493,51 @@ if st.button("3 · Analyze", type="primary", use_container_width=True):
             },
         }[language]
         st.success(result_copy["saved"])
-        st.info(session_summary)
-        st.markdown(f"### {result_copy['title']}")
+        snapshot = build_reflection_profile(scores, language)
+        st.markdown(f"### {snapshot['title']}")
+        st.caption(snapshot["subtitle"])
+        snapshot_columns = st.columns(2)
+        for index, dimension in enumerate(snapshot["dimensions"]):
+            score = int(dimension["score"])
+            with snapshot_columns[index % 2]:
+                st.markdown(
+                    f"""
+                    <div class="snapshot-card">
+                      <div class="snapshot-card__top">
+                        <span class="snapshot-card__label">{dimension["label"]}</span>
+                        <span class="snapshot-card__value">{score}</span>
+                      </div>
+                      <div class="snapshot-card__track">
+                        <div class="snapshot-card__fill" style="width:{score}%"></div>
+                      </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+        st.markdown(f"#### {snapshot['takeaway_title']}")
+        st.write(snapshot["takeaway"])
+        st.markdown(f"#### {snapshot['action_title']}")
+        st.info(snapshot["action"])
         st.caption(result_copy["scale"])
-        for item in scores:
-            score = int(round(float(item["score"])))
-            label = display_feature_name(item["feature_name"], language)
-            st.markdown(
-                f"""
-                <div class="score-card">
-                  <div class="score-card__top">
-                    <span class="score-card__name">{label}</span>
-                    <span class="score-card__value">{score} / 100</span>
-                  </div>
-                  <div class="score-card__track">
-                    <div class="score-card__fill" style="width:{score}%"></div>
-                  </div>
-                  <div class="score-card__explanation">{item["explanation"]}</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+        with st.expander(snapshot["detail_label"]):
+            for item in scores:
+                score = int(round(float(item["score"])))
+                label = display_feature_name(item["feature_name"], language)
+                st.markdown(
+                    f"""
+                    <div class="score-card">
+                      <div class="score-card__top">
+                        <span class="score-card__name">{label}</span>
+                        <span class="score-card__value">{score} / 100</span>
+                      </div>
+                      <div class="score-card__track">
+                        <div class="score-card__fill" style="width:{score}%"></div>
+                      </div>
+                      <div class="score-card__explanation">{item["explanation"]}</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
         st.caption(result_copy["boundary"])
 
 st.subheader("Your history")

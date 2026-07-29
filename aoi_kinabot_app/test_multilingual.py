@@ -2,6 +2,7 @@ from pathlib import Path
 
 import database
 from language_analysis import LANGUAGE_CODES, analyze_transcript
+from reflection_profile import build_reflection_profile
 from insight_service import anonymous_trend_payload, generate_wellness_insight
 from scoring import calculate_feature_scores, display_feature_name, tokenize
 from speech_to_text import calculate_pause_metrics
@@ -28,6 +29,28 @@ def test_local_nlp_scores_multilingual():
         assert len(scores) == 8
         assert all(0 <= item["score"] <= 100 for item in scores)
         assert summary
+
+
+def test_first_session_snapshot_is_local_and_language_matched():
+    scores = [
+        {"feature_name": name, "score": 70}
+        for name in [
+            "Vocabulary Variety",
+            "Response Length",
+            "Sentence Complexity",
+            "Speech Pace",
+            "Pause Pattern",
+            "Repetition Pattern",
+            "Emotional Tone",
+            "Transcription Clarity",
+        ]
+    ]
+    for language in ["English", "日本語", "中文"]:
+        snapshot = build_reflection_profile(scores, language)
+        assert len(snapshot["dimensions"]) == 4
+        assert all(item["score"] == 70 for item in snapshot["dimensions"])
+        assert snapshot["takeaway"]
+        assert snapshot["action"]
 
 
 def test_wellness_menu_is_not_selected_from_scores():

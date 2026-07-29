@@ -34,11 +34,15 @@ changelog.
 - Returning-user profile restoration with name-based greeting.
 - Private age-range and gender fields plus aggregate profile counts for the
   research admin view.
+- In-page browser microphone recording and a local four-dimension expression
+  snapshot available from the first completed reflection.
 
 ### Changed
 
 - Require one explicit daily wellness-habit selection instead of ambiguous
   independent checkboxes.
+- Present the reflection flow as language, record-or-upload, and analyze steps;
+  keep the eight technical features available in a compact details section.
 
 - Replaced diagnosis-like and cognitive-age language with sample-level,
   descriptive feature language.

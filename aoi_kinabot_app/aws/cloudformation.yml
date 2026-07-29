@@ -210,6 +210,42 @@ Resources:
         - Type: forward
           TargetGroupArn: !Ref TargetGroup
 
+  HttpsDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Comment: KinaBot secure mobile web entry point
+        Enabled: true
+        HttpVersion: http2and3
+        IPV6Enabled: true
+        PriceClass: PriceClass_100
+        Origins:
+          - Id: KinaBotAlb
+            DomainName: !GetAtt LoadBalancer.DNSName
+            CustomOriginConfig:
+              HTTPPort: 80
+              OriginProtocolPolicy: http-only
+              OriginReadTimeout: 60
+              OriginKeepaliveTimeout: 5
+        DefaultCacheBehavior:
+          TargetOriginId: KinaBotAlb
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods:
+            - DELETE
+            - GET
+            - HEAD
+            - OPTIONS
+            - PATCH
+            - POST
+            - PUT
+          CachedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          Compress: true
+          CachePolicyId: 413f39a6-2a92-4bd5-9dc2-5f8e2b5a7a2e
+          OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
+
   ExecutionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -389,6 +425,9 @@ Outputs:
       - HasCertificate
       - !Sub https://${LoadBalancer.DNSName}
       - !Sub http://${LoadBalancer.DNSName}
+  SecureApplicationUrl:
+    Description: HTTPS URL required for in-browser microphone recording.
+    Value: !Sub https://${HttpsDistribution.DomainName}
   ClusterName:
     Value: !Ref Cluster
   ServiceName:
