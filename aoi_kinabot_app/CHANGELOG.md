@@ -31,8 +31,14 @@ changelog.
 - AWS Secrets Manager protection for the research-admin access key.
 - A data-minimized OpenAI Responses API connection using structured output,
   anonymous score histories, curated actions, and no response storage.
+- Returning-user profile restoration with name-based greeting.
+- Private age-range and gender fields plus aggregate profile counts for the
+  research admin view.
 
 ### Changed
+
+- Require one explicit daily wellness-habit selection instead of ambiguous
+  independent checkboxes.
 
 - Replaced diagnosis-like and cognitive-age language with sample-level,
   descriptive feature language.

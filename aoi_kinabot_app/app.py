@@ -182,6 +182,34 @@ if ADMIN_KEY:
             research_df = pd.DataFrame(
                 [dict(row) for row in list_research_records()]
             )
+            if not users_df.empty:
+                with st.expander("Participant profile summary"):
+                    summary_rows = []
+                    for field, label in [
+                        ("age_range", "Age range"),
+                        ("gender", "Gender"),
+                        ("primary_language", "Primary language"),
+                        ("country_region", "Country / region"),
+                    ]:
+                        counts = (
+                            users_df[field]
+                            .fillna("Not provided")
+                            .replace("", "Not provided")
+                            .value_counts()
+                        )
+                        summary_rows.extend(
+                            {
+                                "field": label,
+                                "value": value,
+                                "users": int(count),
+                            }
+                            for value, count in counts.items()
+                        )
+                    st.dataframe(
+                        pd.DataFrame(summary_rows),
+                        hide_index=True,
+                        width="stretch",
+                    )
 
             st.download_button(
                 "Download research CSV",
@@ -216,6 +244,7 @@ if st.session_state.profile is None:
 profile = st.session_state.profile
 saved_name = (profile.get("display_name") or "").strip()
 age_options = ["Prefer not to say", "Under 30", "30-44", "45-59", "60-74", "75+"]
+gender_options = ["Prefer not to say", "Woman", "Man", "Non-binary", "Self-describe"]
 language_options = [
     "Prefer not to say",
     "English",
@@ -228,7 +257,13 @@ language_options = [
 if saved_name:
     st.markdown(f"### Welcome back, {saved_name}")
 
-with st.expander("Account settings" if saved_name else "Complete your account"):
+profile_complete = bool(
+    saved_name and profile.get("age_range") and profile.get("gender")
+)
+with st.expander(
+    "Account settings" if profile_complete else "Complete your account",
+    expanded=not profile_complete,
+):
     st.caption(st.session_state.email)
     display_name = st.text_input(
         "Name",
@@ -236,13 +271,24 @@ with st.expander("Account settings" if saved_name else "Complete your account"):
         placeholder="Your name",
     )
     age_range = st.selectbox(
-        "Age range (optional)",
+        "Age range",
         age_options,
         index=(
             age_options.index(profile.get("age_range"))
             if profile.get("age_range") in age_options
-            else 0
+            else None
         ),
+        placeholder="Select an age range",
+    )
+    gender = st.selectbox(
+        "Gender",
+        gender_options,
+        index=(
+            gender_options.index(profile.get("gender"))
+            if profile.get("gender") in gender_options
+            else None
+        ),
+        placeholder="Select a gender option",
     )
     primary_language = st.selectbox(
         "Primary language (optional)",
@@ -259,17 +305,25 @@ with st.expander("Account settings" if saved_name else "Complete your account"):
         placeholder="Example: US",
     )
     if st.button("Save account"):
-        update_user_profile(
-            st.session_state.user_id,
-            display_name.strip() or None,
-            None if age_range == "Prefer not to say" else age_range,
-            None if primary_language == "Prefer not to say" else primary_language,
-            country_region.strip() or None,
-        )
-        refreshed_profile = get_user_profile(st.session_state.user_id)
-        st.session_state.profile = dict(refreshed_profile) if refreshed_profile else {}
-        st.success("Account saved.")
-        st.rerun()
+        if not display_name.strip() or age_range is None or gender is None:
+            st.error("Please enter your name and select age range and gender.")
+        else:
+            update_user_profile(
+                st.session_state.user_id,
+                display_name.strip(),
+                age_range,
+                gender,
+                None if primary_language == "Prefer not to say" else primary_language,
+                country_region.strip() or None,
+            )
+            refreshed_profile = get_user_profile(st.session_state.user_id)
+            st.session_state.profile = dict(refreshed_profile) if refreshed_profile else {}
+            st.success("Account saved.")
+            st.rerun()
+
+if not profile_complete:
+    st.info("Complete your account once. KinaBot will remember it for future visits.")
+    st.stop()
 
 st.markdown(
     """
@@ -475,19 +529,30 @@ else:
         st.caption(f"{insight['why']} [Research source]({insight['source']})")
         st.caption(insight["boundary"])
 
-st.subheader("Optional wellness habits")
+st.subheader("Today's wellness habit")
 habit_copy = wellness_suggestions(language, [])
 st.caption(
-    "Optional habit tracking is separate from speech scores. KinaBot does not claim "
+    "Choose the one habit that best matches today. Habit tracking is separate from "
+    "speech scores. KinaBot does not claim "
     "that a habit caused any score or sample change."
 )
-habit_values = {
-    habit_name: st.checkbox(label, key=f"habit_{today}_{habit_name}")
-    for habit_name, label in habit_copy["habit_labels"].items()
-}
+habit_labels = habit_copy["habit_labels"]
+selected_habit_label = st.radio(
+    "Select one",
+    list(habit_labels.values()),
+    index=None,
+    key=f"habit_{today}",
+)
 if st.button("Save today's habit check-in"):
-    save_habit_checkins(st.session_state.user_id, today, habit_values)
-    st.success("Today's optional wellness habits were saved.")
+    if selected_habit_label is None:
+        st.error("Please select one habit.")
+    else:
+        selected_habit = next(
+            name for name, label in habit_labels.items() if label == selected_habit_label
+        )
+        habit_values = {name: name == selected_habit for name in habit_labels}
+        save_habit_checkins(st.session_state.user_id, today, habit_values)
+        st.success("Today's wellness habit was saved.")
 
 habit_rows = get_user_habit_checkins(st.session_state.user_id)
 if habit_rows:

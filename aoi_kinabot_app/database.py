@@ -38,6 +38,7 @@ def init_db() -> None:
                 email TEXT,
                 display_name TEXT,
                 age_range TEXT,
+                gender TEXT,
                 primary_language TEXT,
                 country_region TEXT,
                 created_at TEXT NOT NULL,
@@ -103,6 +104,7 @@ def init_db() -> None:
         ensure_column(conn, "users", "email", "TEXT")
         ensure_column(conn, "users", "display_name", "TEXT")
         ensure_column(conn, "users", "age_range", "TEXT")
+        ensure_column(conn, "users", "gender", "TEXT")
         ensure_column(conn, "users", "primary_language", "TEXT")
         ensure_column(conn, "users", "country_region", "TEXT")
         ensure_column(conn, "test_sessions", "session_type", "TEXT")
@@ -135,7 +137,7 @@ def get_user_profile(user_id: int) -> sqlite3.Row | None:
     with get_connection() as conn:
         return conn.execute(
             """
-            SELECT id, email, display_name, age_range, primary_language,
+            SELECT id, email, display_name, age_range, gender, primary_language,
                    country_region
             FROM users
             WHERE id = ?
@@ -148,6 +150,7 @@ def update_user_profile(
     user_id: int,
     display_name: str | None,
     age_range: str | None,
+    gender: str | None,
     primary_language: str | None,
     country_region: str | None,
 ) -> None:
@@ -155,13 +158,14 @@ def update_user_profile(
         conn.execute(
             """
             UPDATE users
-            SET display_name = ?, age_range = ?, primary_language = ?,
+            SET display_name = ?, age_range = ?, gender = ?, primary_language = ?,
                 country_region = ?, last_active_at = ?
             WHERE id = ?
             """,
             (
                 display_name,
                 age_range,
+                gender,
                 primary_language,
                 country_region,
                 utc_now_iso(),
@@ -366,7 +370,7 @@ def list_admin_users() -> list[sqlite3.Row]:
     with get_connection() as conn:
         return conn.execute(
             """
-            SELECT id, email, display_name, age_range, primary_language,
+            SELECT id, email, display_name, age_range, gender, primary_language,
                    country_region, created_at, last_active_at
             FROM users
             ORDER BY created_at DESC
@@ -382,6 +386,7 @@ def list_admin_test_records() -> list[sqlite3.Row]:
                 u.email,
                 u.display_name,
                 u.age_range,
+                u.gender,
                 u.primary_language,
                 u.country_region,
                 ts.created_at,
@@ -408,6 +413,7 @@ def list_research_records() -> list[sqlite3.Row]:
             SELECT
                 printf('P%06d', u.id) AS participant_id,
                 u.age_range,
+                u.gender,
                 u.primary_language,
                 u.country_region,
                 ts.id AS session_id,
