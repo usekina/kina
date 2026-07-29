@@ -6,7 +6,7 @@ from pathlib import Path
 APP_VERSION = "v1.1-multilingual-pilot"
 CONSENT_VERSION = "consent-v1.1"
 SCORING_MODEL_VERSION = "score-v2-multilingual"
-OPENAI_INSIGHT_MODEL = os.getenv("KINABOT_INSIGHT_MODEL", "gpt-4.1-mini")
+OPENAI_INSIGHT_MODEL = os.getenv("KINABOT_INSIGHT_MODEL", "gpt-5.6-luna")
 ENVIRONMENT = os.getenv("KINABOT_ENVIRONMENT", "development").strip().lower()
 ALLOW_LOCAL_VERIFICATION_CODES = (
     os.getenv("KINABOT_ALLOW_LOCAL_CODES", "true").strip().lower() == "true"
@@ -20,7 +20,7 @@ DATABASE_PATH = Path(
     os.getenv("KINABOT_DATABASE_PATH", str(DATA_DIR / "kinabot_v1.sqlite3"))
 )
 
-MAX_TESTS_PER_DAY = int(os.getenv("KINABOT_MAX_TESTS_PER_DAY", "2"))
+MAX_TESTS_PER_DAY = int(os.getenv("KINABOT_MAX_TESTS_PER_DAY", "3"))
 MAX_AUDIO_BYTES = int(os.getenv("KINABOT_MAX_AUDIO_MB", "25")) * 1024 * 1024
 VERIFICATION_CODE_TTL_MINUTES = 10
 

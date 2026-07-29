@@ -231,8 +231,10 @@ st.markdown(
     <div class="privacy-card">
       <strong>Your recording is not saved.</strong><br>
       Your selected file is processed privately on the KinaBot server with local Python,
-      then the temporary copy is deleted. It is not sent to OpenAI. KinaBot stores your account, scores, usage
-      history, and optional habit check-ins—not the raw audio or full transcript.
+      then the temporary copy is deleted. Raw audio and full transcripts are not
+      sent to OpenAI. After three sessions, only anonymous score history may be
+      used to select a general wellness action. KinaBot stores your account, scores,
+      usage history, and optional habit check-ins—not the raw audio or full transcript.
     </div>
     """,
     unsafe_allow_html=True,
@@ -252,7 +254,10 @@ today = date.today().isoformat()
 tests_today = count_tests_today(st.session_state.user_id, today)
 remaining = MAX_TESTS_PER_DAY - tests_today
 if remaining <= 0:
-    st.info("You have completed today's two reflections. Come back tomorrow.")
+    st.info(
+        f"You have completed today's {MAX_TESTS_PER_DAY} reflections. "
+        "Come back tomorrow."
+    )
     st.stop()
 
 st.subheader("New reflection")

@@ -51,7 +51,7 @@ Each verified user may complete:
 
 Each test should create one test record.
 
-If a user completes two tests on the same day, the records should be labeled:
+If a user completes three tests on the same day, the records should be labeled:
 
 - Session 1
 - Session 2
@@ -130,7 +130,7 @@ The system should support trend views over:
 
 Each feature score can be shown as a line chart over time.
 
-For users with two tests in one day:
+For users with three tests in one day:
 
 - Both points should be shown on the chart
 - Session 1 and Session 2 should be distinguishable
