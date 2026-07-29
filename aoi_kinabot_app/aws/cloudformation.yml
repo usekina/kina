@@ -10,6 +10,9 @@ Parameters:
     Type: AWS::EC2::Subnet::Id
   ContainerImage:
     Type: String
+  OpenAIApiKeySecretArn:
+    Type: String
+    Description: Existing Secrets Manager ARN containing the KinaBot OpenAI project API key.
   CertificateArn:
     Type: String
     Default: ""
@@ -207,6 +210,42 @@ Resources:
         - Type: forward
           TargetGroupArn: !Ref TargetGroup
 
+  HttpsDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Comment: KinaBot secure mobile web entry point
+        Enabled: true
+        HttpVersion: http2and3
+        IPV6Enabled: true
+        PriceClass: PriceClass_100
+        Origins:
+          - Id: KinaBotAlb
+            DomainName: !GetAtt LoadBalancer.DNSName
+            CustomOriginConfig:
+              HTTPPort: 80
+              OriginProtocolPolicy: http-only
+              OriginReadTimeout: 60
+              OriginKeepaliveTimeout: 5
+        DefaultCacheBehavior:
+          TargetOriginId: KinaBotAlb
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods:
+            - DELETE
+            - GET
+            - HEAD
+            - OPTIONS
+            - PATCH
+            - POST
+            - PUT
+          CachedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          Compress: true
+          CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+          OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
+
   ExecutionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -230,7 +269,9 @@ Resources:
               - Effect: Allow
                 Action:
                   - secretsmanager:GetSecretValue
-                Resource: !Ref AdminKeySecret
+                Resource:
+                  - !Ref AdminKeySecret
+                  - !Ref OpenAIApiKeySecretArn
 
   AdminKeySecret:
     Type: AWS::SecretsManager::Secret
@@ -308,7 +349,9 @@ Resources:
             - Name: KINABOT_WHISPER_COMPUTE_TYPE
               Value: int8
             - Name: KINABOT_MAX_TESTS_PER_DAY
-              Value: "2"
+              Value: "3"
+            - Name: KINABOT_INSIGHT_MODEL
+              Value: gpt-5.6-luna
             - Name: KINABOT_MAX_AUDIO_MB
               Value: "25"
             - Name: HF_HOME
@@ -316,6 +359,8 @@ Resources:
           Secrets:
             - Name: KINABOT_ADMIN_KEY
               ValueFrom: !Ref AdminKeySecret
+            - Name: OPENAI_API_KEY
+              ValueFrom: !Ref OpenAIApiKeySecretArn
           MountPoints:
             - SourceVolume: kinabot-data
               ContainerPath: /data
@@ -380,6 +425,9 @@ Outputs:
       - HasCertificate
       - !Sub https://${LoadBalancer.DNSName}
       - !Sub http://${LoadBalancer.DNSName}
+  SecureApplicationUrl:
+    Description: HTTPS URL required for in-browser microphone recording.
+    Value: !Sub https://${HttpsDistribution.DomainName}
   ClusterName:
     Value: !Ref Cluster
   ServiceName:

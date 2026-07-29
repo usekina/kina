@@ -19,13 +19,13 @@ The initial stack runs in staging mode:
 
 - a user enters an email and six-digit code on the same page;
 - no password is created or remembered;
-- OpenAI is not configured;
+- OpenAI is connected only to anonymous score trends and curated actions;
 - no domain or certificate is required; and
 - the ALB supplies a temporary stable HTTP URL.
 
 During private infrastructure testing, the code can appear on screen. Before
 sharing the URL, connect Amazon SES so the code is delivered to the entered
-email and each verified email receives up to two analyses per day.
+email and each verified email receives up to three analyses per day.
 
 ## Deploy
 

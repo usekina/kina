@@ -29,8 +29,22 @@ changelog.
 - A de-identified longitudinal research CSV export and a separate restricted
   user-management export.
 - AWS Secrets Manager protection for the research-admin access key.
+- A data-minimized OpenAI Responses API connection using structured output,
+  anonymous score histories, curated actions, and no response storage.
+- Returning-user profile restoration with name-based greeting.
+- Private age-range and gender fields plus aggregate profile counts for the
+  research admin view.
+- In-page browser microphone recording and a local four-dimension expression
+  snapshot available from the first completed reflection.
+- Browser-timezone daily limits with UTC timestamps, local session dates, and
+  one-time correction of legacy UTC-dated sessions.
 
 ### Changed
+
+- Require one explicit daily wellness-habit selection instead of ambiguous
+  independent checkboxes.
+- Present the reflection flow as language, record-or-upload, and analyze steps;
+  keep the eight technical features available in a compact details section.
 
 - Replaced diagnosis-like and cognitive-age language with sample-level,
   descriptive feature language.
@@ -38,6 +52,8 @@ changelog.
   recording, analyze, and review results.
 - Replaced percentage-like score rendering with mobile-friendly cards showing
   explicit `0–100` sample feature scores.
+- Increased the daily reflection limit from two to three so a user can unlock
+  the first personal trend chart in one day.
 - Separated the current implementation in `aoi_kinabot_app/` from historical
   exploratory files elsewhere in the repository.
 

@@ -24,7 +24,7 @@ disease risk, estimate cognitive age, or replace professional care.
 5. After three or more sessions, see personal trends and changes.
 6. Receive a small, practical daily wellness action when appropriate.
 
-The pilot allows up to two analyses per verified email per day. Users do not
+The pilot allows up to three analyses per verified email per day. Users do not
 create or remember a password.
 
 ## Core NLP Work

@@ -123,18 +123,51 @@ def generate_wellness_insight(history: list[dict[str, Any]], language: str) -> d
     allowed = ACTIONS.get(language, ACTIONS["English"])
     prompt = {
         "task": (
-            "Choose exactly one allowed action and return its zero-based action_index. "
-            "Write one short encouraging sentence in the requested language. Do not "
-            "diagnose, infer cognitive decline, claim causation, or add medical advice."
+            "Choose exactly one allowed action that is most useful for the repeated "
+            "longitudinal pattern. Return its zero-based action_index and one short, "
+            "plain-language encouragement sentence in the requested language."
         ),
         "anonymous_kina_scores": payload,
         "allowed_actions": allowed,
-        "response_schema": {"action_index": 0, "encouragement": "short sentence"},
     }
     try:
         response = OpenAI().responses.create(
             model=OPENAI_INSIGHT_MODEL,
+            instructions=(
+                "You write general cognitive-wellness habit information for KinaBot. "
+                "Use only the supplied anonymous sample-score history and choose only "
+                "from the supplied action list. Never diagnose, infer cognitive decline, "
+                "claim that a habit will repair a score, claim causation, recommend "
+                "medical treatment, or introduce a new action. State the useful action "
+                "directly without filler."
+            ),
             input=json.dumps(prompt, ensure_ascii=False),
+            reasoning={"effort": "low"},
+            text={
+                "verbosity": "low",
+                "format": {
+                    "type": "json_schema",
+                    "name": "kinabot_wellness_insight",
+                    "strict": True,
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "action_index": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": len(allowed) - 1,
+                            },
+                            "encouragement": {
+                                "type": "string",
+                                "maxLength": 300,
+                            },
+                        },
+                        "required": ["action_index", "encouragement"],
+                        "additionalProperties": False,
+                    },
+                },
+            },
+            store=False,
         )
         parsed = json.loads(response.output_text)
         index = max(0, min(len(allowed) - 1, int(parsed.get("action_index", 0))))

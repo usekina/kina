@@ -19,10 +19,12 @@ from config import (
     SCORING_MODEL_VERSION,
 )
 from database import (
+    assign_timezone_to_legacy_sessions,
     count_tests_today,
     create_test_session,
     get_admin_metrics,
     get_user_habit_checkins,
+    get_user_profile,
     get_user_scores,
     init_db,
     list_admin_test_records,
@@ -37,17 +39,21 @@ from database import (
 from email_delivery import send_verification_email
 from insight_service import generate_wellness_insight
 from language_analysis import LANGUAGE_CODES, analyze_transcript
+from local_time import local_date_iso
 from speech_to_text import (
     LOCAL_TRANSCRIPTION_TYPES,
     speech_to_text_configured,
     transcribe_audio_upload,
 )
 from scoring import display_feature_name
+from reflection_profile import build_reflection_profile
 from wellness_guidance import wellness_suggestions
 
 
 st.set_page_config(page_title="KinaBot", page_icon="🎙️", layout="centered")
 init_db()
+browser_timezone = st.context.timezone or "UTC"
+today = local_date_iso(browser_timezone)
 
 st.markdown(
     """
@@ -88,6 +94,24 @@ st.markdown(
         color: rgba(49, 51, 63, 0.72);
         font-size: 0.9rem; line-height: 1.45; margin-top: 0.55rem;
     }
+    .snapshot-card {
+        padding: 0.9rem 1rem; margin: 0.35rem 0;
+        border: 1px solid #f4d4c3; border-radius: 1rem;
+        background: linear-gradient(145deg, #fff7f1, #ffffff);
+    }
+    .snapshot-card__top {
+        display: flex; justify-content: space-between; align-items: center;
+    }
+    .snapshot-card__label {font-weight: 700; color: #303642;}
+    .snapshot-card__value {font-size: 1.25rem; font-weight: 750; color: #e65f3c;}
+    .snapshot-card__track {
+        height: 0.45rem; background: #f5e4dc; border-radius: 99px;
+        overflow: hidden; margin-top: 0.65rem;
+    }
+    .snapshot-card__fill {
+        height: 100%; background: linear-gradient(90deg, #f28a5c, #e55438);
+        border-radius: 99px;
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -108,6 +132,8 @@ if "code_sent" not in st.session_state:
     st.session_state.code_sent = False
 if "staging_code" not in st.session_state:
     st.session_state.staging_code = ""
+if "profile" not in st.session_state:
+    st.session_state.profile = None
 if not st.session_state.verified:
     st.subheader("Start")
     st.caption("Enter an email to keep your scores and history together.")
@@ -154,6 +180,8 @@ if not st.session_state.verified:
                     email_hash,
                     email=st.session_state.email,
                 )
+                profile = get_user_profile(st.session_state.user_id)
+                st.session_state.profile = dict(profile) if profile else {}
                 st.session_state.verified = True
                 st.session_state.staging_code = ""
                 st.rerun()
@@ -177,6 +205,34 @@ if ADMIN_KEY:
             research_df = pd.DataFrame(
                 [dict(row) for row in list_research_records()]
             )
+            if not users_df.empty:
+                with st.expander("Participant profile summary"):
+                    summary_rows = []
+                    for field, label in [
+                        ("age_range", "Age range"),
+                        ("gender", "Gender"),
+                        ("primary_language", "Primary language"),
+                        ("country_region", "Country / region"),
+                    ]:
+                        counts = (
+                            users_df[field]
+                            .fillna("Not provided")
+                            .replace("", "Not provided")
+                            .value_counts()
+                        )
+                        summary_rows.extend(
+                            {
+                                "field": label,
+                                "value": value,
+                                "users": int(count),
+                            }
+                            for value, count in counts.items()
+                        )
+                    st.dataframe(
+                        pd.DataFrame(summary_rows),
+                        hide_index=True,
+                        width="stretch",
+                    )
 
             st.download_button(
                 "Download research CSV",
@@ -204,35 +260,103 @@ if ADMIN_KEY:
             st.warning("Invalid admin key.")
 
 
-with st.expander("Account"):
+if st.session_state.profile is None:
+    profile = get_user_profile(st.session_state.user_id)
+    st.session_state.profile = dict(profile) if profile else {}
+
+profile = st.session_state.profile
+saved_name = (profile.get("display_name") or "").strip()
+age_options = ["Prefer not to say", "Under 30", "30-44", "45-59", "60-74", "75+"]
+gender_options = ["Prefer not to say", "Woman", "Man", "Non-binary", "Self-describe"]
+language_options = [
+    "Prefer not to say",
+    "English",
+    "Japanese",
+    "Chinese",
+    "Spanish",
+    "Other",
+]
+
+if saved_name:
+    st.markdown(f"### Welcome back, {saved_name}")
+
+profile_complete = bool(
+    saved_name and profile.get("age_range") and profile.get("gender")
+)
+with st.expander(
+    "Account settings" if profile_complete else "Complete your account",
+    expanded=not profile_complete,
+):
     st.caption(st.session_state.email)
-    display_name = st.text_input("Name", placeholder="Your name")
+    display_name = st.text_input(
+        "Name",
+        value=saved_name,
+        placeholder="Your name",
+    )
     age_range = st.selectbox(
-        "Age range (optional)",
-        ["Prefer not to say", "Under 30", "30-44", "45-59", "60-74", "75+"],
+        "Age range",
+        age_options,
+        index=(
+            age_options.index(profile.get("age_range"))
+            if profile.get("age_range") in age_options
+            else None
+        ),
+        placeholder="Select an age range",
+    )
+    gender = st.selectbox(
+        "Gender",
+        gender_options,
+        index=(
+            gender_options.index(profile.get("gender"))
+            if profile.get("gender") in gender_options
+            else None
+        ),
+        placeholder="Select a gender option",
     )
     primary_language = st.selectbox(
         "Primary language (optional)",
-        ["Prefer not to say", "English", "Japanese", "Chinese", "Spanish", "Other"],
+        language_options,
+        index=(
+            language_options.index(profile.get("primary_language"))
+            if profile.get("primary_language") in language_options
+            else 0
+        ),
     )
-    country_region = st.text_input("Country / region (optional)", placeholder="Example: US")
+    country_region = st.text_input(
+        "Country / region (optional)",
+        value=profile.get("country_region") or "",
+        placeholder="Example: US",
+    )
     if st.button("Save account"):
-        update_user_profile(
-            st.session_state.user_id,
-            display_name.strip() or None,
-            None if age_range == "Prefer not to say" else age_range,
-            None if primary_language == "Prefer not to say" else primary_language,
-            country_region.strip() or None,
-        )
-        st.success("Account saved.")
+        if not display_name.strip() or age_range is None or gender is None:
+            st.error("Please enter your name and select age range and gender.")
+        else:
+            update_user_profile(
+                st.session_state.user_id,
+                display_name.strip(),
+                age_range,
+                gender,
+                None if primary_language == "Prefer not to say" else primary_language,
+                country_region.strip() or None,
+            )
+            refreshed_profile = get_user_profile(st.session_state.user_id)
+            st.session_state.profile = dict(refreshed_profile) if refreshed_profile else {}
+            st.success("Account saved.")
+            st.rerun()
+
+if not profile_complete:
+    st.info("Complete your account once. KinaBot will remember it for future visits.")
+    st.stop()
 
 st.markdown(
     """
     <div class="privacy-card">
       <strong>Your recording is not saved.</strong><br>
       Your selected file is processed privately on the KinaBot server with local Python,
-      then the temporary copy is deleted. It is not sent to OpenAI. KinaBot stores your account, scores, usage
-      history, and optional habit check-ins—not the raw audio or full transcript.
+      then the temporary copy is deleted. Raw audio and full transcripts are not
+      sent to OpenAI. After three sessions, only anonymous score history may be
+      used to select a general wellness action. KinaBot stores your account, scores,
+      usage history, and optional habit check-ins—not the raw audio or full transcript.
     </div>
     """,
     unsafe_allow_html=True,
@@ -248,11 +372,14 @@ if not consent:
 
 record_consent(st.session_state.user_id, CONSENT_VERSION)
 
-today = date.today().isoformat()
+assign_timezone_to_legacy_sessions(st.session_state.user_id, browser_timezone)
 tests_today = count_tests_today(st.session_state.user_id, today)
 remaining = MAX_TESTS_PER_DAY - tests_today
 if remaining <= 0:
-    st.info("You have completed today's two reflections. Come back tomorrow.")
+    st.info(
+        f"You have completed today's {MAX_TESTS_PER_DAY} reflections. "
+        "Come back tomorrow."
+    )
     st.stop()
 
 st.subheader("New reflection")
@@ -261,37 +388,49 @@ language = st.radio(
     "1 · Choose the language spoken",
     ["English", "日本語", "中文"],
     horizontal=True,
-    help="Choose the language actually spoken in the uploaded recording.",
+    help="Choose the language you will speak in this recording.",
 )
 
 session_type = "Daily reflection"
-
-uploaded_audio = st.file_uploader(
-    "2 · Choose a recording from your phone or computer",
-    type=SUPPORTED_AUDIO_TYPES,
-    help="Supported local test formats: WAV, MP3, M4A, AAC, OGG, FLAC.",
+audio_method = st.radio(
+    "2 · Add your voice",
+    ["Record now", "Upload a recording"],
+    horizontal=True,
+    help="Record directly in the page, or use an audio file you already have.",
 )
 
-if uploaded_audio is not None:
-    st.audio(uploaded_audio)
-    st.caption(
-        f"Selected file: {uploaded_audio.name} "
-        f"({uploaded_audio.size / 1024:.1f} KB). Raw audio will not be stored by this app."
+if audio_method == "Record now":
+    selected_audio = st.audio_input(
+        "Tap the microphone, speak for 30–90 seconds, then stop",
     )
-    audio_extension = uploaded_audio.name.rsplit(".", 1)[-1].lower()
+    if selected_audio is None:
+        st.caption("Your browser may ask for microphone permission the first time.")
+else:
+    selected_audio = st.file_uploader(
+        "Choose a recording from your phone or computer",
+        type=SUPPORTED_AUDIO_TYPES,
+        help="Supported formats: WAV, MP3, M4A, AAC, OGG, and FLAC.",
+    )
+
+if selected_audio is not None:
+    st.audio(selected_audio)
+    st.caption(
+        f"Ready: {selected_audio.name} "
+        f"({selected_audio.size / 1024:.1f} KB). Raw audio will not be stored."
+    )
+    audio_extension = selected_audio.name.rsplit(".", 1)[-1].lower()
     can_transcribe = audio_extension in LOCAL_TRANSCRIPTION_TYPES
     if not can_transcribe:
         st.info(
-            "This file can be uploaded for local flow testing, but automatic transcription supports "
-            "MP3, MP4, MPEG, MPGA, M4A, WAV, and WEBM."
+            "Automatic transcription supports MP3, MP4, MPEG, MPGA, M4A, WAV, and WEBM."
         )
 st.caption(f"{max(0, remaining)} of {MAX_TESTS_PER_DAY} reflections available today")
-if st.button("3 · Analyze", type="primary", use_container_width=True):
-    if uploaded_audio is None:
-        st.warning("Upload a speech audio file first.")
-    elif uploaded_audio.size > MAX_AUDIO_BYTES:
+if st.button("3 · Analyze my reflection", type="primary", use_container_width=True):
+    if selected_audio is None:
+        st.warning("Record or upload a speech sample first.")
+    elif selected_audio.size > MAX_AUDIO_BYTES:
         st.warning(f"Audio must be {MAX_AUDIO_BYTES // (1024 * 1024)} MB or smaller.")
-    elif uploaded_audio.name.rsplit(".", 1)[-1].lower() not in LOCAL_TRANSCRIPTION_TYPES:
+    elif selected_audio.name.rsplit(".", 1)[-1].lower() not in LOCAL_TRANSCRIPTION_TYPES:
         st.warning("Use MP3, MP4, MPEG, MPGA, M4A, WAV, or WEBM for automatic analysis.")
     else:
         with st.status("Processing your recording…", expanded=True) as analysis_status:
@@ -302,8 +441,8 @@ if st.button("3 · Analyze", type="primary", use_container_width=True):
                 detected_duration,
                 acoustic_metrics,
             ) = transcribe_audio_upload(
-                uploaded_audio,
-                uploaded_audio.name,
+                selected_audio,
+                selected_audio.name,
                 LANGUAGE_CODES[language],
             )
             if not transcribed:
@@ -318,7 +457,7 @@ if st.button("3 · Analyze", type="primary", use_container_width=True):
                 detected_duration,
                 acoustic_metrics,
             )
-            audio_metadata = accept_audio_upload(uploaded_audio, uploaded_audio.name)
+            audio_metadata = accept_audio_upload(selected_audio, selected_audio.name)
             session_number = tests_today + 1
             test_session_id = create_test_session(
                 user_id=st.session_state.user_id,
@@ -330,6 +469,7 @@ if st.button("3 · Analyze", type="primary", use_container_width=True):
                 session_type=session_type,
                 language=language,
                 duration_seconds=detected_duration or audio_metadata["duration_seconds"],
+                timezone_name=browser_timezone,
             )
             save_feature_scores(test_session_id, scores)
             analysis_status.update(label="Analysis complete", state="complete", expanded=False)
@@ -358,27 +498,51 @@ if st.button("3 · Analyze", type="primary", use_container_width=True):
             },
         }[language]
         st.success(result_copy["saved"])
-        st.info(session_summary)
-        st.markdown(f"### {result_copy['title']}")
+        snapshot = build_reflection_profile(scores, language)
+        st.markdown(f"### {snapshot['title']}")
+        st.caption(snapshot["subtitle"])
+        snapshot_columns = st.columns(2)
+        for index, dimension in enumerate(snapshot["dimensions"]):
+            score = int(dimension["score"])
+            with snapshot_columns[index % 2]:
+                st.markdown(
+                    f"""
+                    <div class="snapshot-card">
+                      <div class="snapshot-card__top">
+                        <span class="snapshot-card__label">{dimension["label"]}</span>
+                        <span class="snapshot-card__value">{score}</span>
+                      </div>
+                      <div class="snapshot-card__track">
+                        <div class="snapshot-card__fill" style="width:{score}%"></div>
+                      </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+        st.markdown(f"#### {snapshot['takeaway_title']}")
+        st.write(snapshot["takeaway"])
+        st.markdown(f"#### {snapshot['action_title']}")
+        st.info(snapshot["action"])
         st.caption(result_copy["scale"])
-        for item in scores:
-            score = int(round(float(item["score"])))
-            label = display_feature_name(item["feature_name"], language)
-            st.markdown(
-                f"""
-                <div class="score-card">
-                  <div class="score-card__top">
-                    <span class="score-card__name">{label}</span>
-                    <span class="score-card__value">{score} / 100</span>
-                  </div>
-                  <div class="score-card__track">
-                    <div class="score-card__fill" style="width:{score}%"></div>
-                  </div>
-                  <div class="score-card__explanation">{item["explanation"]}</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+        with st.expander(snapshot["detail_label"]):
+            for item in scores:
+                score = int(round(float(item["score"])))
+                label = display_feature_name(item["feature_name"], language)
+                st.markdown(
+                    f"""
+                    <div class="score-card">
+                      <div class="score-card__top">
+                        <span class="score-card__name">{label}</span>
+                        <span class="score-card__value">{score} / 100</span>
+                      </div>
+                      <div class="score-card__track">
+                        <div class="score-card__fill" style="width:{score}%"></div>
+                      </div>
+                      <div class="score-card__explanation">{item["explanation"]}</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
         st.caption(result_copy["boundary"])
 
 st.subheader("Your history")
@@ -425,19 +589,30 @@ else:
         st.caption(f"{insight['why']} [Research source]({insight['source']})")
         st.caption(insight["boundary"])
 
-st.subheader("Optional wellness habits")
+st.subheader("Today's wellness habit")
 habit_copy = wellness_suggestions(language, [])
 st.caption(
-    "Optional habit tracking is separate from speech scores. KinaBot does not claim "
+    "Choose the one habit that best matches today. Habit tracking is separate from "
+    "speech scores. KinaBot does not claim "
     "that a habit caused any score or sample change."
 )
-habit_values = {
-    habit_name: st.checkbox(label, key=f"habit_{today}_{habit_name}")
-    for habit_name, label in habit_copy["habit_labels"].items()
-}
+habit_labels = habit_copy["habit_labels"]
+selected_habit_label = st.radio(
+    "Select one",
+    list(habit_labels.values()),
+    index=None,
+    key=f"habit_{today}",
+)
 if st.button("Save today's habit check-in"):
-    save_habit_checkins(st.session_state.user_id, today, habit_values)
-    st.success("Today's optional wellness habits were saved.")
+    if selected_habit_label is None:
+        st.error("Please select one habit.")
+    else:
+        selected_habit = next(
+            name for name, label in habit_labels.items() if label == selected_habit_label
+        )
+        habit_values = {name: name == selected_habit for name in habit_labels}
+        save_habit_checkins(st.session_state.user_id, today, habit_values)
+        st.success("Today's wellness habit was saved.")
 
 habit_rows = get_user_habit_checkins(st.session_state.user_id)
 if habit_rows:

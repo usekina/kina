@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Iterable
 
 from config import DATABASE_PATH
+from local_time import utc_iso_to_local_date
 
 
 def utc_now_iso() -> str:
@@ -38,8 +39,10 @@ def init_db() -> None:
                 email TEXT,
                 display_name TEXT,
                 age_range TEXT,
+                gender TEXT,
                 primary_language TEXT,
                 country_region TEXT,
+                timezone_name TEXT,
                 created_at TEXT NOT NULL,
                 last_active_at TEXT
             );
@@ -69,6 +72,7 @@ def init_db() -> None:
                 session_type TEXT,
                 language TEXT,
                 duration_seconds REAL,
+                timezone_name TEXT,
                 app_version TEXT NOT NULL,
                 consent_version TEXT NOT NULL,
                 scoring_model_version TEXT NOT NULL,
@@ -103,11 +107,14 @@ def init_db() -> None:
         ensure_column(conn, "users", "email", "TEXT")
         ensure_column(conn, "users", "display_name", "TEXT")
         ensure_column(conn, "users", "age_range", "TEXT")
+        ensure_column(conn, "users", "gender", "TEXT")
         ensure_column(conn, "users", "primary_language", "TEXT")
         ensure_column(conn, "users", "country_region", "TEXT")
+        ensure_column(conn, "users", "timezone_name", "TEXT")
         ensure_column(conn, "test_sessions", "session_type", "TEXT")
         ensure_column(conn, "test_sessions", "language", "TEXT")
         ensure_column(conn, "test_sessions", "duration_seconds", "REAL")
+        ensure_column(conn, "test_sessions", "timezone_name", "TEXT")
 
 
 def upsert_user(email_hash: str, email: str | None = None) -> int:
@@ -131,10 +138,24 @@ def upsert_user(email_hash: str, email: str | None = None) -> int:
         return int(row["id"])
 
 
+def get_user_profile(user_id: int) -> sqlite3.Row | None:
+    with get_connection() as conn:
+        return conn.execute(
+            """
+            SELECT id, email, display_name, age_range, gender, primary_language,
+                   country_region, timezone_name
+            FROM users
+            WHERE id = ?
+            """,
+            (user_id,),
+        ).fetchone()
+
+
 def update_user_profile(
     user_id: int,
     display_name: str | None,
     age_range: str | None,
+    gender: str | None,
     primary_language: str | None,
     country_region: str | None,
 ) -> None:
@@ -142,13 +163,14 @@ def update_user_profile(
         conn.execute(
             """
             UPDATE users
-            SET display_name = ?, age_range = ?, primary_language = ?,
+            SET display_name = ?, age_range = ?, gender = ?, primary_language = ?,
                 country_region = ?, last_active_at = ?
             WHERE id = ?
             """,
             (
                 display_name,
                 age_range,
+                gender,
                 primary_language,
                 country_region,
                 utc_now_iso(),
@@ -223,6 +245,54 @@ def count_tests_today(user_id: int, session_date: str) -> int:
         return int(row["count"])
 
 
+def assign_timezone_to_legacy_sessions(user_id: int, timezone_name: str) -> int:
+    """Rebucket legacy UTC-dated sessions once using the user's browser zone."""
+    with get_connection() as conn:
+        conn.execute(
+            "UPDATE users SET timezone_name = ?, last_active_at = ? WHERE id = ?",
+            (timezone_name, utc_now_iso(), user_id),
+        )
+        rows = conn.execute(
+            """
+            SELECT id, created_at
+            FROM test_sessions
+            WHERE user_id = ?
+              AND (timezone_name IS NULL OR timezone_name = '')
+            ORDER BY created_at ASC, id ASC
+            """,
+            (user_id,),
+        ).fetchall()
+        for row in rows:
+            local_date = utc_iso_to_local_date(row["created_at"], timezone_name)
+            conn.execute(
+                """
+                UPDATE test_sessions
+                SET session_date = ?, timezone_name = ?
+                WHERE id = ?
+                """,
+                (local_date, timezone_name, row["id"]),
+            )
+
+        dated_rows = conn.execute(
+            """
+            SELECT id, session_date
+            FROM test_sessions
+            WHERE user_id = ?
+            ORDER BY session_date ASC, created_at ASC, id ASC
+            """,
+            (user_id,),
+        ).fetchall()
+        counters: dict[str, int] = {}
+        for row in dated_rows:
+            session_date = str(row["session_date"])
+            counters[session_date] = counters.get(session_date, 0) + 1
+            conn.execute(
+                "UPDATE test_sessions SET session_number = ? WHERE id = ?",
+                (counters[session_date], row["id"]),
+            )
+        return len(rows)
+
+
 def create_test_session(
     user_id: int,
     session_date: str,
@@ -233,15 +303,16 @@ def create_test_session(
     session_type: str | None = None,
     language: str | None = None,
     duration_seconds: float | None = None,
+    timezone_name: str | None = None,
 ) -> int:
     with get_connection() as conn:
         cursor = conn.execute(
             """
             INSERT INTO test_sessions
                 (user_id, session_date, session_number, session_type, language,
-                 duration_seconds, app_version, consent_version,
+                 duration_seconds, timezone_name, app_version, consent_version,
                  scoring_model_version, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 user_id,
@@ -250,6 +321,7 @@ def create_test_session(
                 session_type,
                 language,
                 duration_seconds,
+                timezone_name,
                 app_version,
                 consent_version,
                 scoring_model_version,
@@ -353,8 +425,8 @@ def list_admin_users() -> list[sqlite3.Row]:
     with get_connection() as conn:
         return conn.execute(
             """
-            SELECT id, email, display_name, age_range, primary_language,
-                   country_region, created_at, last_active_at
+            SELECT id, email, display_name, age_range, gender, primary_language,
+                   country_region, timezone_name, created_at, last_active_at
             FROM users
             ORDER BY created_at DESC
             """
@@ -369,6 +441,7 @@ def list_admin_test_records() -> list[sqlite3.Row]:
                 u.email,
                 u.display_name,
                 u.age_range,
+                u.gender,
                 u.primary_language,
                 u.country_region,
                 ts.created_at,
@@ -376,6 +449,7 @@ def list_admin_test_records() -> list[sqlite3.Row]:
                 ts.session_type,
                 ts.language,
                 ts.duration_seconds,
+                ts.timezone_name,
                 fs.feature_name,
                 fs.score,
                 fs.raw_metric
@@ -395,6 +469,7 @@ def list_research_records() -> list[sqlite3.Row]:
             SELECT
                 printf('P%06d', u.id) AS participant_id,
                 u.age_range,
+                u.gender,
                 u.primary_language,
                 u.country_region,
                 ts.id AS session_id,
@@ -404,6 +479,7 @@ def list_research_records() -> list[sqlite3.Row]:
                 ts.session_type,
                 ts.language,
                 ts.duration_seconds,
+                ts.timezone_name,
                 ts.app_version,
                 ts.consent_version,
                 ts.scoring_model_version,

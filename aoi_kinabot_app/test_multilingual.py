@@ -1,7 +1,10 @@
 from pathlib import Path
+from datetime import datetime, timezone
 
 import database
 from language_analysis import LANGUAGE_CODES, analyze_transcript
+from local_time import local_date_iso
+from reflection_profile import build_reflection_profile
 from insight_service import anonymous_trend_payload, generate_wellness_insight
 from scoring import calculate_feature_scores, display_feature_name, tokenize
 from speech_to_text import calculate_pause_metrics
@@ -30,6 +33,28 @@ def test_local_nlp_scores_multilingual():
         assert summary
 
 
+def test_first_session_snapshot_is_local_and_language_matched():
+    scores = [
+        {"feature_name": name, "score": 70}
+        for name in [
+            "Vocabulary Variety",
+            "Response Length",
+            "Sentence Complexity",
+            "Speech Pace",
+            "Pause Pattern",
+            "Repetition Pattern",
+            "Emotional Tone",
+            "Transcription Clarity",
+        ]
+    ]
+    for language in ["English", "日本語", "中文"]:
+        snapshot = build_reflection_profile(scores, language)
+        assert len(snapshot["dimensions"]) == 4
+        assert all(item["score"] == 70 for item in snapshot["dimensions"])
+        assert snapshot["takeaway"]
+        assert snapshot["action"]
+
+
 def test_wellness_menu_is_not_selected_from_scores():
     low = wellness_suggestions("English", [{"feature_name": "Expression Variety", "score": 5}])
     high = wellness_suggestions("English", [{"feature_name": "Expression Variety", "score": 95}])
@@ -54,6 +79,23 @@ def test_habit_checkins_are_upserted(tmp_path: Path, monkeypatch):
     rows = database.get_user_habit_checkins(user_id)
     values = {row["habit_name"]: row["completed"] for row in rows}
     assert values == {"physical_activity": 1, "social_connection": 0}
+
+
+def test_saved_profile_is_restored_for_returning_user(tmp_path: Path, monkeypatch):
+    monkeypatch.setattr(database, "DATABASE_PATH", tmp_path / "kina.sqlite3")
+    database.init_db()
+    user_id = database.upsert_user("returning-user", "person@example.com")
+    database.update_user_profile(user_id, "Kina", "45-59", "Woman", "Chinese", "US")
+
+    same_user_id = database.upsert_user("returning-user", "person@example.com")
+    profile = database.get_user_profile(same_user_id)
+
+    assert same_user_id == user_id
+    assert profile["display_name"] == "Kina"
+    assert profile["age_range"] == "45-59"
+    assert profile["gender"] == "Woman"
+    assert profile["primary_language"] == "Chinese"
+    assert profile["country_region"] == "US"
 
 
 def test_calculate_feature_scores_accepts_language():
@@ -148,3 +190,35 @@ def test_research_export_excludes_direct_identifiers(tmp_path: Path, monkeypatch
     assert row["participant_id"] == "P000001"
     assert "email" not in row
     assert "display_name" not in row
+
+
+def test_daily_limit_uses_browser_local_midnight(tmp_path: Path, monkeypatch):
+    assert local_date_iso(
+        "America/New_York",
+        datetime(2026, 7, 29, 0, 30, tzinfo=timezone.utc),
+    ) == "2026-07-28"
+
+    monkeypatch.setattr(database, "DATABASE_PATH", tmp_path / "kina.sqlite3")
+    database.init_db()
+    user_id = database.upsert_user("timezone-user", "timezone@example.com")
+    session_id = database.create_test_session(
+        user_id=user_id,
+        session_date="2026-07-29",
+        session_number=1,
+        app_version="test",
+        consent_version="test",
+        scoring_model_version="test",
+    )
+    with database.get_connection() as conn:
+        conn.execute(
+            "UPDATE test_sessions SET created_at = ? WHERE id = ?",
+            ("2026-07-29T00:30:00+00:00", session_id),
+        )
+
+    migrated = database.assign_timezone_to_legacy_sessions(
+        user_id,
+        "America/New_York",
+    )
+    assert migrated == 1
+    assert database.count_tests_today(user_id, "2026-07-28") == 1
+    assert database.count_tests_today(user_id, "2026-07-29") == 0
