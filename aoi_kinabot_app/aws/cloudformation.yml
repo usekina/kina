@@ -243,7 +243,7 @@ Resources:
             - HEAD
             - OPTIONS
           Compress: true
-          CachePolicyId: 413f39a6-2a92-4bd5-9dc2-5f8e2b5a7a2e
+          CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
           OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
 
   ExecutionRole:
