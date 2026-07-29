@@ -24,6 +24,22 @@ intelligence, cognitive status, cognitive decline, disease, or risk.
 
 OpenAI is not involved in transcription or feature scoring.
 
+## Display Scale
+
+KinaBot displays every feature as a **0–100 sample feature score**, for
+example `56 / 100`.
+
+- It is an engineered display index, not a percentage or probability.
+- It is not a percentile or comparison with other users.
+- It is not a health, ability, diagnostic, or risk score.
+- A population-standardized score such as a T-score will not be used unless
+  KinaBot completes an appropriate reference-sample calibration and validation
+  study.
+
+Feature names, explanations, and result boundaries are shown in the language
+selected for the recording. Explanations state the observable feature directly
+and avoid repetitive introductory wording.
+
 ## Language Adapters
 
 | Language | Segmentation | Language-specific inputs |

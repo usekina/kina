@@ -3,7 +3,7 @@ from pathlib import Path
 import database
 from language_analysis import LANGUAGE_CODES, analyze_transcript
 from insight_service import anonymous_trend_payload, generate_wellness_insight
-from scoring import calculate_feature_scores, tokenize
+from scoring import calculate_feature_scores, display_feature_name, tokenize
 from speech_to_text import calculate_pause_metrics
 from wellness_guidance import wellness_suggestions
 
@@ -102,3 +102,49 @@ def test_pause_metrics_and_score_use_timestamps():
     pause = next(item for item in scores if item["feature_name"] == "Pause Pattern")
     assert "pause_analysis=v1_placeholder" not in pause["raw_metric"]
     assert 0 <= pause["score"] <= 100
+
+
+def test_feature_copy_matches_selected_language_and_avoids_filler():
+    cases = [
+        ("English", "Vocabulary variety"),
+        ("日本語", "語彙の多様性"),
+        ("中文", "词汇多样性"),
+    ]
+    for language, expected_label in cases:
+        scores = calculate_feature_scores("今天和朋友聊天，然后散步。", 20, language)
+        first = scores[0]
+        assert display_feature_name(first["feature_name"], language) == expected_label
+        assert not first["explanation"].lower().startswith("this ")
+        assert 0 <= first["score"] <= 100
+
+
+def test_research_export_excludes_direct_identifiers(tmp_path: Path, monkeypatch):
+    monkeypatch.setattr(database, "DATABASE_PATH", tmp_path / "kina.sqlite3")
+    database.init_db()
+    user_id = database.upsert_user("hash-only", email="private@example.com")
+    session_id = database.create_test_session(
+        user_id=user_id,
+        session_date="2026-07-28",
+        session_number=1,
+        app_version="test",
+        consent_version="test",
+        scoring_model_version="test",
+        session_type="Daily reflection",
+        language="中文",
+        duration_seconds=30,
+    )
+    database.save_feature_scores(
+        session_id,
+        [
+            {
+                "feature_name": "Vocabulary Variety",
+                "raw_metric": "ratio=0.5",
+                "score": 50,
+                "explanation": "test",
+            }
+        ],
+    )
+    row = dict(database.list_research_records()[0])
+    assert row["participant_id"] == "P000001"
+    assert "email" not in row
+    assert "display_name" not in row

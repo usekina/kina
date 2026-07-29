@@ -151,6 +151,21 @@ environment variable or AWS Secrets Manager—never in GitHub.
 
 ## Deployment Direction
 
+## Research Admin And Data Export
+
+When `KINABOT_ADMIN_KEY` is configured, a signed-in owner can open
+**Research admin** from the app sidebar. The panel shows user/session counts
+and provides two deliberately separate exports:
+
+- `kinabot_research_YYYY-MM-DD.csv`: de-identified longitudinal records with
+  participant IDs, session metadata, scoring version, raw metrics, and 0–100
+  sample feature scores; and
+- `kinabot_users_private_YYYY-MM-DD.csv`: the private identity/contact list,
+  which must be stored separately with restricted access.
+
+The research export does not contain email addresses, display names, raw
+audio, or full transcripts. Do not upload either production export to GitHub.
+
 The application is packaged for Docker and future 24/7 AWS hosting. Production
 should use HTTPS, a continuously running container service, managed relational
 storage, secrets management, email delivery, health checks, backups, and
