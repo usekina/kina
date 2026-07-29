@@ -12,15 +12,70 @@ from collections import Counter
 from config import SCORING_MODEL_VERSION
 
 
+FEATURE_LABELS = {
+    "en": {
+        "Vocabulary Variety": "Vocabulary variety",
+        "Response Length": "Response length",
+        "Sentence Complexity": "Sentence structure",
+        "Speech Pace": "Speech pace",
+        "Pause Pattern": "Pause pattern",
+        "Repetition Pattern": "Repetition pattern",
+        "Emotional Tone": "Emotional tone",
+        "Transcription Clarity": "Recording clarity",
+    },
+    "ja": {
+        "Vocabulary Variety": "語彙の多様性",
+        "Response Length": "発話量",
+        "Sentence Complexity": "文の構成",
+        "Speech Pace": "話す速さ",
+        "Pause Pattern": "間の取り方",
+        "Repetition Pattern": "繰り返し",
+        "Emotional Tone": "感情表現",
+        "Transcription Clarity": "録音の明瞭さ",
+    },
+    "zh": {
+        "Vocabulary Variety": "词汇多样性",
+        "Response Length": "表达长度",
+        "Sentence Complexity": "句子结构",
+        "Speech Pace": "说话速度",
+        "Pause Pattern": "停顿模式",
+        "Repetition Pattern": "重复模式",
+        "Emotional Tone": "情绪表达",
+        "Transcription Clarity": "录音清晰度",
+    },
+}
+
 FEATURE_EXPLANATIONS = {
-    "Vocabulary Variety": "This reflects word variety in this sample. It is not a diagnosis.",
-    "Response Length": "This reflects the amount of speech captured in this session.",
-    "Sentence Complexity": "This reflects sentence structure and expression style in this sample.",
-    "Speech Pace": "This reflects speaking pace in this sample. Faster or slower is not automatically better or worse.",
-    "Pause Pattern": "This reflects pause patterns during speech. In V1, this may be limited by audio processing quality.",
-    "Repetition Pattern": "This reflects repetition patterns in this sample. It is a communication feature, not a medical conclusion.",
-    "Emotional Tone": "This reflects emotional tone in the language sample. It may be affected by topic, mood, and context.",
-    "Transcription Clarity": "This reflects whether the recording was clear enough for analysis.",
+    "en": {
+        "Vocabulary Variety": "Range of different words used in this recording.",
+        "Response Length": "Amount of speech captured in this recording.",
+        "Sentence Complexity": "Variation and connection within sentence structure.",
+        "Speech Pace": "Speaking speed in this recording; faster or slower is not inherently better.",
+        "Pause Pattern": "Timing and duration of pauses detected in the audio.",
+        "Repetition Pattern": "Frequency of repeated words in this recording.",
+        "Emotional Tone": "Positive and negative wording detected; topic and context can affect this result.",
+        "Transcription Clarity": "How much speech was clear enough for reliable transcription.",
+    },
+    "ja": {
+        "Vocabulary Variety": "今回の録音で使われた言葉の種類の広さです。",
+        "Response Length": "今回の録音で分析できた発話量です。",
+        "Sentence Complexity": "文の長さや接続表現から見た構成の豊かさです。",
+        "Speech Pace": "今回の話す速さです。速い・遅いだけで良し悪しは決まりません。",
+        "Pause Pattern": "音声から検出した間の回数と長さです。",
+        "Repetition Pattern": "今回の録音で同じ言葉が繰り返された頻度です。",
+        "Emotional Tone": "肯定的・否定的な言葉の傾向です。話題や状況に影響されます。",
+        "Transcription Clarity": "音声を安定して文字にできた程度です。",
+    },
+    "zh": {
+        "Vocabulary Variety": "这次录音中使用了多少种不同词语。",
+        "Response Length": "这次录音中可用于分析的表达量。",
+        "Sentence Complexity": "句子长度和连接方式所体现的结构丰富度。",
+        "Speech Pace": "这次录音的说话速度；快慢本身不代表好坏。",
+        "Pause Pattern": "音频中检测到的停顿次数和持续时间。",
+        "Repetition Pattern": "这次录音中相同词语重复出现的频率。",
+        "Emotional Tone": "用词中呈现的积极或消极倾向；话题和情境会影响结果。",
+        "Transcription Clarity": "语音能够被稳定转写和分析的清晰程度。",
+    },
 }
 
 LANGUAGE_ALIASES = {
@@ -55,6 +110,20 @@ EMOTION_WORDS = {
 
 def language_code(language: str) -> str:
     return LANGUAGE_ALIASES.get(language, "en")
+
+
+def display_feature_name(feature_name: str, language: str) -> str:
+    code = language_code(language)
+    return FEATURE_LABELS.get(code, FEATURE_LABELS["en"]).get(
+        feature_name, feature_name
+    )
+
+
+def feature_explanation(feature_name: str, language: str) -> str:
+    code = language_code(language)
+    return FEATURE_EXPLANATIONS.get(code, FEATURE_EXPLANATIONS["en"]).get(
+        feature_name, ""
+    )
 
 
 def clamp_score(value: float) -> float:
@@ -217,7 +286,7 @@ def calculate_feature_scores(
                 "feature_name": feature_name,
                 "score": score,
                 "raw_metric": raw_metric,
-                "explanation": FEATURE_EXPLANATIONS[feature_name],
+                "explanation": feature_explanation(feature_name, language),
                 "scoring_model_version": SCORING_MODEL_VERSION,
             }
         )

@@ -27,6 +27,7 @@ from database import (
     init_db,
     list_admin_test_records,
     list_admin_users,
+    list_research_records,
     record_consent,
     save_feature_scores,
     save_habit_checkins,
@@ -41,6 +42,7 @@ from speech_to_text import (
     speech_to_text_configured,
     transcribe_audio_upload,
 )
+from scoring import display_feature_name
 from wellness_guidance import wellness_suggestions
 
 
@@ -59,6 +61,33 @@ st.markdown(
         margin: 0.5rem 0 1rem;
     }
     .privacy-card strong {color: #238636;}
+    .score-card {
+        padding: 0.9rem 1rem;
+        margin: 0.55rem 0;
+        border: 1px solid rgba(49, 51, 63, 0.14);
+        border-radius: 0.85rem;
+        background: rgba(250, 250, 250, 0.75);
+    }
+    .score-card__top {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 0.45rem;
+    }
+    .score-card__name {font-weight: 650; font-size: 1.02rem;}
+    .score-card__value {font-weight: 750; white-space: nowrap;}
+    .score-card__track {
+        width: 100%; height: 0.42rem; border-radius: 99px;
+        background: rgba(252, 110, 81, 0.15); overflow: hidden;
+    }
+    .score-card__fill {
+        height: 100%; border-radius: 99px; background: #fc6e51;
+    }
+    .score-card__explanation {
+        color: rgba(49, 51, 63, 0.72);
+        font-size: 0.9rem; line-height: 1.45; margin-top: 0.55rem;
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -131,6 +160,48 @@ if not st.session_state.verified:
 
     st.caption("KinaBot is a wellness reflection tool, not a medical device.")
     st.stop()
+
+if ADMIN_KEY:
+    with st.sidebar.expander("Research admin"):
+        st.caption("Private owner access")
+        admin_view_key = st.text_input("Admin key", type="password")
+        if admin_view_key == ADMIN_KEY:
+            metrics = get_admin_metrics()
+            metric_col_1, metric_col_2 = st.columns(2)
+            metric_col_1.metric("Users", metrics["total_users"])
+            metric_col_2.metric("Sessions", metrics["total_tests"])
+            st.caption(f"Active today: {metrics['active_users_today']}")
+
+            users_df = pd.DataFrame([dict(row) for row in list_admin_users()])
+            tests_df = pd.DataFrame([dict(row) for row in list_admin_test_records()])
+            research_df = pd.DataFrame(
+                [dict(row) for row in list_research_records()]
+            )
+
+            st.download_button(
+                "Download research CSV",
+                data=research_df.to_csv(index=False).encode("utf-8-sig"),
+                file_name=f"kinabot_research_{date.today().isoformat()}.csv",
+                mime="text/csv",
+                use_container_width=True,
+                help="De-identified longitudinal records. No email or display name.",
+            )
+            st.download_button(
+                "Download private user list",
+                data=users_df.to_csv(index=False).encode("utf-8-sig"),
+                file_name=f"kinabot_users_private_{date.today().isoformat()}.csv",
+                mime="text/csv",
+                use_container_width=True,
+                help="Contains personal information. Store separately from research data.",
+            )
+            st.markdown("**Recent sessions**")
+            st.dataframe(tests_df.head(100), hide_index=True, width="stretch")
+            st.caption(
+                "Use the de-identified research CSV for analysis. Keep the private "
+                "user list access-restricted and never place it in GitHub."
+            )
+        elif admin_view_key:
+            st.warning("Invalid admin key.")
 
 
 with st.expander("Account"):
@@ -263,21 +334,52 @@ if st.button("3 · Analyze", type="primary", use_container_width=True):
             save_feature_scores(test_session_id, scores)
             analysis_status.update(label="Analysis complete", state="complete", expanded=False)
 
-        st.success(f"Session {session_number} saved. Raw audio and full transcript were not retained.")
-        st.info(session_summary)
-        score_df = pd.DataFrame(scores)[["feature_name", "score", "explanation"]]
-        st.dataframe(
-            score_df,
-            width="stretch",
-            hide_index=True,
-            column_config={
-                "score": st.column_config.ProgressColumn("Score", min_value=0, max_value=100)
+        result_copy = {
+            "English": {
+                "saved": f"Session {session_number} saved. Audio and full transcript were not retained.",
+                "title": "Your sample",
+                "scale": "Each score is a 0–100 sample feature index—not a percentage or health rating.",
+                "boundary": (
+                    "Scores describe this recording only. They do not indicate health, "
+                    "ability, improvement, decline, or risk."
+                ),
             },
-        )
-        st.caption(
-            "Scores describe observable features in this sample only. "
-            "They do not indicate health, ability, improvement, decline, or risk."
-        )
+            "日本語": {
+                "saved": f"セッション{session_number}を保存しました。音声と全文は保存していません。",
+                "title": "今回の結果",
+                "scale": "各スコアは0〜100のサンプル特徴指数です。割合や健康評価ではありません。",
+                "boundary": "スコアは今回の録音だけを表し、健康・能力・改善・低下・リスクを示すものではありません。",
+            },
+            "中文": {
+                "saved": f"第 {session_number} 次记录已保存。语音和完整转写文本均未保留。",
+                "title": "本次结果",
+                "scale": "每项为 0–100 的样本特征分数，不是百分比、健康评分或人群排名。",
+                "boundary": "分数只描述本次录音，不代表健康、能力、改善、下降或风险。",
+            },
+        }[language]
+        st.success(result_copy["saved"])
+        st.info(session_summary)
+        st.markdown(f"### {result_copy['title']}")
+        st.caption(result_copy["scale"])
+        for item in scores:
+            score = int(round(float(item["score"])))
+            label = display_feature_name(item["feature_name"], language)
+            st.markdown(
+                f"""
+                <div class="score-card">
+                  <div class="score-card__top">
+                    <span class="score-card__name">{label}</span>
+                    <span class="score-card__value">{score} / 100</span>
+                  </div>
+                  <div class="score-card__track">
+                    <div class="score-card__fill" style="width:{score}%"></div>
+                  </div>
+                  <div class="score-card__explanation">{item["explanation"]}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        st.caption(result_copy["boundary"])
 
 st.subheader("Your history")
 rows = get_user_scores(st.session_state.user_id)
@@ -348,20 +450,6 @@ if habit_rows:
     st.bar_chart(habit_daily.set_index("checkin_date"))
     st.caption("This chart shows self-reported habit completion only.")
 
-
-if ADMIN_KEY:
-    with st.sidebar.expander("Admin"):
-        admin_view_key = st.text_input("Admin key", type="password")
-        if admin_view_key == ADMIN_KEY:
-            metrics = get_admin_metrics()
-            st.metric("Users", metrics["total_users"])
-            st.metric("Tests", metrics["total_tests"])
-            users_df = pd.DataFrame([dict(row) for row in list_admin_users()])
-            tests_df = pd.DataFrame([dict(row) for row in list_admin_test_records()])
-            st.dataframe(users_df, hide_index=True)
-            st.dataframe(tests_df, hide_index=True)
-        elif admin_view_key:
-            st.warning("Invalid admin key.")
 
 st.divider()
 st.caption(

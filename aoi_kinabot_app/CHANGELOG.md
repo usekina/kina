@@ -24,6 +24,11 @@ changelog.
 - Docker packaging and AWS production architecture documentation.
 - Automated multilingual, privacy-boundary, persistence, and pause-analysis
   tests.
+- Language-matched result labels and concise explanations for English,
+  Japanese, and Chinese.
+- A de-identified longitudinal research CSV export and a separate restricted
+  user-management export.
+- AWS Secrets Manager protection for the research-admin access key.
 
 ### Changed
 
@@ -31,6 +36,8 @@ changelog.
   descriptive feature language.
 - Simplified the primary user journey to sign in, choose a language, select a
   recording, analyze, and review results.
+- Replaced percentage-like score rendering with mobile-friendly cards showing
+  explicit `0–100` sample feature scores.
 - Separated the current implementation in `aoi_kinabot_app/` from historical
   exploratory files elsewhere in the repository.
 

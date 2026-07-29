@@ -222,6 +222,27 @@ Resources:
               - sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Policies:
+        - PolicyName: ReadKinaBotSecrets
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref AdminKeySecret
+
+  AdminKeySecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: kinabot/production/admin-key
+      Description: Private access key for the KinaBot research admin panel.
+      GenerateSecretString:
+        PasswordLength: 32
+        ExcludePunctuation: true
+      Tags:
+        - Key: Application
+          Value: KinaBot
 
   TaskRole:
     Type: AWS::IAM::Role
@@ -292,6 +313,9 @@ Resources:
               Value: "25"
             - Name: HF_HOME
               Value: /models/huggingface
+          Secrets:
+            - Name: KINABOT_ADMIN_KEY
+              ValueFrom: !Ref AdminKeySecret
           MountPoints:
             - SourceVolume: kinabot-data
               ContainerPath: /data

@@ -385,3 +385,34 @@ def list_admin_test_records() -> list[sqlite3.Row]:
             ORDER BY ts.created_at DESC, fs.feature_name ASC
             """
         ).fetchall()
+
+
+def list_research_records() -> list[sqlite3.Row]:
+    """Return a de-identified, analysis-ready longitudinal dataset."""
+    with get_connection() as conn:
+        return conn.execute(
+            """
+            SELECT
+                printf('P%06d', u.id) AS participant_id,
+                u.age_range,
+                u.primary_language,
+                u.country_region,
+                ts.id AS session_id,
+                ts.session_date,
+                ts.created_at,
+                ts.session_number,
+                ts.session_type,
+                ts.language,
+                ts.duration_seconds,
+                ts.app_version,
+                ts.consent_version,
+                ts.scoring_model_version,
+                fs.feature_name,
+                fs.raw_metric,
+                fs.score
+            FROM feature_scores fs
+            JOIN test_sessions ts ON ts.id = fs.test_session_id
+            JOIN users u ON u.id = ts.user_id
+            ORDER BY u.id ASC, ts.created_at ASC, fs.feature_name ASC
+            """
+        ).fetchall()
