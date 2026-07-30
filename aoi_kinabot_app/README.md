@@ -58,6 +58,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) and
 
 Project records:
 
+- [Open knowledge center](docs/README.md)
 - [Changelog](CHANGELOG.md)
 - [Verifiable impact](IMPACT.md)
 - [Founder and maintainership](OWNERSHIP-AND-MAINTAINERSHIP.md)

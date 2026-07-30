@@ -38,6 +38,8 @@ changelog.
   snapshot available from the first completed reflection.
 - Browser-timezone daily limits with UTC timestamps, local session dates, and
   one-time correction of legacy UTC-dated sessions.
+- A public `docs/` knowledge center covering product and UX learnings,
+  engineering lessons, responsible wellness design, and key decisions.
 
 ### Changed
 
