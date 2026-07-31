@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-31 · Multilingual landing experience
+
+- Added a warm, minimal first screen built around the brand line
+  "Your Voice. Your Patterns. Over Time."
+- Added English, Japanese, and Chinese interface selection before sign-in.
+- Localized the first-screen sign-in and verification flow and uses the
+  selected interface language as the initial recording language.
+
 ## 2026-07-31
 
 - Temporarily disabled in-browser recording after unreliable mobile-browser
