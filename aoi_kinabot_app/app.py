@@ -60,6 +60,42 @@ st.markdown(
     <style>
     .block-container {max-width: 760px; padding-top: 2rem; padding-bottom: 4rem;}
     h1 {letter-spacing: -0.04em;}
+    .kinabot-hero {
+        padding: 2.6rem 0 1.45rem;
+        text-align: center;
+    }
+    .kinabot-hero__brand {
+        color: #e65f3c;
+        font-size: 0.8rem;
+        font-weight: 750;
+        letter-spacing: 0.16em;
+        margin-bottom: 1rem;
+        text-transform: uppercase;
+    }
+    .kinabot-hero__title {
+        color: #252832;
+        font-size: clamp(2.45rem, 7vw, 4.4rem);
+        font-weight: 780;
+        letter-spacing: -0.055em;
+        line-height: 1.02;
+        margin: 0 auto;
+        max-width: 720px;
+    }
+    .kinabot-hero__subtitle {
+        color: rgba(49, 51, 63, 0.68);
+        font-size: 1.05rem;
+        line-height: 1.65;
+        margin: 1.2rem auto 0;
+        max-width: 600px;
+    }
+    .kinabot-language-label {
+        color: rgba(49, 51, 63, 0.62);
+        font-size: 0.88rem;
+        font-weight: 650;
+        letter-spacing: 0.02em;
+        margin: 0.25rem 0 0.2rem;
+        text-align: center;
+    }
     .privacy-card {
         padding: 0.9rem 1rem; border-radius: 0.8rem;
         background: rgba(46, 160, 67, 0.08);
@@ -117,8 +153,80 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.title("KinaBot")
-st.caption("A simple reflection on one voice sample · English · 日本語 · 中文")
+LANDING_COPY = {
+    "English": {
+        "title": "Your Voice. Your Patterns. Over Time.",
+        "subtitle": (
+            "A private, multilingual reflection on how you express yourself—"
+            "one short voice sample at a time."
+        ),
+        "language": "Choose your language",
+        "start": "Start",
+        "login_caption": "Enter your email to keep your reflections together.",
+        "email": "Email",
+        "send_code": "Send code",
+        "code": "6-digit code",
+        "continue": "Continue",
+        "invalid_email": "Enter a valid email address.",
+        "email_unavailable": "Email delivery is unavailable. Please try again later.",
+        "invalid_code": "Invalid or expired code.",
+        "disclaimer": "KinaBot is a non-medical wellness reflection tool.",
+    },
+    "日本語": {
+        "title": "あなたの声。あなたのパターン。時間とともに。",
+        "subtitle": "短い音声から、日々の話し方をプライベートに振り返ります。",
+        "language": "表示言語を選択",
+        "start": "はじめる",
+        "login_caption": "メールアドレスで振り返りの記録をまとめます。",
+        "email": "メールアドレス",
+        "send_code": "認証コードを送信",
+        "code": "6桁の認証コード",
+        "continue": "次へ",
+        "invalid_email": "有効なメールアドレスを入力してください。",
+        "email_unavailable": "現在メールを送信できません。後でもう一度お試しください。",
+        "invalid_code": "認証コードが無効か、有効期限が切れています。",
+        "disclaimer": "KinaBotは医療機器ではなく、日常のウェルネス振り返りツールです。",
+    },
+    "中文": {
+        "title": "你的声音。你的表达。随时间看见变化。",
+        "subtitle": "用一段简短语音，私密、轻松地记录自己的表达特点。",
+        "language": "选择界面语言",
+        "start": "开始",
+        "login_caption": "输入邮箱，让每次记录连续保存。",
+        "email": "邮箱",
+        "send_code": "发送验证码",
+        "code": "6位验证码",
+        "continue": "继续",
+        "invalid_email": "请输入有效的邮箱地址。",
+        "email_unavailable": "暂时无法发送邮件，请稍后重试。",
+        "invalid_code": "验证码无效或已过期。",
+        "disclaimer": "KinaBot是非医疗的日常认知健康反思工具。",
+    },
+}
+
+if "ui_language" not in st.session_state:
+    st.session_state.ui_language = "English"
+
+copy = LANDING_COPY[st.session_state.ui_language]
+st.markdown(
+    f"""
+    <section class="kinabot-hero">
+      <div class="kinabot-hero__brand">KinaBot</div>
+      <div class="kinabot-hero__title">{copy['title']}</div>
+      <div class="kinabot-hero__subtitle">{copy['subtitle']}</div>
+    </section>
+    <div class="kinabot-language-label">{copy['language']}</div>
+    """,
+    unsafe_allow_html=True,
+)
+st.radio(
+    "Language / 言語 / 语言",
+    ["English", "日本語", "中文"],
+    horizontal=True,
+    key="ui_language",
+    label_visibility="collapsed",
+)
+copy = LANDING_COPY[st.session_state.ui_language]
 
 if "email" not in st.session_state:
     st.session_state.email = ""
@@ -135,11 +243,13 @@ if "staging_code" not in st.session_state:
 if "profile" not in st.session_state:
     st.session_state.profile = None
 if not st.session_state.verified:
-    st.subheader("Start")
-    st.caption("Enter an email to keep your scores and history together.")
-    email = st.text_input("Email", value=st.session_state.email)
+    st.subheader(copy["start"])
+    st.caption(copy["login_caption"])
+    email = st.text_input(copy["email"], value=st.session_state.email)
     if not st.session_state.code_sent:
-        send_code = st.button("Send code", type="primary", use_container_width=True)
+        send_code = st.button(
+            copy["send_code"], type="primary", use_container_width=True
+        )
     else:
         send_code = False
     if send_code:
@@ -150,7 +260,7 @@ if not st.session_state.verified:
             or normalized_email.startswith("@")
             or normalized_email.endswith("@")
         ):
-            st.error("Enter a valid email address.")
+            st.error(copy["invalid_email"])
         else:
             st.session_state.email = normalized_email
             _, code = create_local_verification_code(normalized_email)
@@ -163,17 +273,17 @@ if not st.session_state.verified:
                 st.session_state.code_sent = True
                 st.session_state.staging_code = code
             else:
-                st.error("Email delivery is unavailable. Please try again later.")
+                st.error(copy["email_unavailable"])
             st.rerun()
 
     if st.session_state.code_sent:
         if st.session_state.staging_code:
             st.info(f"Private staging code: {st.session_state.staging_code}")
-        code = st.text_input("6-digit code", max_chars=6)
-        if st.button("Continue", type="primary", use_container_width=True):
+        code = st.text_input(copy["code"], max_chars=6)
+        if st.button(copy["continue"], type="primary", use_container_width=True):
             email_hash = verify_code(st.session_state.email, code)
             if not email_hash:
-                st.error("Invalid or expired code.")
+                st.error(copy["invalid_code"])
             else:
                 st.session_state.email_hash = email_hash
                 st.session_state.user_id = upsert_user(
@@ -186,7 +296,7 @@ if not st.session_state.verified:
                 st.session_state.staging_code = ""
                 st.rerun()
 
-    st.caption("KinaBot is a wellness reflection tool, not a medical device.")
+    st.caption(copy["disclaimer"])
     st.stop()
 
 if ADMIN_KEY:
@@ -384,11 +494,15 @@ if remaining <= 0:
 
 st.subheader("New reflection")
 
+if "recording_language" not in st.session_state:
+    st.session_state.recording_language = st.session_state.ui_language
+
 language = st.radio(
     "1 · Choose the language spoken",
     ["English", "日本語", "中文"],
     horizontal=True,
     help="Choose the language you will speak in this recording.",
+    key="recording_language",
 )
 
 session_type = "Daily reflection"
