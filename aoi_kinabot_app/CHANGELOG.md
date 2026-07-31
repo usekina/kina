@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-31
+
+- Temporarily disabled in-browser recording after unreliable mobile-browser
+  behavior was observed. The interface now clearly marks direct recording as
+  coming soon and uses the stable audio-file upload flow.
+
 All notable changes to the current Aoi-maintained KinaBot application are
 recorded here. Historical repository-root prototypes are outside this
 changelog.

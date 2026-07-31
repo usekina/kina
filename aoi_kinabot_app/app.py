@@ -392,25 +392,16 @@ language = st.radio(
 )
 
 session_type = "Daily reflection"
-audio_method = st.radio(
-    "2 · Add your voice",
-    ["Record now", "Upload a recording"],
-    horizontal=True,
-    help="Record directly in the page, or use an audio file you already have.",
+st.markdown("**2 · Upload your recording**")
+st.caption(
+    "In-page recording is coming soon. For now, record 30–90 seconds with your "
+    "phone or computer, then upload the saved audio file here."
 )
-
-if audio_method == "Record now":
-    selected_audio = st.audio_input(
-        "Tap the microphone, speak for 30–90 seconds, then stop",
-    )
-    if selected_audio is None:
-        st.caption("Your browser may ask for microphone permission the first time.")
-else:
-    selected_audio = st.file_uploader(
-        "Choose a recording from your phone or computer",
-        type=SUPPORTED_AUDIO_TYPES,
-        help="Supported formats: WAV, MP3, M4A, AAC, OGG, and FLAC.",
-    )
+selected_audio = st.file_uploader(
+    "Choose an audio file",
+    type=SUPPORTED_AUDIO_TYPES,
+    help="Supported formats: WAV, MP3, M4A, AAC, OGG, and FLAC.",
+)
 
 if selected_audio is not None:
     st.audio(selected_audio)
@@ -427,7 +418,7 @@ if selected_audio is not None:
 st.caption(f"{max(0, remaining)} of {MAX_TESTS_PER_DAY} reflections available today")
 if st.button("3 · Analyze my reflection", type="primary", use_container_width=True):
     if selected_audio is None:
-        st.warning("Record or upload a speech sample first.")
+        st.warning("Upload a speech sample first.")
     elif selected_audio.size > MAX_AUDIO_BYTES:
         st.warning(f"Audio must be {MAX_AUDIO_BYTES // (1024 * 1024)} MB or smaller.")
     elif selected_audio.name.rsplit(".", 1)[-1].lower() not in LOCAL_TRANSCRIPTION_TYPES:
