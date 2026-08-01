@@ -65,12 +65,12 @@ st.markdown(
         text-align: center;
     }
     .kinabot-hero__brand {
-        color: #e65f3c;
-        font-size: 0.8rem;
-        font-weight: 750;
-        letter-spacing: 0.16em;
-        margin-bottom: 1rem;
-        text-transform: uppercase;
+        color: #f26a21;
+        font-size: clamp(1.45rem, 4vw, 1.9rem);
+        font-weight: 800;
+        letter-spacing: -0.035em;
+        line-height: 1;
+        margin-bottom: 1.15rem;
     }
     .kinabot-hero__title {
         color: #252832;
@@ -155,10 +155,10 @@ st.markdown(
 
 LANDING_COPY = {
     "English": {
-        "title": "Your Voice. Your Patterns. Over Time.",
+        "title": "Supporting cognitive wellness over time",
         "subtitle": (
-            "A private, multilingual reflection on how you express yourself—"
-            "one short voice sample at a time."
+            "Speak naturally. KinaBot builds your personal baseline and helps you "
+            "notice subtle, sustained changes in your speech patterns over time."
         ),
         "language": "Choose your language",
         "start": "Start",
@@ -173,8 +173,11 @@ LANDING_COPY = {
         "disclaimer": "KinaBot is a non-medical wellness reflection tool.",
     },
     "日本語": {
-        "title": "あなたの声。あなたのパターン。時間とともに。",
-        "subtitle": "短い音声から、日々の話し方をプライベートに振り返ります。",
+        "title": "日々の会話で認知機能の変化に気づく",
+        "subtitle": (
+            "いつもの言葉で話すだけ。KinaBotがあなた自身の基準をつくり、"
+            "声と話し方の小さく持続的な変化を長期的に振り返ります。"
+        ),
         "language": "表示言語を選択",
         "start": "はじめる",
         "login_caption": "メールアドレスで振り返りの記録をまとめます。",
@@ -188,8 +191,11 @@ LANDING_COPY = {
         "disclaimer": "KinaBotは医療機器ではなく、日常のウェルネス振り返りツールです。",
     },
     "中文": {
-        "title": "你的声音。你的表达。随时间看见变化。",
-        "subtitle": "用一段简短语音，私密、轻松地记录自己的表达特点。",
+        "title": "每天自然对话，了解认知变化",
+        "subtitle": (
+            "只需用最自然的语言说话。KinaBot建立你的个人基线，帮助你长期了解"
+            "声音与表达模式中细微、持续的变化。"
+        ),
         "language": "选择界面语言",
         "start": "开始",
         "login_caption": "输入邮箱，让每次记录连续保存。",
@@ -201,6 +207,48 @@ LANDING_COPY = {
         "email_unavailable": "暂时无法发送邮件，请稍后重试。",
         "invalid_code": "验证码无效或已过期。",
         "disclaimer": "KinaBot是非医疗的日常认知健康反思工具。",
+    },
+}
+
+AUDIO_CAPTURE_COPY = {
+    "English": {
+        "new": "New reflection",
+        "language": "1 · Choose the language spoken",
+        "language_help": "Choose the language you will speak in this recording.",
+        "method": "2 · Add your voice sample",
+        "record": "Record here",
+        "upload": "Upload a recording",
+        "record_label": "Start recording",
+        "record_help": "Allow microphone access, then record 30–90 seconds.",
+        "upload_label": "Choose an audio file",
+        "upload_help": "Supported formats: WAV, MP3, M4A, AAC, OGG, and FLAC.",
+        "fallback": "Microphone unavailable? Choose Upload a recording instead.",
+    },
+    "日本語": {
+        "new": "新しい振り返り",
+        "language": "1 · 話す言語を選択",
+        "language_help": "今回の録音で話す言語を選択してください。",
+        "method": "2 · 音声を追加",
+        "record": "ここで録音",
+        "upload": "録音ファイルをアップロード",
+        "record_label": "録音を開始",
+        "record_help": "マイクへのアクセスを許可し、30～90秒録音してください。",
+        "upload_label": "音声ファイルを選択",
+        "upload_help": "対応形式：WAV、MP3、M4A、AAC、OGG、FLAC。",
+        "fallback": "マイクが使えない場合は、録音ファイルのアップロードを選択してください。",
+    },
+    "中文": {
+        "new": "新的语音记录",
+        "language": "1 · 选择本次使用的语言",
+        "language_help": "请选择这次录音中使用的语言。",
+        "method": "2 · 添加语音",
+        "record": "在这里直接录音",
+        "upload": "上传已有录音",
+        "record_label": "开始录音",
+        "record_help": "允许使用麦克风，然后录制30至90秒。",
+        "upload_label": "选择音频文件",
+        "upload_help": "支持WAV、MP3、M4A、AAC、OGG和FLAC。",
+        "fallback": "无法使用麦克风？请改选上传已有录音。",
     },
 }
 
@@ -492,30 +540,41 @@ if remaining <= 0:
     )
     st.stop()
 
-st.subheader("New reflection")
+capture_copy = AUDIO_CAPTURE_COPY[st.session_state.ui_language]
+st.subheader(capture_copy["new"])
 
 if "recording_language" not in st.session_state:
     st.session_state.recording_language = st.session_state.ui_language
 
 language = st.radio(
-    "1 · Choose the language spoken",
+    capture_copy["language"],
     ["English", "日本語", "中文"],
     horizontal=True,
-    help="Choose the language you will speak in this recording.",
+    help=capture_copy["language_help"],
     key="recording_language",
 )
 
 session_type = "Daily reflection"
-st.markdown("**2 · Upload your recording**")
-st.caption(
-    "In-page recording is coming soon. For now, record 30–90 seconds with your "
-    "phone or computer, then upload the saved audio file here."
+st.markdown(f"**{capture_copy['method']}**")
+audio_method = st.radio(
+    capture_copy["method"],
+    ["upload", "record"],
+    format_func=lambda option: capture_copy[option],
+    horizontal=True,
+    label_visibility="collapsed",
 )
-selected_audio = st.file_uploader(
-    "Choose an audio file",
-    type=SUPPORTED_AUDIO_TYPES,
-    help="Supported formats: WAV, MP3, M4A, AAC, OGG, and FLAC.",
-)
+if audio_method == "record":
+    selected_audio = st.audio_input(
+        capture_copy["record_label"],
+        help=capture_copy["record_help"],
+    )
+    st.caption(capture_copy["fallback"])
+else:
+    selected_audio = st.file_uploader(
+        capture_copy["upload_label"],
+        type=SUPPORTED_AUDIO_TYPES,
+        help=capture_copy["upload_help"],
+    )
 
 if selected_audio is not None:
     st.audio(selected_audio)
