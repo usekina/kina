@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import date
-
 import pandas as pd
 import streamlit as st
 
@@ -37,6 +36,7 @@ from database import (
     upsert_user,
 )
 from email_delivery import send_verification_email
+from history_view import latest_session_scores, metric_grid_html
 from insight_service import generate_wellness_insight
 from language_analysis import LANGUAGE_CODES, analyze_transcript
 from local_time import local_date_iso
@@ -45,7 +45,7 @@ from speech_to_text import (
     speech_to_text_configured,
     transcribe_audio_upload,
 )
-from scoring import display_feature_name
+from scoring import display_feature_name, feature_explanation
 from reflection_profile import build_reflection_profile
 from wellness_guidance import wellness_suggestions
 
@@ -147,6 +147,55 @@ st.markdown(
     .snapshot-card__fill {
         height: 100%; background: linear-gradient(90deg, #f28a5c, #e55438);
         border-radius: 99px;
+    }
+    .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.65rem;
+        margin: 0.75rem 0 1rem;
+    }
+    .metric-tile {
+        min-width: 0;
+        padding: 0.78rem 0.82rem;
+        border: 1px solid rgba(49, 51, 63, 0.12);
+        border-radius: 0.9rem;
+        background: linear-gradient(145deg, #fffaf7, #ffffff);
+    }
+    .metric-tile__top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 0.55rem;
+    }
+    .metric-tile__name {
+        color: #343741;
+        font-size: 0.83rem;
+        font-weight: 680;
+        line-height: 1.25;
+    }
+    .metric-tile__value {
+        color: #e65f3c;
+        font-size: 1.05rem;
+        font-weight: 800;
+        line-height: 1;
+        white-space: nowrap;
+    }
+    .metric-tile__track {
+        height: 0.3rem;
+        margin-top: 0.65rem;
+        overflow: hidden;
+        border-radius: 99px;
+        background: #f5e4dc;
+    }
+    .metric-tile__fill {
+        height: 100%;
+        border-radius: 99px;
+        background: linear-gradient(90deg, #f28a5c, #e55438);
+    }
+    @media (max-width: 430px) {
+        .block-container {padding-left: 1rem; padding-right: 1rem;}
+        .metric-grid {gap: 0.5rem;}
+        .metric-tile {padding: 0.7rem;}
     }
     </style>
     """,
@@ -251,6 +300,77 @@ AUDIO_CAPTURE_COPY = {
         "fallback": "无法使用麦克风？请改选上传已有录音。",
     },
 }
+
+HISTORY_COPY = {
+    "English": {
+        "today": "Today",
+        "trends": "Trends",
+        "latest": "Latest 8-feature snapshot",
+        "no_scores": "No saved scores yet.",
+        "progress": "{count} of 3 sessions completed. Trends begin after session 3.",
+        "recent": "Recent sessions",
+        "all": "All sessions",
+        "change": "Observed change since the first sample",
+        "higher": "Higher in latest sample",
+        "lower": "Lower in latest sample",
+        "similar": "Similar",
+        "method": "How the 8 features are calculated",
+        "method_intro": (
+            "KinaBot calculates descriptive 0–100 feature indexes with its own "
+            "Python and multilingual NLP pipeline. They are not percentages, "
+            "population rankings, or health scores."
+        ),
+        "boundary": (
+            "These are descriptive sample-to-sample differences only. KinaBot does "
+            "not infer health, improvement, decline, cause, or risk."
+        ),
+    },
+    "日本語": {
+        "today": "今日",
+        "trends": "トレンド",
+        "latest": "最新の8項目",
+        "no_scores": "保存されたスコアはまだありません。",
+        "progress": "3回中{count}回完了しました。3回目からトレンドを表示します。",
+        "recent": "最近のセッション",
+        "all": "すべてのセッション",
+        "change": "最初のサンプルからの変化",
+        "higher": "最新サンプルで高い",
+        "lower": "最新サンプルで低い",
+        "similar": "ほぼ同じ",
+        "method": "8項目の計算方法",
+        "method_intro": (
+            "KinaBot独自のPythonと多言語NLPにより、0〜100の記述的な特徴指数を"
+            "計算します。割合、集団順位、健康スコアではありません。"
+        ),
+        "boundary": (
+            "サンプル間の記述的な差だけを示します。健康、改善、低下、原因、"
+            "リスクを推定するものではありません。"
+        ),
+    },
+    "中文": {
+        "today": "今天",
+        "trends": "趋势",
+        "latest": "最近一次的8项指标",
+        "no_scores": "目前还没有保存的分数。",
+        "progress": "已完成3次中的{count}次，第3次开始显示趋势。",
+        "recent": "最近记录",
+        "all": "全部记录",
+        "change": "与第一次样本相比的变化",
+        "higher": "最近一次较高",
+        "lower": "最近一次较低",
+        "similar": "基本相近",
+        "method": "8项指标如何计算",
+        "method_intro": (
+            "KinaBot使用自己的Python与多语言NLP流程计算0–100的描述性特征指数。"
+            "它们不是百分比、人群排名或健康评分。"
+        ),
+        "boundary": (
+            "这里只描述不同语音样本之间的差异。KinaBot不推断健康、改善、下降、"
+            "原因或风险。"
+        ),
+    },
+}
+
 
 if "ui_language" not in st.session_state:
     st.session_state.ui_language = "English"
@@ -506,6 +626,117 @@ if not profile_complete:
     st.info("Complete your account once. KinaBot will remember it for future visits.")
     st.stop()
 
+history_copy = HISTORY_COPY[st.session_state.ui_language]
+primary_view = st.radio(
+    "KinaBot navigation",
+    ["today", "trends"],
+    format_func=lambda option: history_copy[option],
+    horizontal=True,
+    label_visibility="collapsed",
+    key="primary_view",
+)
+
+if primary_view == "trends":
+    assign_timezone_to_legacy_sessions(st.session_state.user_id, browser_timezone)
+    rows = get_user_scores(st.session_state.user_id)
+    st.subheader(history_copy["trends"])
+    if not rows:
+        st.caption(history_copy["no_scores"])
+        st.stop()
+
+    history = pd.DataFrame([dict(row) for row in rows])
+    session_count = int(history["session_id"].nunique())
+    st.markdown(f"### {history_copy['latest']}")
+    st.markdown(
+        metric_grid_html(
+            latest_session_scores(history),
+            st.session_state.ui_language,
+        ),
+        unsafe_allow_html=True,
+    )
+
+    with st.expander(history_copy["method"]):
+        st.write(history_copy["method_intro"])
+        for feature_name in history["feature_name"].drop_duplicates():
+            label = display_feature_name(feature_name, st.session_state.ui_language)
+            explanation = feature_explanation(
+                feature_name, st.session_state.ui_language
+            )
+            st.markdown(f"**{label}** — {explanation}")
+        st.link_button(
+            "Open scoring methodology",
+            "https://github.com/usekina/kina/blob/main/aoi_kinabot_app/SCORING-METHODOLOGY.md",
+            use_container_width=True,
+        )
+
+    if session_count < 3:
+        st.info(history_copy["progress"].format(count=session_count))
+        st.stop()
+
+    feature_names = list(history["feature_name"].drop_duplicates())
+    selected_feature = st.selectbox(
+        history_copy["recent"],
+        feature_names,
+        format_func=lambda name: display_feature_name(
+            name, st.session_state.ui_language
+        ),
+    )
+    history_scope = st.radio(
+        "History range",
+        ["recent", "all"],
+        format_func=lambda option: history_copy[option],
+        horizontal=True,
+        label_visibility="collapsed",
+    )
+    feature_history = history[history["feature_name"] == selected_feature].sort_values(
+        "session_id"
+    )
+    if history_scope == "recent":
+        feature_history = feature_history.tail(3)
+    feature_history = feature_history.copy()
+    feature_history["session_label"] = (
+        feature_history["session_date"].astype(str)
+        + " #"
+        + feature_history["session_number"].astype(str)
+    )
+    chart_df = feature_history[["session_label", "score"]].set_index("session_label")
+    chart_df = chart_df.rename(
+        columns={
+            "score": display_feature_name(
+                selected_feature, st.session_state.ui_language
+            )
+        }
+    )
+    st.line_chart(chart_df, height=260)
+
+    ordered = history.sort_values("session_id")
+    first_score = float(
+        ordered[ordered["feature_name"] == selected_feature].iloc[0]["score"]
+    )
+    latest_score = float(
+        ordered[ordered["feature_name"] == selected_feature].iloc[-1]["score"]
+    )
+    observed_change = latest_score - first_score
+    pattern = (
+        history_copy["higher"]
+        if observed_change > 2
+        else history_copy["lower"]
+        if observed_change < -2
+        else history_copy["similar"]
+    )
+    st.markdown(f"**{history_copy['change']}**")
+    st.write(f"{pattern} ({observed_change:+.1f})")
+    st.caption(history_copy["boundary"])
+
+    insight = generate_wellness_insight([dict(row) for row in rows], st.session_state.ui_language)
+    st.markdown("#### One small action")
+    if insight.get("encouragement"):
+        st.write(insight["encouragement"])
+    st.info(insight["action"])
+    st.caption(f"{insight['why']} [Research source]({insight['source']})")
+    st.caption(insight["boundary"])
+    st.stop()
+
 st.markdown(
     """
     <div class="privacy-card">
@@ -688,70 +919,15 @@ if st.button("3 · Analyze my reflection", type="primary", use_container_width=T
         st.markdown(f"#### {snapshot['action_title']}")
         st.info(snapshot["action"])
         st.caption(result_copy["scale"])
+        st.markdown(
+            metric_grid_html(scores, language),
+            unsafe_allow_html=True,
+        )
         with st.expander(snapshot["detail_label"]):
             for item in scores:
-                score = int(round(float(item["score"])))
                 label = display_feature_name(item["feature_name"], language)
-                st.markdown(
-                    f"""
-                    <div class="score-card">
-                      <div class="score-card__top">
-                        <span class="score-card__name">{label}</span>
-                        <span class="score-card__value">{score} / 100</span>
-                      </div>
-                      <div class="score-card__track">
-                        <div class="score-card__fill" style="width:{score}%"></div>
-                      </div>
-                      <div class="score-card__explanation">{item["explanation"]}</div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
+                st.markdown(f"**{label}** — {item['explanation']}")
         st.caption(result_copy["boundary"])
-
-st.subheader("Your history")
-rows = get_user_scores(st.session_state.user_id)
-if not rows:
-    st.caption("No saved scores yet.")
-else:
-    history = pd.DataFrame([dict(row) for row in rows])
-    session_count = len(history[["created_at", "session_number"]].drop_duplicates())
-    if session_count < 3:
-        st.info(f"{session_count} of 3 sessions completed. Trends unlock after session 3.")
-    else:
-        chart_df = history.pivot_table(
-            index="created_at",
-            columns="feature_name",
-            values="score",
-            aggfunc="mean",
-        )
-        st.line_chart(chart_df)
-
-        ordered = history.sort_values("created_at")
-        first_scores = ordered.groupby("feature_name").first()["score"]
-        latest_scores = ordered.groupby("feature_name").last()["score"]
-        change = (latest_scores - first_scores).rename("observed_change").reset_index()
-        change["pattern"] = change["observed_change"].apply(
-            lambda value: "Higher in latest sample"
-            if value > 2
-            else ("Lower in latest sample" if value < -2 else "Similar")
-        )
-        st.markdown("#### Observed change since the first sample")
-        st.dataframe(change, width="stretch", hide_index=True)
-        st.caption(
-            "These are descriptive sample-to-sample differences only. "
-            "KinaBot does not infer health, improvement, decline, cause, or risk."
-        )
-        insight = generate_wellness_insight(
-            [dict(row) for row in rows],
-            language,
-        )
-        st.markdown("#### One small action")
-        if insight.get("encouragement"):
-            st.write(insight["encouragement"])
-        st.info(insight["action"])
-        st.caption(f"{insight['why']} [Research source]({insight['source']})")
-        st.caption(insight["boundary"])
 
 st.subheader("Today's wellness habit")
 habit_copy = wellness_suggestions(language, [])

@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-08-02 · Mobile results and open learning record
+
+- Added a compact two-column eight-feature result grid for narrow screens.
+- Added top-level Today and Trends navigation after sign-in.
+- Added latest-result recall and one-feature-at-a-time recent/all trend views.
+- Added in-app scoring transparency linked to the versioned methodology.
+- Published anonymized feedback, mobile UX, metric-definition, and university
+  teaching-case documentation.
+
 ## 2026-07-31 · Multilingual landing experience
 
 - Added a warm, minimal first screen built around the brand line

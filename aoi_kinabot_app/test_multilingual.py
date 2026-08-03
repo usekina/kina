@@ -2,10 +2,12 @@ from pathlib import Path
 from datetime import datetime, timezone
 
 import database
+import pandas as pd
 from language_analysis import LANGUAGE_CODES, analyze_transcript
 from local_time import local_date_iso
 from reflection_profile import build_reflection_profile
 from insight_service import anonymous_trend_payload, generate_wellness_insight
+from history_view import latest_session_scores, metric_grid_html
 from scoring import calculate_feature_scores, display_feature_name, tokenize
 from speech_to_text import calculate_pause_metrics
 from wellness_guidance import wellness_suggestions
@@ -222,3 +224,38 @@ def test_daily_limit_uses_browser_local_midnight(tmp_path: Path, monkeypatch):
     assert migrated == 1
     assert database.count_tests_today(user_id, "2026-07-28") == 1
     assert database.count_tests_today(user_id, "2026-07-29") == 0
+
+
+def test_mobile_metric_grid_contains_eight_compact_tiles():
+    scores = [
+        {"feature_name": name, "score": 50 + index}
+        for index, name in enumerate(
+            [
+                "Vocabulary Variety",
+                "Response Length",
+                "Sentence Complexity",
+                "Speech Pace",
+                "Pause Pattern",
+                "Repetition Pattern",
+                "Emotional Tone",
+                "Transcription Clarity",
+            ]
+        )
+    ]
+    markup = metric_grid_html(scores, "English")
+    assert markup.count('class="metric-tile"') == 8
+    assert "Vocabulary variety" in markup
+    assert "57" in markup
+
+
+def test_latest_session_scores_returns_only_most_recent_session():
+    history = pd.DataFrame(
+        [
+            {"session_id": 1, "created_at": "2026-08-02T10:00:00Z", "feature_name": "A", "score": 40},
+            {"session_id": 2, "created_at": "2026-08-02T10:00:00Z", "feature_name": "A", "score": 60},
+            {"session_id": 2, "created_at": "2026-08-02T10:00:00Z", "feature_name": "B", "score": 70},
+        ]
+    )
+    latest = latest_session_scores(history)
+    assert [item["feature_name"] for item in latest] == ["A", "B"]
+    assert [item["score"] for item in latest] == [60, 70]

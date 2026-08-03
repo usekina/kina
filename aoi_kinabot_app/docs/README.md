@@ -14,6 +14,10 @@ what a voice sample can prove.
 - [Engineering Learnings](ENGINEERING-LEARNINGS.md)
 - [Responsible Wellness Design](RESPONSIBLE-WELLNESS-DESIGN.md)
 - [Decision Log](DECISION-LOG.md)
+- [Public User Feedback](feedback/README.md)
+- [Eight Feature Definitions](methodology/METRIC-DEFINITIONS.md)
+- [Mobile-First Results Architecture](ux/MOBILE-FIRST-RESULTS.md)
+- [Purdue Data Science Teaching Case](education/PURDUE-DATA-SCIENCE-CASE-STUDY.md)
 
 Technical references remain in the application root:
 
