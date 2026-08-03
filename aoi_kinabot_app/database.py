@@ -358,7 +358,9 @@ def get_user_scores(user_id: int) -> list[sqlite3.Row]:
         return conn.execute(
             """
             SELECT
+                ts.id AS session_id,
                 ts.created_at,
+                ts.session_date,
                 ts.session_number,
                 ts.session_type,
                 ts.language,

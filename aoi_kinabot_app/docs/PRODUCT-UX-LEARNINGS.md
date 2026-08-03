@@ -108,3 +108,17 @@ Critical consent must never be hidden.
 
 Record measured answers in `IMPACT.md`; do not replace evidence with promotional
 claims.
+
+## 9. Make Longitudinal Results Mobile-First
+
+**Observed problem:** A portrait user could complete one analysis but had to
+scroll extensively and could not quickly revisit the latest eight features.
+The derivation of those features was also not obvious.
+
+**Design response:** Add a top-level **Today / Trends** control, show the latest
+eight features in a compact two-column grid, display one selected feature per
+trend chart, and place plain-language methodology within the interface. Keep
+the detailed public scoring methodology versioned in the repository.
+
+Research administration remains permission-gated and separate from the
+participant flow. A dedicated responsive admin route is future work.
