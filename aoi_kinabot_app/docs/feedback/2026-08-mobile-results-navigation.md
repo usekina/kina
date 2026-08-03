@@ -59,5 +59,5 @@ transcription quality may affect a result.
 ## Evidence and Links
 
 - Implementation issue: https://github.com/usekina/kina/issues/26
-- Pull request: link after creation
+- Pull request: https://github.com/usekina/kina/pull/27
 - Release and measured outcomes: pending usability testing
