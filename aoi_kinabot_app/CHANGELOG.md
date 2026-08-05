@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-03 · 30-day pattern experience
+
+- Added the multilingual **30 Days to Know Your Patterns** experience.
+- Reframed daily use around one recommended 60-second reflection; second and
+  third check-ins remain optional.
+- Added calendar progress, completed reflection-day count, and a no-streak,
+  no-penalty design for missed days.
+- Kept trends available after three total sessions rather than requiring three
+  sessions in one day.
+
 ## 2026-08-02 · Mobile results and open learning record
 
 - Added a compact two-column eight-feature result grid for narrow screens.

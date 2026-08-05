@@ -2,15 +2,20 @@
 
 > **Current implementation and product direction maintained by Aoi Minamoto through AImoji LLC.**
 
+> **KinaBot is a dignity-first, privacy-aware AI system for longitudinal speech
+> reflection, healthy aging, and family-centered care.**
+
 This folder contains the current KinaBot application. Files elsewhere in this
 repository are retained as historical exploratory work and do not define this
 implementation's architecture, scoring policy, privacy policy, or product
 claims.
 
-KinaBot is a multilingual speech and language reflection tool. Its core value
-is a versioned Python/NLP feature engine that calculates consistent features
-from each user's voice sample and helps that user observe personal patterns
-over time.
+KinaBot is a multilingual speech and language reflection system. Its core value
+is a versioned Python/NLP feature engine that calculates observable features
+from each user's voice sample and helps that user reflect on personal patterns
+over time. The experience is designed to preserve autonomy, make privacy
+boundaries understandable, and support—not replace—family and professional
+care conversations.
 
 KinaBot is not a medical device. It does not diagnose a condition, calculate
 disease risk, estimate cognitive age, or replace professional care.
@@ -24,8 +29,10 @@ disease risk, estimate cognitive age, or replace professional care.
 5. After three or more sessions, see personal trends and changes.
 6. Receive a small, practical daily wellness action when appropriate.
 
-The pilot allows up to three analyses per verified email per day. Users do not
-create or remember a password.
+The pilot recommends one 60-second reflection per day within a low-pressure
+**30 Days to Know Your Patterns** experience. Additional check-ins are optional,
+with a technical maximum of three analyses per verified email per day. Missing a
+day is not treated as failure. Users do not create or remember a password.
 
 ## Core NLP Work
 

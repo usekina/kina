@@ -2,9 +2,13 @@
 
 # KinaBot
 
-**A dignity-first speech reflection tool for older adults, families, and caregivers.**
+> **KinaBot is a dignity-first, privacy-aware AI system for longitudinal speech
+> reflection, healthy aging, and family-centered care.**
 
-KinaBot helps users and families notice possible changes in speech and communication patterns through natural conversation analysis. It is designed to support awareness, reflection, and better conversations with care professionals.
+KinaBot helps people reflect on observable speech and communication patterns
+across repeated, natural-language samples. It is designed to support personal
+awareness, family connection, and more informed conversations with care
+professionals while preserving the older adult's autonomy.
 
 KinaBot is **not a medical device**, **not a diagnostic tool**, and **not a replacement for licensed healthcare professionals**.
 
@@ -26,6 +30,12 @@ KinaBot V1 does not use cognitive age, biological age, dementia risk, medical ri
 
 Please treat files outside `aoi_kinabot_app/` as historical exploratory materials unless otherwise stated.
 
+The historical materials remain public to preserve provenance and show the
+project's continuing technical and responsible-design evolution. The current
+[changelog](aoi_kinabot_app/CHANGELOG.md),
+[decision log](aoi_kinabot_app/docs/DECISION-LOG.md), and Git history document
+when major design boundaries changed and why.
+
 <img width="462" height="235" alt="image backed by-1229" src="https://github.com/user-attachments/assets/ea03453b-df66-4561-b5bd-719c2f63e27c" />
 
 <a href="https://www.producthunt.com/products/kinabot?embed=true&utm_source=badge-featured&utm_medium=badge&utm_source=badge-kizuna" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=960544&theme=light&t=1764382304451" alt="Kina - From words to wellbeing" style="width: 250px; height: 54px;" width="250" height="54" /></a>
@@ -36,11 +46,16 @@ KinaBot is built around a simple belief: technology for aging should protect hum
 
 The project focuses on:
 
-- Consent-based speech reflection
-- Communication pattern awareness
-- Family and caregiver support
-- Privacy-aware design
-- Clear boundaries between wellness insight and medical diagnosis
+- **Dignity first:** preserve each person's agency and avoid reducing anyone to
+  a score or label.
+- **Privacy aware:** minimize sensitive voice and identity data throughout the
+  product lifecycle.
+- **Longitudinal reflection:** describe patterns across time instead of drawing
+  conclusions from a single sample.
+- **Healthy aging:** support everyday reflection and constructive conversations,
+  without diagnosis or disease-risk claims.
+- **Family-centered care:** help people share understandable observations with
+  trusted family members, caregivers, and professionals on their own terms.
   
 ## Naming
 
@@ -55,6 +70,12 @@ The current Aoi-maintained V1 direction focuses on:
 - Analyze basic language patterns such as word variety, sentence structure, speaking pace, and emotional tone
 - Generate a simple report for personal reflection or family discussion
 - Support English and Japanese speech recognition in the current interface
+
+## Product Boundaries
+
+KinaBot is focused on healthy aging and family-centered care. Manufacturing,
+workplace monitoring, employee assessment, and employment decision-making are
+outside the product's scope.
 
 ## What KinaBot Does Not Do
 
