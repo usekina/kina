@@ -8,6 +8,7 @@ import streamlit as st
 
 from audio_processing import SUPPORTED_AUDIO_TYPES, accept_audio_upload
 from auth import create_local_verification_code, verify_code
+from challenge_progress import CHALLENGE_DAYS, challenge_status
 from config import (
     ADMIN_KEY,
     ALLOW_LOCAL_VERIFICATION_CODES,
@@ -204,10 +205,10 @@ st.markdown(
 
 LANDING_COPY = {
     "English": {
-        "title": "Supporting cognitive wellness over time",
+        "title": "Know your speech patterns over time",
         "subtitle": (
-            "Speak naturally. KinaBot builds your personal baseline and helps you "
-            "notice subtle, sustained changes in your speech patterns over time."
+            "Speak naturally. KinaBot helps you reflect on your own speech patterns "
+            "over time—with dignity, privacy, and family connection at the center."
         ),
         "language": "Choose your language",
         "start": "Start",
@@ -219,13 +220,17 @@ LANDING_COPY = {
         "invalid_email": "Enter a valid email address.",
         "email_unavailable": "Email delivery is unavailable. Please try again later.",
         "invalid_code": "Invalid or expired code.",
-        "disclaimer": "KinaBot is a non-medical wellness reflection tool.",
+        "disclaimer": (
+            "KinaBot supports healthy-aging reflection and family conversations. "
+            "It is not a medical device or diagnostic tool."
+        ),
     },
     "日本語": {
-        "title": "日々の会話で認知機能の変化に気づく",
+        "title": "話し方のパターンを長期的に振り返る",
         "subtitle": (
             "いつもの言葉で話すだけ。KinaBotがあなた自身の基準をつくり、"
-            "声と話し方の小さく持続的な変化を長期的に振り返ります。"
+            "尊厳とプライバシー、家族とのつながりを大切にしながら、"
+            "話し方のパターンを長期的に振り返ります。"
         ),
         "language": "表示言語を選択",
         "start": "はじめる",
@@ -237,13 +242,16 @@ LANDING_COPY = {
         "invalid_email": "有効なメールアドレスを入力してください。",
         "email_unavailable": "現在メールを送信できません。後でもう一度お試しください。",
         "invalid_code": "認証コードが無効か、有効期限が切れています。",
-        "disclaimer": "KinaBotは医療機器ではなく、日常のウェルネス振り返りツールです。",
+        "disclaimer": (
+            "KinaBotは健康的な加齢の振り返りと家族との対話を支えます。"
+            "医療機器や診断ツールではありません。"
+        ),
     },
     "中文": {
-        "title": "每天自然对话，了解认知变化",
+        "title": "长期了解自己的语言表达模式",
         "subtitle": (
             "只需用最自然的语言说话。KinaBot建立你的个人基线，帮助你长期了解"
-            "声音与表达模式中细微、持续的变化。"
+            "自己的语言表达模式，并把尊严、隐私与家庭联结放在中心。"
         ),
         "language": "选择界面语言",
         "start": "开始",
@@ -255,7 +263,10 @@ LANDING_COPY = {
         "invalid_email": "请输入有效的邮箱地址。",
         "email_unavailable": "暂时无法发送邮件，请稍后重试。",
         "invalid_code": "验证码无效或已过期。",
-        "disclaimer": "KinaBot是非医疗的日常认知健康反思工具。",
+        "disclaimer": (
+            "KinaBot支持健康老龄化反思与家庭沟通；"
+            "它不是医疗器械或诊断工具。"
+        ),
     },
 }
 
@@ -368,6 +379,45 @@ HISTORY_COPY = {
             "这里只描述不同语音样本之间的差异。KinaBot不推断健康、改善、下降、"
             "原因或风险。"
         ),
+    },
+}
+
+CHALLENGE_COPY = {
+    "English": {
+        "title": "30 Days to Know Your Patterns",
+        "subtitle": "One 60-second reflection when it works for you. Extra check-ins are optional.",
+        "day": "Day {day} of 30",
+        "progress_label": "Challenge progress",
+        "reflection_days": "Reflection days",
+        "today_ready": "Today's reflection is ready when you are.",
+        "today_complete": "Today's reflection is complete. Another check-in is optional.",
+        "foundation": "Your first 30-day period is complete. Continue whenever reflection is useful.",
+        "available": "{remaining} optional check-ins still available today",
+        "limit": "You have reached today's optional check-in limit. Your daily reflection is complete.",
+    },
+    "日本語": {
+        "title": "30日間で自分のパターンを知る",
+        "subtitle": "都合のよい時に60秒の振り返りを1回。追加の記録は任意です。",
+        "day": "30日中 {day} 日目",
+        "progress_label": "30日間の進捗",
+        "reflection_days": "記録した日数",
+        "today_ready": "今日の振り返りは、できる時に行いましょう。",
+        "today_complete": "今日の振り返りは完了しました。追加の記録は任意です。",
+        "foundation": "最初の30日間が完了しました。必要な時に続けてください。",
+        "available": "本日あと{remaining}回、任意で追加できます",
+        "limit": "本日の任意追加回数に達しました。今日の振り返りは完了です。",
+    },
+    "中文": {
+        "title": "用30天了解自己的表达模式",
+        "subtitle": "方便时完成一次60秒记录；额外记录完全自愿。",
+        "day": "30天中的第{day}天",
+        "progress_label": "30天进度",
+        "reflection_days": "完成记录天数",
+        "today_ready": "方便时完成今天的一次记录即可。",
+        "today_complete": "今天的一次记录已完成；额外记录完全自愿。",
+        "foundation": "第一个30天周期已完成。今后可在需要时继续。",
+        "available": "今天还可自愿增加{remaining}次记录",
+        "limit": "今天的自愿追加次数已用完；今日记录已经完成。",
     },
 }
 
@@ -627,6 +677,7 @@ if not profile_complete:
     st.stop()
 
 history_copy = HISTORY_COPY[st.session_state.ui_language]
+challenge_copy = CHALLENGE_COPY[st.session_state.ui_language]
 primary_view = st.radio(
     "KinaBot navigation",
     ["today", "trends"],
@@ -737,6 +788,35 @@ if primary_view == "trends":
     st.caption(insight["boundary"])
     st.stop()
 
+assign_timezone_to_legacy_sessions(st.session_state.user_id, browser_timezone)
+challenge_rows = get_user_scores(st.session_state.user_id)
+challenge_session_dates = list(
+    {
+        int(row["session_id"]): str(row["session_date"])
+        for row in challenge_rows
+    }.values()
+)
+challenge = challenge_status(challenge_session_dates, date.fromisoformat(today))
+st.markdown(f"### {challenge_copy['title']}")
+st.caption(challenge_copy["subtitle"])
+if challenge["challenge_complete"]:
+    st.success(challenge_copy["foundation"])
+else:
+    st.progress(challenge["day"] / CHALLENGE_DAYS)
+    challenge_col_1, challenge_col_2 = st.columns(2)
+    challenge_col_1.metric(
+        challenge_copy["progress_label"],
+        challenge_copy["day"].format(day=challenge["day"]),
+    )
+    challenge_col_2.metric(
+        challenge_copy["reflection_days"],
+        challenge["reflection_days"],
+    )
+if challenge["complete_today"]:
+    st.success(challenge_copy["today_complete"])
+else:
+    st.info(challenge_copy["today_ready"])
+
 st.markdown(
     """
     <div class="privacy-card">
@@ -765,10 +845,7 @@ assign_timezone_to_legacy_sessions(st.session_state.user_id, browser_timezone)
 tests_today = count_tests_today(st.session_state.user_id, today)
 remaining = MAX_TESTS_PER_DAY - tests_today
 if remaining <= 0:
-    st.info(
-        f"You have completed today's {MAX_TESTS_PER_DAY} reflections. "
-        "Come back tomorrow."
-    )
+    st.info(challenge_copy["limit"])
     st.stop()
 
 capture_copy = AUDIO_CAPTURE_COPY[st.session_state.ui_language]
@@ -819,7 +896,10 @@ if selected_audio is not None:
         st.info(
             "Automatic transcription supports MP3, MP4, MPEG, MPGA, M4A, WAV, and WEBM."
         )
-st.caption(f"{max(0, remaining)} of {MAX_TESTS_PER_DAY} reflections available today")
+if tests_today == 0:
+    st.caption(challenge_copy["today_ready"])
+else:
+    st.caption(challenge_copy["available"].format(remaining=max(0, remaining)))
 if st.button("3 · Analyze my reflection", type="primary", use_container_width=True):
     if selected_audio is None:
         st.warning("Upload a speech sample first.")

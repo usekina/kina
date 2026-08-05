@@ -1,5 +1,12 @@
 # KINA Documentation
 
+> **Historical documentation notice:** This directory describes an earlier
+> exploratory implementation and includes retired cognitive-age and risk-style
+> concepts. It does not represent current KinaBot behavior or product claims.
+> For the maintained, dignity-first implementation, use
+> [`aoi_kinabot_app/`](../aoi_kinabot_app/) and its
+> [current documentation](../aoi_kinabot_app/docs/README.md).
+
 Welcome to the KINA (Kognitive Intelligence Neural Assessment) documentation directory.
 
 ## Available Documentation

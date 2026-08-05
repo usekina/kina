@@ -1,8 +1,9 @@
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 import database
 import pandas as pd
+from challenge_progress import challenge_status
 from language_analysis import LANGUAGE_CODES, analyze_transcript
 from local_time import local_date_iso
 from reflection_profile import build_reflection_profile
@@ -224,6 +225,30 @@ def test_daily_limit_uses_browser_local_midnight(tmp_path: Path, monkeypatch):
     assert migrated == 1
     assert database.count_tests_today(user_id, "2026-07-28") == 1
     assert database.count_tests_today(user_id, "2026-07-29") == 0
+
+
+def test_challenge_starts_on_day_one_without_sessions():
+    status = challenge_status([], date(2026, 8, 3))
+    assert status["day"] == 1
+    assert status["reflection_days"] == 0
+    assert status["complete_today"] is False
+
+
+def test_challenge_counts_unique_reflection_days_without_streak_penalty():
+    status = challenge_status(
+        ["2026-08-01", "2026-08-01", "2026-08-03"],
+        date(2026, 8, 3),
+    )
+    assert status["day"] == 3
+    assert status["reflection_days"] == 2
+    assert status["sessions"] == 3
+    assert status["complete_today"] is True
+
+
+def test_challenge_completion_does_not_block_future_reflections():
+    status = challenge_status(["2026-07-01"], date(2026, 8, 3))
+    assert status["day"] == 30
+    assert status["challenge_complete"] is True
 
 
 def test_mobile_metric_grid_contains_eight_compact_tiles():
