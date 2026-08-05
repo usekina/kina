@@ -14,6 +14,7 @@ what a voice sample can prove.
 - [Engineering Learnings](ENGINEERING-LEARNINGS.md)
 - [Responsible Wellness Design](RESPONSIBLE-WELLNESS-DESIGN.md)
 - [Decision Log](DECISION-LOG.md)
+- [Project Evolution and Continuing Contribution](PROJECT-EVOLUTION.md)
 - [Public User Feedback](feedback/README.md)
 - [Eight Feature Definitions](methodology/METRIC-DEFINITIONS.md)
 - [Mobile-First Results Architecture](ux/MOBILE-FIRST-RESULTS.md)
