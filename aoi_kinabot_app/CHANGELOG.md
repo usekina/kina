@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-08-06 · Dated learning case library
+
+- Established a publication standard and reusable template for meaningful,
+  evidence-linked product learning cases.
+- Published the first case on redesigning an online product for offline
+  university research, including alternatives, failures, corrections, tests,
+  social context, student work, unresolved risks, and claims boundaries.
+- Linked the case library to feedback, engineering learning, the open knowledge
+  center, and planned data-science teaching material.
+- Expanded the library into a product learning archive with a complete journey
+  timeline, commit/PR evidence map, globally reusable open curriculum, and
+  September 2026 white paper preparation roadmap.
+- Separated collaborative exploration from the independently developed
+  Aoi-maintained application so contributor credit and current product
+  responsibility remain visible.
+
 ## 2026-08-05 · Offline university research mode
 
 - Added school-assigned participant IDs without email collection or SMTP.
@@ -8,8 +24,8 @@
 - Enforced local Whisper model paths and disabled OpenAI in offline mode.
 - Added offline-only dependencies, installation, launch, bundle-build, checksum,
   verification, quick-start, and acceptance-test materials.
-- Added UK/EU data-protection readiness and a university/Purdue data-science
-  milestone record without claiming institutional approval or legal compliance.
+- Added UK/EU data-protection readiness and a reusable learning record without
+  claiming institutional approval or legal compliance.
 
 ## 2026-08-03 · 30-day pattern experience
 

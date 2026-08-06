@@ -110,3 +110,14 @@ Local syntax checks are necessary but insufficient. Validate:
 API credentials belong in AWS Secrets Manager or local environment variables.
 Logs and diagnostic commands should be designed so exceptions cannot echo a
 secret. If a key appears in terminal output, revoke and rotate it.
+
+## 11. Offline Is A System Property, Not A Label
+
+Local scoring alone does not make a system offline. Identity, dependency
+installation, model loading, telemetry, optional APIs, network binding, update
+behavior, and acceptance testing must all be examined.
+
+Short school IDs also show why context matters: an ordinary hash can be
+enumerated, while a study-secret HMAC creates a stronger pseudonym but adds
+secret backup and recovery responsibilities. See the dated case study,
+[From Online Product to Offline University Research](learning-cases/aoi-maintained-product/2026-08-05-offline-university-research.md).

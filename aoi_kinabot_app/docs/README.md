@@ -21,10 +21,11 @@ what a voice sample can prove.
 - [UK/EU Data-Protection Readiness](UK-EU-DATA-PROTECTION-READINESS.md)
 - [Decision Log](DECISION-LOG.md)
 - [Project Evolution and Continuing Contribution](PROJECT-EVOLUTION.md)
+- [Dated Learning Case Library](learning-cases/README.md)
 - [Public User Feedback](feedback/README.md)
 - [Eight Feature Definitions](methodology/METRIC-DEFINITIONS.md)
 - [Mobile-First Results Architecture](ux/MOBILE-FIRST-RESULTS.md)
-- [Purdue Data Science Teaching Case](education/PURDUE-DATA-SCIENCE-CASE-STUDY.md)
+- [Product Learning Archive](learning-cases/README.md)
 - [University Offline Research Milestone](education/UNIVERSITY-OFFLINE-RESEARCH-MILESTONE.md)
 
 Technical references remain in the application root:
