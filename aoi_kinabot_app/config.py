@@ -3,14 +3,22 @@
 import os
 from pathlib import Path
 
-APP_VERSION = "v1.1-multilingual-pilot"
+APP_VERSION = "v1.2-offline-research"
 CONSENT_VERSION = "consent-v1.1"
 SCORING_MODEL_VERSION = "score-v2-multilingual"
 OPENAI_INSIGHT_MODEL = os.getenv("KINABOT_INSIGHT_MODEL", "gpt-5.6-luna")
 ENVIRONMENT = os.getenv("KINABOT_ENVIRONMENT", "development").strip().lower()
+OFFLINE_RESEARCH_MODE = (
+    os.getenv("KINABOT_OFFLINE_RESEARCH_MODE", "false").strip().lower() == "true"
+)
+OFFLINE_WHISPER_MODEL_PATH = os.getenv(
+    "KINABOT_OFFLINE_WHISPER_MODEL_PATH", ""
+).strip()
+PARTICIPANT_KEY_SECRET = os.getenv("KINABOT_PARTICIPANT_KEY_SECRET", "").strip()
 ALLOW_LOCAL_VERIFICATION_CODES = (
     os.getenv("KINABOT_ALLOW_LOCAL_CODES", "true").strip().lower() == "true"
     and ENVIRONMENT != "production"
+    and not OFFLINE_RESEARCH_MODE
 )
 ADMIN_KEY = os.getenv("KINABOT_ADMIN_KEY", "").strip()
 

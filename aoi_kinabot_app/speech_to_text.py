@@ -8,20 +8,35 @@ from functools import lru_cache
 from pathlib import Path
 from typing import BinaryIO
 
+from config import OFFLINE_RESEARCH_MODE, OFFLINE_WHISPER_MODEL_PATH
+
 
 LOCAL_TRANSCRIPTION_TYPES = ["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"]
 
 
 def speech_to_text_configured() -> bool:
     """Local transcription is part of the app and needs no external API key."""
-    return True
+    if not OFFLINE_RESEARCH_MODE:
+        return True
+    return bool(
+        OFFLINE_WHISPER_MODEL_PATH
+        and Path(OFFLINE_WHISPER_MODEL_PATH).expanduser().is_dir()
+    )
 
 
 @lru_cache(maxsize=1)
 def _local_model():
     from faster_whisper import WhisperModel
 
-    model_name = os.getenv("KINABOT_WHISPER_MODEL", "small")
+    if OFFLINE_RESEARCH_MODE:
+        if not speech_to_text_configured():
+            raise RuntimeError(
+                "Offline Whisper model not found. Set "
+                "KINABOT_OFFLINE_WHISPER_MODEL_PATH to a local model directory."
+            )
+        model_name = str(Path(OFFLINE_WHISPER_MODEL_PATH).expanduser().resolve())
+    else:
+        model_name = os.getenv("KINABOT_WHISPER_MODEL", "small")
     compute_type = os.getenv("KINABOT_WHISPER_COMPUTE_TYPE", "int8")
     return WhisperModel(model_name, device="cpu", compute_type=compute_type)
 
@@ -32,6 +47,14 @@ def transcribe_audio_upload(
     language_code: str,
 ) -> tuple[bool, str, float | None, dict]:
     """Transcribe locally and delete the temporary audio file in every outcome."""
+    if not speech_to_text_configured():
+        return (
+            False,
+            "Offline Whisper model is not configured. Ask the study administrator "
+            "to set KINABOT_OFFLINE_WHISPER_MODEL_PATH.",
+            None,
+            {},
+        )
     suffix = Path(original_name).suffix or ".audio"
     temp_path: Path | None = None
     try:

@@ -162,6 +162,8 @@ not evidence of health benefit.
 | Prospective real-world pilot | Not completed |
 | Independent replication | Not completed |
 | Clinical validity | Not claimed and not established |
+| Offline ID/no-email workflow | Automated AppTest passed with synthetic ID `001` |
+| Complete disconnected transcription bundle | Pending approved model and wheelhouse acquisition |
 
 ## Standards Alignment
 

@@ -22,6 +22,7 @@ considered.
 | 2026-08-02 | Publish anonymized feedback and scoring explanations | Make design reasoning educational and auditable without exposing participant identity or overstating evidence |
 | 2026-08-03 | Introduce a low-pressure 30-day pattern experience with one recommended daily reflection | Make the value understandable before asking for repeated use; keep extra check-ins optional and avoid streak penalties |
 | 2026-08-05 | Establish validation gates, an active AI risk register, and evidence-defined impact metrics | Make future releases, pilots, public claims, and independent evaluation follow one auditable human-centered framework |
+| 2026-08-05 | Create an offline university research mode with school IDs, study-secret HMAC pseudonyms, and mandatory local transcription | Support privacy-sensitive UK and university research without email, cloud scoring, or silent model downloads |
 
 ## Template for Future Decisions
 

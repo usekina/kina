@@ -121,3 +121,15 @@ The following records should be read together:
 
 Future claims of adoption, clinical utility, independent replication, or
 field-wide impact must be supported by separate third-party evidence.
+
+## 8. Offline University Research Mode
+
+In August 2026, Aoi Minamoto developed a separate offline research path in
+response to interest in university use. It removes email verification, accepts
+school-assigned IDs, stores study-secret HMAC pseudonyms, disables SMTP and
+OpenAI, and requires an existing local speech model so the application cannot
+silently download one. The work includes local installation and launch scripts,
+checksum-based bundle controls, an offline acceptance procedure, UK/EU
+data-protection readiness documentation, and a Purdue Online Data Science
+milestone record. Institutional adoption or approval must be documented
+separately if it occurs.

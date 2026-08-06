@@ -16,12 +16,16 @@ what a voice sample can prove.
 - [Validation Plan](VALIDATION-PLAN.md)
 - [AI Risk Register](AI-RISK-REGISTER.md)
 - [Impact Metrics and Evidence Rules](IMPACT-METRICS.md)
+- [Offline Research Mode](OFFLINE-RESEARCH-GUIDE.md)
+- [Offline Bundle Manifest](OFFLINE-BUNDLE-MANIFEST.md)
+- [UK/EU Data-Protection Readiness](UK-EU-DATA-PROTECTION-READINESS.md)
 - [Decision Log](DECISION-LOG.md)
 - [Project Evolution and Continuing Contribution](PROJECT-EVOLUTION.md)
 - [Public User Feedback](feedback/README.md)
 - [Eight Feature Definitions](methodology/METRIC-DEFINITIONS.md)
 - [Mobile-First Results Architecture](ux/MOBILE-FIRST-RESULTS.md)
 - [Purdue Data Science Teaching Case](education/PURDUE-DATA-SCIENCE-CASE-STUDY.md)
+- [University Offline Research Milestone](education/UNIVERSITY-OFFLINE-RESEARCH-MILESTONE.md)
 
 Technical references remain in the application root:
 

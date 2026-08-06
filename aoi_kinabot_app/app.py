@@ -16,6 +16,8 @@ from config import (
     CONSENT_VERSION,
     MAX_AUDIO_BYTES,
     MAX_TESTS_PER_DAY,
+    OFFLINE_RESEARCH_MODE,
+    PARTICIPANT_KEY_SECRET,
     SCORING_MODEL_VERSION,
 )
 from database import (
@@ -41,6 +43,7 @@ from history_view import latest_session_scores, metric_grid_html
 from insight_service import generate_wellness_insight
 from language_analysis import LANGUAGE_CODES, analyze_transcript
 from local_time import local_date_iso
+from offline_identity import normalize_participant_id, participant_key, valid_participant_id
 from speech_to_text import (
     LOCAL_TRANSCRIPTION_TYPES,
     speech_to_text_configured,
@@ -270,6 +273,27 @@ LANDING_COPY = {
     },
 }
 
+OFFLINE_LOGIN_COPY = {
+    "English": {
+        "caption": "Offline research mode: enter the participant ID assigned by the study administrator.",
+        "label": "Participant ID",
+        "continue": "Continue offline",
+        "invalid": "Use 3-32 letters, numbers, underscores, or hyphens.",
+    },
+    "日本語": {
+        "caption": "オフライン研究モード：研究担当者から割り当てられた参加者IDを入力してください。",
+        "label": "参加者ID",
+        "continue": "オフラインで続ける",
+        "invalid": "3〜32文字の英数字、アンダースコア、またはハイフンを使用してください。",
+    },
+    "中文": {
+        "caption": "离线研究模式：请输入研究管理员分配的参与者编号。",
+        "label": "参与者编号",
+        "continue": "离线继续",
+        "invalid": "请使用3至32位字母、数字、下划线或连字符。",
+    },
+}
+
 AUDIO_CAPTURE_COPY = {
     "English": {
         "new": "New reflection",
@@ -462,6 +486,45 @@ if "profile" not in st.session_state:
     st.session_state.profile = None
 if not st.session_state.verified:
     st.subheader(copy["start"])
+    if OFFLINE_RESEARCH_MODE:
+        offline_copy = OFFLINE_LOGIN_COPY[st.session_state.ui_language]
+        st.info("🔒 Offline research mode · no email · no cloud AI")
+        st.caption(offline_copy["caption"])
+        participant_id = st.text_input(offline_copy["label"])
+        if st.button(offline_copy["continue"], type="primary", use_container_width=True):
+            if not valid_participant_id(participant_id):
+                st.error(offline_copy["invalid"])
+            else:
+                normalized_id = normalize_participant_id(participant_id)
+                if len(PARTICIPANT_KEY_SECRET) < 32:
+                    st.error(
+                        "Offline participant-key secret is missing. Ask the study "
+                        "administrator to run install-offline.ps1."
+                    )
+                    st.stop()
+                pseudonymous_key = participant_key(
+                    normalized_id, PARTICIPANT_KEY_SECRET
+                )
+                user_id = upsert_user(pseudonymous_key, email=None)
+                profile = get_user_profile(user_id)
+                if not profile or not profile["display_name"]:
+                    update_user_profile(
+                        user_id,
+                        "Offline participant",
+                        "Prefer not to say",
+                        "Prefer not to say",
+                        None,
+                        None,
+                    )
+                st.session_state.email = f"Participant {normalized_id}"
+                st.session_state.email_hash = pseudonymous_key
+                st.session_state.user_id = user_id
+                st.session_state.profile = dict(get_user_profile(user_id))
+                st.session_state.verified = True
+                st.rerun()
+        st.caption(copy["disclaimer"])
+        st.stop()
+
     st.caption(copy["login_caption"])
     email = st.text_input(copy["email"], value=st.session_state.email)
     if not st.session_state.code_sent:
