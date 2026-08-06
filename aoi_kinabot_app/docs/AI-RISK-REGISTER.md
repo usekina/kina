@@ -40,6 +40,9 @@ non-diagnostic boundary blocks release until reviewed and accepted in writing.
 | R-18 | Service becomes financially or operationally unsustainable | 3×3 | Usage limits; local scoring; container/AWS direction | 2×3 | Cost per active user, support burden, uptime, and funding model tracking | Open |
 | R-19 | Users rely on KinaBot during urgent health or safety concerns | 2×5 | Not emergency support; professional-care direction | 1×5 | Test visibility and comprehension of urgent-use boundary | Controlled; monitor |
 | R-20 | Environmental cost grows without corresponding public value | 2×3 | Local deterministic scoring; limited optional LLM use | 1×3 | Track compute per completed reflection and avoid unnecessary inference | Open |
+| R-21 | Low-entropy school IDs are guessed from an unkeyed hash | 4×4 | Study-secret HMAC pseudonyms; raw IDs not persisted | 1×4 | Verify secret generation, separation, access, and backup in each installation | Controlled; monitor |
+| R-22 | Loss or replacement of the study secret breaks longitudinal linkage | 3×4 | Installer creates a persistent local secret; launcher requires it | 2×4 | Institution-approved encrypted backup and recovery exercise | Open |
+| R-23 | An offline instance is accidentally exposed on a network | 3×5 | Launcher binds to `127.0.0.1`; offline acceptance test requires network review | 1×5 | University firewall/device review and port verification | Controlled; monitor |
 
 ## Release Review
 

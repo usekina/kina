@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-08-05 · Offline university research mode
+
+- Added school-assigned participant IDs without email collection or SMTP.
+- Added study-secret HMAC pseudonyms so low-entropy IDs such as `001` are not
+  stored or represented by enumerable unkeyed hashes.
+- Enforced local Whisper model paths and disabled OpenAI in offline mode.
+- Added offline-only dependencies, installation, launch, bundle-build, checksum,
+  verification, quick-start, and acceptance-test materials.
+- Added UK/EU data-protection readiness and a university/Purdue data-science
+  milestone record without claiming institutional approval or legal compliance.
+
 ## 2026-08-03 · 30-day pattern experience
 
 - Added the multilingual **30 Days to Know Your Patterns** experience.

@@ -6,7 +6,7 @@ import json
 import os
 from typing import Any
 
-from config import OPENAI_INSIGHT_MODEL
+from config import OFFLINE_RESEARCH_MODE, OPENAI_INSIGHT_MODEL
 from wellness_guidance import (
     MEDITERRANEAN_TRIAL,
     SOCIAL_ENGAGEMENT_STUDY,
@@ -115,7 +115,11 @@ def _fallback_action(language: str, payload: dict) -> dict:
 def generate_wellness_insight(history: list[dict[str, Any]], language: str) -> dict:
     """Generate one action; OpenAI sees anonymous score series and allowed actions only."""
     payload = anonymous_trend_payload(history, language)
-    if payload["sessions_compared"] < 3 or not os.getenv("OPENAI_API_KEY", "").strip():
+    if (
+        OFFLINE_RESEARCH_MODE
+        or payload["sessions_compared"] < 3
+        or not os.getenv("OPENAI_API_KEY", "").strip()
+    ):
         return _fallback_action(language, payload)
 
     from openai import OpenAI

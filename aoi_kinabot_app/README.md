@@ -71,6 +71,21 @@ Project records:
 - [Founder and maintainership](OWNERSHIP-AND-MAINTAINERSHIP.md)
 - [V1.1 release checklist](RELEASE-CHECKLIST.md)
 
+## Offline University Research Mode
+
+KinaBot can run without email, SMTP, OpenAI, or cloud transcription. An approved
+offline bundle uses a preinstalled local Whisper model, local SQLite storage,
+and school-assigned participant IDs such as `001`. The raw ID is not stored;
+KinaBot derives a study-specific HMAC pseudonym using a locally generated secret.
+
+Start with [Offline Quick Start](OFFLINE-QUICKSTART.md). Research administrators
+should also review the [offline research guide](docs/OFFLINE-RESEARCH-GUIDE.md),
+[UK/EU data-protection readiness checklist](docs/UK-EU-DATA-PROTECTION-READINESS.md),
+and [bundle manifest](docs/OFFLINE-BUNDLE-MANIFEST.md).
+
+Offline engineering controls support—but do not replace—university ethics,
+information-governance, legal, security, and study-protocol approval.
+
 ## OpenAI's Limited Role
 
 OpenAI is an optional insight layer used only after KinaBot has calculated the

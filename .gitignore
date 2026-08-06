@@ -7,3 +7,8 @@ __pycache__/
 aoi_kinabot_app/data/
 aoi_kinabot_app/streamlit.*.log
 aoi_kinabot_app/kinabot-*.log
+aoi_kinabot_app/.offline-participant-key
+aoi_kinabot_app/.venv/
+aoi_kinabot_app/wheelhouse/
+aoi_kinabot_app/models/
+aoi_kinabot_app/dist/
