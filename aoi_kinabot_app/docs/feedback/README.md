@@ -18,6 +18,12 @@ Public records must:
 Feedback is evidence of a product-design input. It is not proof of clinical
 validity, user impact, adoption, or causation.
 
+When feedback leads to a material, generalizable change across architecture,
+privacy, safety, accessibility, validation, or institutional context, preserve
+the feedback record here and create a linked dated case in the
+[Learning Case Library](../learning-cases/README.md). The feedback record keeps
+the input traceable; the learning case explains the broader decision and lesson.
+
 ## Record Template
 
 ```markdown

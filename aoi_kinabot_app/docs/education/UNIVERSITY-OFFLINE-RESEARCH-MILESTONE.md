@@ -5,12 +5,11 @@ Date established: 2026-08-05
 ## Milestone Purpose
 
 This milestone records the development of a reproducible offline research mode
-for two educational and research contexts:
+for two general learning and research contexts:
 
 1. a prospective UK university researcher who requested local/offline KinaBot
    use; and
-2. the Purdue University Online Data Science educational record planned for the
-   fall academic term.
+2. reusable practical learning material for studying data-product decisions.
 
 No university endorsement, formal partnership, ethics approval, or deployment
 is implied unless supported by a separate institutional document.

@@ -23,6 +23,7 @@ considered.
 | 2026-08-03 | Introduce a low-pressure 30-day pattern experience with one recommended daily reflection | Make the value understandable before asking for repeated use; keep extra check-ins optional and avoid streak penalties |
 | 2026-08-05 | Establish validation gates, an active AI risk register, and evidence-defined impact metrics | Make future releases, pilots, public claims, and independent evaluation follow one auditable human-centered framework |
 | 2026-08-05 | Create an offline university research mode with school IDs, study-secret HMAC pseudonyms, and mandatory local transcription | Support privacy-sensitive UK and university research without email, cloud scoring, or silent model downloads |
+| 2026-08-06 | Publish meaningful changes as dated, evidence-linked learning cases | Preserve first-hand failures, tradeoffs, verification, and social context as reusable education rather than retrospective promotion |
 
 ## Template for Future Decisions
 

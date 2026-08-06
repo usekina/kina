@@ -8,8 +8,11 @@ effectiveness.
 ## 1. Origin and Early Public Exploration
 
 KinaBot's product history traces its origin to the name Kizuna in May 2025.
-The currently available public Git record begins on November 28, 2025, with
-Aoi Minamoto's initial repository work and open-source V1 publication.
+The repository's complete public Git history across preserved refs begins on
+November 28, 2025, with Aoi Minamoto's initial repository work and open-source
+V1 publication. The current maintained branch contains a later reconstructed
+history beginning in June 2026, so provenance checks should inspect all refs
+rather than the current branch alone.
 
 The early repository explored speech-derived cognitive-insight concepts,
 Streamlit delivery, privacy and medical disclaimers, documentation, automated
@@ -130,6 +133,6 @@ school-assigned IDs, stores study-secret HMAC pseudonyms, disables SMTP and
 OpenAI, and requires an existing local speech model so the application cannot
 silently download one. The work includes local installation and launch scripts,
 checksum-based bundle controls, an offline acceptance procedure, UK/EU
-data-protection readiness documentation, and a Purdue Online Data Science
+data-protection readiness documentation, and a university data science
 milestone record. Institutional adoption or approval must be documented
 separately if it occurs.
