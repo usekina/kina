@@ -127,6 +127,8 @@ all meaningful milestones. The cases below examine the largest learning turns.
 - [2026-08-02 · From User Feedback to a Data Product](aoi-maintained-product/2026-08-02-feedback-to-data-product.md)
 - [2026-08-05 · Dignity First: Changing Product Success and Evidence Standards](aoi-maintained-product/2026-08-05-dignity-first-validation.md)
 - [2026-08-05 · From Online Product to Offline University Research](aoi-maintained-product/2026-08-05-offline-university-research.md)
+- [2026-08-05 · Users Must Never Have to Guess About Data Loss](aoi-maintained-product/2026-08-05-explicit-data-loss-controls.md)
+- [2026-08-05 · Dignity Through Access and Awareness](aoi-maintained-product/2026-08-05-dignity-through-access-awareness.md)
 
 ## The Next Cases Must Be Earned
 

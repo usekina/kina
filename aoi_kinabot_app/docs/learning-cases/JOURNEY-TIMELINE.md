@@ -88,6 +88,9 @@ implemented behavior, and future goals.
 - The 30-day experience emphasized one recommended reflection, optional extra
   check-ins, and no streak penalty.
 - Dignity-first language and family-centered boundaries were consolidated.
+- Equitable access to longitudinal awareness was documented as a product
+  purpose, using feature direction, magnitude, and variability as a mirror
+  without claiming direct measurement of cognitive, brain, or neural change.
 - Validation gates, an AI risk register, impact metrics, and a project-evolution
   record were established.
 - **Takeaway:** human-centered values need release gates and evidence rules.

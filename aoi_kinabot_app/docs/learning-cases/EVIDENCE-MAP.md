@@ -22,6 +22,8 @@ field-wide significance.
 | Mobile trends from feedback | [`484fd80`](https://github.com/usekina/kina/commit/484fd80), [`56cf22d`](https://github.com/usekina/kina/commit/56cf22d) | [PR #27](https://github.com/usekina/kina/pull/27) and [feedback record](../feedback/2026-08-mobile-results-navigation.md) |
 | Dignity-first design and validation governance | [`f6f3134`](https://github.com/usekina/kina/commit/f6f3134), [`c99dcd1`](https://github.com/usekina/kina/commit/c99dcd1) | [PR #28](https://github.com/usekina/kina/pull/28), [Risk Register](../AI-RISK-REGISTER.md), and [Validation Plan](../VALIDATION-PLAN.md) |
 | Offline research mode | [`5a23963`](https://github.com/usekina/kina/commit/5a23963) | [PR #29](https://github.com/usekina/kina/pull/29) and [Offline Research Guide](../OFFLINE-RESEARCH-GUIDE.md) |
+| Explicit controls for data-loss actions | [`386bf0f`](https://github.com/usekina/kina/commit/386bf0f) | [AImoji Maintainer Principles](../../../docs/maintainer-principles.md) |
+| Dignity through equitable access and longitudinal awareness | [`2075664`](https://github.com/usekina/kina/commit/2075664) | [AImoji Maintainer Principles](../../../docs/maintainer-principles.md) |
 
 ## Authorship Boundary
 
