@@ -84,3 +84,9 @@ Human-centered technology should support longitudinal awareness, informed
 choice, family communication when the individual wants it, and appropriate
 professional follow-up while preserving privacy, agency, and cultural and
 linguistic accessibility.
+
+KinaBot may act as a longitudinal mirror by quantifying the direction,
+magnitude, and variability of defined speech and language features over time
+under a versioned method. A lower or more variable feature value is a
+feature-level observation; it must not be presented as direct evidence of
+cognitive, brain, or neurological decline.

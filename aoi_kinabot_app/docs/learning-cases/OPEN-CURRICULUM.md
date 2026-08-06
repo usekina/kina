@@ -75,6 +75,11 @@ power, accessibility, and unmeasured harm.
 turns dignity into concrete destructive-action, warning, recovery, and
 privacy-retention requirements.
 
+**Companion case:** [Dignity Through Access and Awareness](aoi-maintained-product/2026-08-05-dignity-through-access-awareness.md)
+examines inequitable access and the use of longitudinal feature direction,
+magnitude, and variability as a mirror without converting observations into
+clinical or neurological claims.
+
 ## Module 7 · Context Changes the System
 
 **Case:** [From Online Product to Offline University Research](aoi-maintained-product/2026-08-05-offline-university-research.md)

@@ -16,6 +16,7 @@ governance, and offline research mode.
 - [Dignity First](2026-08-05-dignity-first-validation.md)
 - [From Online Product to Offline University Research](2026-08-05-offline-university-research.md)
 - [Users Must Never Have to Guess About Data Loss](2026-08-05-explicit-data-loss-controls.md)
+- [Dignity Through Access and Awareness](2026-08-05-dignity-through-access-awareness.md)
 
 ## Reading Boundary
 
