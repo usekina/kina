@@ -63,3 +63,24 @@ Automatic lifecycle deletion, such as removing temporary audio after
 processing, remains appropriate when it is part of the stated privacy design.
 It must be disclosed before collection, applied consistently, and covered by
 tests and operational records rather than presented as a user-initiated action.
+
+## 8. Dignity Through Access and Awareness
+
+**Documented:** 2026-08-05
+
+**Scope:** AImoji product purpose, access, and evidence boundaries
+
+People should have a fair opportunity to notice and understand meaningful
+patterns in their health and everyday functioning, and to decide when to seek
+support. Access to understandable information and appropriate evaluation should
+not depend on income, insurance status, race, language, or geography.
+
+AImoji products should reduce informational and practical barriers without
+turning access into overclaiming. They must not present speech-derived patterns
+as direct measurements of the brain or nervous system, replace qualified
+clinical evaluation, or imply that awareness alone is diagnosis.
+
+Human-centered technology should support longitudinal awareness, informed
+choice, family communication when the individual wants it, and appropriate
+professional follow-up while preserving privacy, agency, and cultural and
+linguistic accessibility.
