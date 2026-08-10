@@ -138,6 +138,39 @@ def upsert_user(email_hash: str, email: str | None = None) -> int:
         return int(row["id"])
 
 
+def find_user_id_by_email_hash(email_hash: str) -> int | None:
+    """Resolve a pseudonymous key without creating a participant record."""
+    with get_connection() as conn:
+        row = conn.execute(
+            "SELECT id FROM users WHERE email_hash = ?", (email_hash,)
+        ).fetchone()
+        return int(row["id"]) if row else None
+
+
+def delete_user_research_data(user_id: int) -> bool:
+    """Delete one participant's local records in an explicit transaction."""
+    with get_connection() as conn:
+        if not conn.execute("SELECT 1 FROM users WHERE id = ?", (user_id,)).fetchone():
+            return False
+        session_ids = [
+            int(row["id"])
+            for row in conn.execute(
+                "SELECT id FROM test_sessions WHERE user_id = ?", (user_id,)
+            ).fetchall()
+        ]
+        if session_ids:
+            placeholders = ",".join("?" for _ in session_ids)
+            conn.execute(
+                f"DELETE FROM feature_scores WHERE test_session_id IN ({placeholders})",
+                session_ids,
+            )
+        conn.execute("DELETE FROM habit_checkins WHERE user_id = ?", (user_id,))
+        conn.execute("DELETE FROM consent_events WHERE user_id = ?", (user_id,))
+        conn.execute("DELETE FROM test_sessions WHERE user_id = ?", (user_id,))
+        conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
+        return True
+
+
 def get_user_profile(user_id: int) -> sqlite3.Row | None:
     with get_connection() as conn:
         return conn.execute(
@@ -364,6 +397,10 @@ def get_user_scores(user_id: int) -> list[sqlite3.Row]:
                 ts.session_number,
                 ts.session_type,
                 ts.language,
+                ts.duration_seconds,
+                ts.app_version,
+                ts.consent_version,
+                ts.scoring_model_version,
                 fs.feature_name,
                 fs.score
             FROM feature_scores fs

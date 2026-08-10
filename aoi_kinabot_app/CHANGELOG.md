@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-08-10 · Offline/private research API
+
+- Added a dedicated localhost-only FastAPI subsystem so approved university
+  software can call the existing KinaBot engine without internet or cloud AI.
+- Added local token authentication, study-secret participant pseudonyms,
+  request size/type validation, versioned analysis responses, history, and
+  explicit participant-data deletion.
+- Removed `OPENAI_API_KEY` at API launch; offline calls create no OpenAI usage
+  or AImoji per-request API expense.
+- Added one-command Windows startup, generated local API credentials, OpenAPI
+  documentation, administrator guidance, commercial/claims boundaries, and
+  evidence-preservation guidance.
+- Verified the change with 27 passing multilingual, offline, privacy, and API
+  tests; this is engineering verification, not institutional or clinical
+  validation.
+
 ## 2026-08-06 · Dated learning case library
 
 - Established a publication standard and reusable template for meaningful,

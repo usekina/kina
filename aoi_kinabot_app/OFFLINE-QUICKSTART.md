@@ -14,6 +14,12 @@
 7. Run `.\run-offline.ps1`.
 8. Open `http://127.0.0.1:8501`.
 
+If approved university software will call KinaBot directly, run
+`.\offline_api\run-offline-api.ps1` instead and open
+`http://127.0.0.1:8787/docs`. See the
+[Offline/Private Research API guide](offline_api/README.md). The local API uses
+the same analysis engine and database; it does not call OpenAI.
+
 ## For a Participant
 
 1. Enter the ID assigned by the university, for example `001`.

@@ -24,6 +24,7 @@ field-wide significance.
 | Offline research mode | [`5a23963`](https://github.com/usekina/kina/commit/5a23963) | [PR #29](https://github.com/usekina/kina/pull/29) and [Offline Research Guide](../OFFLINE-RESEARCH-GUIDE.md) |
 | Explicit controls for data-loss actions | [`386bf0f`](https://github.com/usekina/kina/commit/386bf0f) | [AImoji Maintainer Principles](../../../docs/maintainer-principles.md) |
 | Dignity through equitable access and longitudinal awareness | [`2075664`](https://github.com/usekina/kina/commit/2075664) | [AImoji Maintainer Principles](../../../docs/maintainer-principles.md) |
+| Local/private research API and university interoperability | [`6e2457e`](https://github.com/usekina/kina/commit/6e2457e) | [PR #32](https://github.com/usekina/kina/pull/32), [API guide](../../offline_api/README.md), and [dated learning case](aoi-maintained-product/2026-08-10-local-api-for-private-research.md) |
 
 ## Authorship Boundary
 
