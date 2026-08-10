@@ -11,6 +11,8 @@ Every university delivery must identify:
 - build date and builder;
 - institution and approved research purpose;
 - offline acceptance-test result;
+- enabled interface (`Streamlit UI`, `Local Research API`, or both) and its
+  approved localhost port;
 - known limitations; and
 - contact for security or data-protection issues.
 
@@ -18,5 +20,6 @@ Every university delivery must identify:
 an approved wheelhouse and model directory. `verify-offline-bundle.ps1` checks
 that required components exist and that every manifested file is unchanged.
 
-The generated bundle, model, wheelhouse, participant-key secret, databases, and
-research exports must not be committed to the public repository.
+The generated bundle, model, wheelhouse, participant-key secret, local API
+token, databases, and research exports must not be committed to the public
+repository.

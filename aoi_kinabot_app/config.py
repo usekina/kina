@@ -21,6 +21,7 @@ ALLOW_LOCAL_VERIFICATION_CODES = (
     and not OFFLINE_RESEARCH_MODE
 )
 ADMIN_KEY = os.getenv("KINABOT_ADMIN_KEY", "").strip()
+LOCAL_API_TOKEN = os.getenv("KINABOT_LOCAL_API_TOKEN", "").strip()
 
 APP_DIR = Path(__file__).resolve().parent
 DATA_DIR = APP_DIR / "data"

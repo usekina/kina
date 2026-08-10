@@ -109,6 +109,17 @@ implemented behavior, and future goals.
 - **Takeaway:** continuous contribution becomes more useful when others can
   inspect and learn from the reasoning, including mistakes and uncertainty.
 
+## 2026-08-10 · Private Research Interoperability
+
+- A UK university use context led Aoi to extend offline KinaBot from a
+  standalone interface into a localhost-only, authenticated research API.
+- The API reused the local multilingual scoring authority, converted research
+  IDs into study-secret pseudonyms, removed OpenAI at launch, exposed deletion,
+  and returned limitations and version provenance in every result.
+- **Takeaway:** interoperability for sensitive data should distribute useful
+  capability without distributing identity, transcripts, diagnostic claims, or
+  an external-service dependency.
+
 ## Evidence Frontier
 
 The next milestones are not yet achievements: real pilots, representative user

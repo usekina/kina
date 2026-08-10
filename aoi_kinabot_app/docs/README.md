@@ -17,6 +17,7 @@ what a voice sample can prove.
 - [AI Risk Register](AI-RISK-REGISTER.md)
 - [Impact Metrics and Evidence Rules](IMPACT-METRICS.md)
 - [Offline Research Mode](OFFLINE-RESEARCH-GUIDE.md)
+- [Offline/Private Research API](../offline_api/README.md)
 - [Offline Bundle Manifest](OFFLINE-BUNDLE-MANIFEST.md)
 - [UK/EU Data-Protection Readiness](UK-EU-DATA-PROTECTION-READINESS.md)
 - [Decision Log](DECISION-LOG.md)

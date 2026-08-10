@@ -83,6 +83,11 @@ should also review the [offline research guide](docs/OFFLINE-RESEARCH-GUIDE.md),
 [UK/EU data-protection readiness checklist](docs/UK-EU-DATA-PROTECTION-READINESS.md),
 and [bundle manifest](docs/OFFLINE-BUNDLE-MANIFEST.md).
 
+Approved local software can integrate through the
+[Offline/Private Research API](offline_api/README.md). It listens on localhost,
+uses the same KinaBot scoring engine and local study data, requires a local
+token, and does not call OpenAI.
+
 Offline engineering controls support—but do not replace—university ethics,
 information-governance, legal, security, and study-protocol approval.
 
