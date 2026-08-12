@@ -90,6 +90,36 @@ network, storage, pseudonymisation, and acceptance-test design.
 **Practice:** threat-model short participant IDs and design a reproducible
 offline handoff without disabling security checks.
 
+## Module 8 · Responsible Interpretation
+
+**Case:** [From Feature Variation to Responsible Interpretation](aoi-maintained-product/2026-08-12-feature-variation-responsible-interpretation.md)
+
+**Learn:** separate recorded observation, descriptive pattern, and validated
+interpretation; identify confounders before assigning meaning to change.
+
+**Practice:** specify one permitted conclusion, one prohibited conclusion, and
+the external evidence required for a stronger claim.
+
+## Module 9 · Responsible Product Limits
+
+**Case:** [When a Product Limit Protects the User](aoi-maintained-product/2026-08-12-responsible-usage-limits.md)
+
+**Learn:** balance agency, repetitive behavior, reliability, research context,
+cost, and sustainability without making technical failure the user's burden.
+
+**Practice:** design a context-specific quota policy and tests for retries,
+partial failures, concurrency, and local-time reset.
+
+## Module 10 · Benchmark Before Claim
+
+**Reference:** [Benchmark and Evaluation Framework](../evaluation/BENCHMARK-FRAMEWORK.md)
+
+**Learn:** evaluate a multilingual longitudinal system across reliability,
+robustness, comprehension, privacy, operations, and claims compliance.
+
+**Practice:** write a reproducible benchmark protocol that publishes negative
+findings and preserves participant privacy.
+
 ## Capstone · An Evidence-Bounded Product Change
 
 Learners select one real product problem and submit:

@@ -28,6 +28,9 @@ what a voice sample can prove.
 - [Mobile-First Results Architecture](ux/MOBILE-FIRST-RESULTS.md)
 - [Product Learning Archive](learning-cases/README.md)
 - [University Offline Research Milestone](education/UNIVERSITY-OFFLINE-RESEARCH-MILESTONE.md)
+- [System Architecture](architecture/SYSTEM-ARCHITECTURE.md)
+- [Benchmark and Evaluation Framework](evaluation/BENCHMARK-FRAMEWORK.md)
+- [Startup-Sponsored Student Project Framework](education/STARTUP-SPONSORED-STUDENT-PROJECT.md)
 
 Technical references remain in the application root:
 
