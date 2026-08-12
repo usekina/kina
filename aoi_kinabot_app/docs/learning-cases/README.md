@@ -130,6 +130,7 @@ all meaningful milestones. The cases below examine the largest learning turns.
 - [2026-08-05 · Users Must Never Have to Guess About Data Loss](aoi-maintained-product/2026-08-05-explicit-data-loss-controls.md)
 - [2026-08-05 · Dignity Through Access and Awareness](aoi-maintained-product/2026-08-05-dignity-through-access-awareness.md)
 - [2026-08-12 · From Feature Variation to Responsible Interpretation](aoi-maintained-product/2026-08-12-feature-variation-responsible-interpretation.md)
+- [2026-08-12 · When a Product Limit Protects the User](aoi-maintained-product/2026-08-12-responsible-usage-limits.md)
 
 ## The Next Cases Must Be Earned
 
