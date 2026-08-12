@@ -129,6 +129,7 @@ all meaningful milestones. The cases below examine the largest learning turns.
 - [2026-08-05 · From Online Product to Offline University Research](aoi-maintained-product/2026-08-05-offline-university-research.md)
 - [2026-08-05 · Users Must Never Have to Guess About Data Loss](aoi-maintained-product/2026-08-05-explicit-data-loss-controls.md)
 - [2026-08-05 · Dignity Through Access and Awareness](aoi-maintained-product/2026-08-05-dignity-through-access-awareness.md)
+- [2026-08-12 · From Feature Variation to Responsible Interpretation](aoi-maintained-product/2026-08-12-feature-variation-responsible-interpretation.md)
 
 ## The Next Cases Must Be Earned
 

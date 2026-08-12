@@ -18,6 +18,7 @@ governance, and offline research mode.
 - [Users Must Never Have to Guess About Data Loss](2026-08-05-explicit-data-loss-controls.md)
 - [Dignity Through Access and Awareness](2026-08-05-dignity-through-access-awareness.md)
 - [From an Offline App to a Private Research Capability](2026-08-10-local-api-for-private-research.md)
+- [From Feature Variation to Responsible Interpretation](2026-08-12-feature-variation-responsible-interpretation.md)
 
 ## Reading Boundary
 
