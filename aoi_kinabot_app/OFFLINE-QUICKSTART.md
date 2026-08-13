@@ -1,5 +1,11 @@
 # KinaBot Offline Research — Quick Start
 
+> The public GitHub repository does not include `wheelhouse/` or
+> `models/whisper-small/`. These large, versioned third-party artifacts belong
+> to a separately built and checksum-verified institutional delivery bundle.
+> If you received only a GitHub link, request the complete offline bundle from
+> the KinaBot maintainer before starting installation.
+
 ## For the Study Administrator
 
 1. Copy the complete approved KinaBot offline bundle to the encrypted research

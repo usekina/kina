@@ -10,7 +10,7 @@ $ErrorActionPreference = "Stop"
 $wheelhouse = Resolve-Path -LiteralPath $WheelhousePath -ErrorAction Stop
 $model = Resolve-Path -LiteralPath $WhisperModelPath -ErrorAction Stop
 $repoRoot = Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..")
-$commit = (& git -C $repoRoot.Path rev-parse --short=12 HEAD).Trim()
+$commit = (& git -c "safe.directory=$($repoRoot.Path)" -C $repoRoot.Path rev-parse --short=12 HEAD).Trim()
 if (-not $commit) { throw "Unable to determine the Git commit." }
 
 $output = New-Item -ItemType Directory -Force -Path $OutputDirectory
@@ -20,7 +20,7 @@ if (Test-Path -LiteralPath $stage) {
     throw "Bundle staging directory already exists: $stage"
 }
 
-& git -C $repoRoot.Path archive --format=zip --output=$archive HEAD aoi_kinabot_app
+& git -c "safe.directory=$($repoRoot.Path)" -C $repoRoot.Path archive --format=zip --output=$archive HEAD aoi_kinabot_app
 Expand-Archive -LiteralPath $archive -DestinationPath $output.FullName
 Move-Item -LiteralPath (Join-Path $output.FullName "aoi_kinabot_app") -Destination $stage
 Remove-Item -LiteralPath $archive
