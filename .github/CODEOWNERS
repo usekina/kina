@@ -1,0 +1,13 @@
+# Current Aoi-maintained product. Repository settings should require Code Owner
+# review on the protected main branch for this rule to be enforced by GitHub.
+/aoi_kinabot_app/ @aoiminamoto
+
+# Community governance and legal-policy surfaces require maintainer review.
+/LICENSE.md @aoiminamoto
+/LICENSING.md @aoiminamoto
+/COMMERCIAL-LICENSING.md @aoiminamoto
+/CLA.md @aoiminamoto
+/TRADEMARKS.md @aoiminamoto
+/SECURITY.md @aoiminamoto
+/CODE_OF_CONDUCT.md @aoiminamoto
+/.github/ @aoiminamoto

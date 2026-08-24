@@ -1,0 +1,3 @@
+# One lowercase domain per line. Pull requests containing an author or committer
+# email from a blocked employer domain fail the contributor-identity check.
+toyota.com

@@ -1,0 +1,59 @@
+name: Privacy or responsible-use review
+description: Raise a non-secret privacy, consent, accessibility, or product-safety concern.
+title: "[Privacy/Safety]: "
+labels: ["privacy", "safety", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this public form only when the report contains no personal data, credentials, or exploitable vulnerability. Report those privately through SECURITY.md.
+  - type: checkboxes
+    id: public_safe
+    attributes:
+      label: Public-report confirmation
+      options:
+        - label: This report is safe to discuss publicly and contains no sensitive data or unpatched exploit details.
+          required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Concern category
+      options:
+        - Consent or user control
+        - Data collection, retention, export, or deletion
+        - Misleading clinical or scoring language
+        - Accessibility, inclusion, or coercion risk
+        - Multilingual fairness or language boundaries
+        - Research or deployment governance
+        - Other responsible-use concern
+    validations:
+      required: true
+  - type: textarea
+    id: scenario
+    attributes:
+      label: Scenario and affected people
+      description: Describe the realistic context, affected users, and potential harm using synthetic examples.
+    validations:
+      required: true
+  - type: textarea
+    id: current_control
+    attributes:
+      label: Existing control and gap
+      description: What currently mitigates the concern, and why is it insufficient?
+  - type: textarea
+    id: recommendation
+    attributes:
+      label: Recommended outcome
+      description: Suggest a proportionate mitigation, documentation change, or research question.
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation evidence
+      description: How should the project verify that risk is reduced without overstating results?
+  - type: checkboxes
+    id: boundaries
+    attributes:
+      label: Responsible disclosure
+      options:
+        - label: I understand that clinical, legal, and regulatory claims require independent evidence and review.
+          required: true

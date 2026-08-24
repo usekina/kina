@@ -1,6 +1,11 @@
-Non-Commercial License Agreement
+KinaBot Non-Commercial Source License
 
-Copyright © AIMOJI LLC. All rights reserved.
+Copyright © the respective copyright holders. All rights reserved except as
+expressly granted below.
+
+This license applies only to material whose copyright holder has made it
+available under these terms. Third-party software, content, models, datasets,
+and separately identified materials remain subject to their own licenses.
 
 Permission is hereby granted to any person obtaining a copy of this software
 and associated documentation files (the “Software”) to use, copy, modify, and
@@ -23,3 +28,7 @@ Software.
 
 For licensing inquiries or commercial usage, please contact:
 aoi@aimojitech.com 
+
+Plain-language guidance and commercial-contact information are available in
+LICENSING.md and COMMERCIAL-LICENSING.md. Those explanatory documents do not
+replace or expand this license.

@@ -1,0 +1,5 @@
+# Authorized Aoi/AImoji Git identities for aoi_kinabot_app/.
+42107224+aoiminamoto@users.noreply.github.com
+aoiminamoto@users.noreply.github.com
+taohin2002@gmail.com
+aoi@aimojitech.com

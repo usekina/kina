@@ -1,0 +1,28 @@
+changelog:
+  exclude:
+    labels:
+      - skip-changelog
+    authors:
+      - dependabot
+  categories:
+    - title: Security and privacy
+      labels:
+        - security
+        - privacy
+    - title: Scoring and data integrity
+      labels:
+        - scoring
+        - data-integrity
+    - title: Features and improvements
+      labels:
+        - enhancement
+    - title: Fixes
+      labels:
+        - bug
+    - title: Documentation and community
+      labels:
+        - documentation
+        - community
+    - title: Other changes
+      labels:
+        - "*"
