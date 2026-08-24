@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-08-24 · Kina orange product interface
+
+- Introduced the Kina orange-red product accent for primary actions, recording,
+  progress, and selected controls instead of warning-like red styling.
+- Added a clearer product header, privacy and wellness trust cues, and a
+  three-step explanation of the reflection flow.
+- Refined the landing hierarchy, recording panel, form surfaces, spacing, and
+  responsive mobile layout while preserving all existing workflows.
+- Updated the landing message in English, Japanese, and Chinese without adding
+  diagnostic, ranking, or comparison claims.
+
 ## 2026-08-24 · Pause measurement boundary correction
 
 - Changed Pause Pattern to measure only gaps inside the detected speech span,
