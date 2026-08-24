@@ -1,6 +1,6 @@
 # KinaBot V1.1 Scoring Methodology
 
-Scoring model version: `score-v2-multilingual`
+Scoring model version: `score-v3-connector-boundaries`
 
 ## Purpose
 
@@ -65,6 +65,13 @@ representative recordings before broad interpretation.
 | Emotional Tone | Counts from a small language-specific expression lexicon |
 | Transcription Clarity | Amount of recognizable transcript evidence |
 
+English discourse connectors are counted only when their normalized tokens
+match complete connector token sequences. Substrings inside unrelated words do
+not count; for example, `and` in `candy` and `if` in `gift` are excluded. Each
+real occurrence is counted, including repeated connectors. Japanese and Chinese
+use their language-specific connector matching behavior rather than English
+word-boundary rules.
+
 ## Longitudinal Display
 
 - Sessions 1–2: display the current sample only.
@@ -89,6 +96,10 @@ Any future change to tokenization, reference centers, feature formulas, or
 feature definitions must increment the scoring-model version. Scores from
 different versions should not be placed on one uninterrupted trend line
 without a documented migration or recalculation method.
+
+The application therefore limits displayed trend calculations to sessions from
+the current scoring-model version. Older sessions remain available in research
+exports with their original version metadata.
 
 ## Validation Status
 

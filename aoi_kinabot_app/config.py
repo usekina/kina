@@ -5,7 +5,7 @@ from pathlib import Path
 
 APP_VERSION = "v1.2-offline-research"
 CONSENT_VERSION = "consent-v1.1"
-SCORING_MODEL_VERSION = "score-v2-multilingual"
+SCORING_MODEL_VERSION = "score-v3-connector-boundaries"
 OPENAI_INSIGHT_MODEL = os.getenv("KINABOT_INSIGHT_MODEL", "gpt-5.6-luna")
 ENVIRONMENT = os.getenv("KINABOT_ENVIRONMENT", "development").strip().lower()
 OFFLINE_RESEARCH_MODE = (

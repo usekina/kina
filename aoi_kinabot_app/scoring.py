@@ -177,13 +177,34 @@ def score_response_length(words: list[str], language: str) -> tuple[float, str]:
     return clamp_score((total / target) * 100), f"units={total}; target={target}"
 
 
+def count_english_connectors(words: list[str], connectors: set[str]) -> int:
+    """Count connector token sequences without matching inside other words."""
+    normalized_words = [word.lower() for word in words]
+    connector_count = 0
+    for connector in connectors:
+        connector_words = tokenize(connector, "English")
+        width = len(connector_words)
+        if not width:
+            continue
+        connector_count += sum(
+            normalized_words[index : index + width] == connector_words
+            for index in range(len(normalized_words) - width + 1)
+        )
+    return connector_count
+
+
 def score_sentence_complexity(
     text: str, words: list[str], sentences: list[str], language: str
 ) -> tuple[float, str]:
     sentence_count = len(sentences)
     avg_len = len(words) / sentence_count if sentence_count else 0.0
-    connectors = CONNECTORS[language_code(language)]
-    connector_count = sum(text.lower().count(connector) for connector in connectors)
+    code = language_code(language)
+    connectors = CONNECTORS[code]
+    if code == "en":
+        connector_count = count_english_connectors(words, connectors)
+    else:
+        # Japanese and Chinese connectors do not follow English word boundaries.
+        connector_count = sum(text.lower().count(connector) for connector in connectors)
     score = (min(avg_len, 20) / 20) * 70 + min(connector_count, 6) / 6 * 30
     return clamp_score(score), f"avg_sentence_length={avg_len:.2f}; connectors={connector_count}"
 

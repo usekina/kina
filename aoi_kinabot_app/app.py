@@ -752,7 +752,9 @@ primary_view = st.radio(
 
 if primary_view == "trends":
     assign_timezone_to_legacy_sessions(st.session_state.user_id, browser_timezone)
-    rows = get_user_scores(st.session_state.user_id)
+    rows = get_user_scores(
+        st.session_state.user_id, scoring_model_version=SCORING_MODEL_VERSION
+    )
     st.subheader(history_copy["trends"])
     if not rows:
         st.caption(history_copy["no_scores"])

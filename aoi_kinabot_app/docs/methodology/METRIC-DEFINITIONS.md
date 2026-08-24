@@ -1,6 +1,6 @@
 # How KinaBot Produces the Eight Feature Indexes
 
-Model version: `score-v2-multilingual`
+Model version: `score-v3-connector-boundaries`
 
 KinaBot uses its own Python and multilingual NLP pipeline. Audio is transcribed
 privately by the application, then language-specific tokenization and acoustic
@@ -21,6 +21,11 @@ cognitive test result.
 | Repetition Pattern | Repeated instances relative to total units | Lower repetition ratio maps to a higher display index |
 | Emotional Tone | Small language-specific positive/negative wording lexicon | Bounded balance of detected wording; topic strongly affects it |
 | Recording Clarity | Amount of recognizable transcript evidence | Tiered index based on usable recognized units |
+
+For English sentence structure, connectors are matched as complete normalized
+token sequences. Connector text embedded inside an unrelated word is not
+counted, while repeated standalone connectors are counted repeatedly. Japanese
+and Chinese retain language-specific matching rules.
 
 English uses regular-expression word tokens, Japanese uses Janome
 morphological analysis, and Chinese uses jieba segmentation. Pace and response
