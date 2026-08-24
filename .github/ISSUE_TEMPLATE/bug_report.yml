@@ -1,0 +1,87 @@
+name: Bug report
+description: Report a reproducible defect without exposing private or sensitive data.
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping improve KinaBot. Search existing issues first. Use only synthetic data and report security vulnerabilities through the private channel in SECURITY.md.
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: I searched existing issues and did not find the same report.
+          required: true
+        - label: This report contains no participant audio, transcript, personal data, credentials, secrets, or unpatched exploit details.
+          required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Describe the observed behavior and its user impact.
+      placeholder: A concise description of the defect and who it affects.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should have happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps
+      description: Provide the smallest deterministic example using synthetic data.
+      placeholder: |
+        1. Start the app with ...
+        2. Select ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - Participant web experience
+        - Scoring or trend history
+        - Transcription or audio cleanup
+        - Offline/private research API
+        - Research administration or export
+        - Authentication, consent, deletion, or retention
+        - Documentation or deployment
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: Release, commit SHA, branch, or deployment date if known.
+      placeholder: main at abc1234
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include OS, browser, Python version, app mode, and relevant deployment details.
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Risk and impact
+      description: Note possible scoring, privacy, consent, deletion, accessibility, multilingual, or data-migration impact.
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Redacted evidence
+      description: Add sanitized logs or screenshots. Drag files here only after removing all sensitive information.
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Suggested acceptance criteria
+      description: What observable tests would prove the bug is fixed without regression?

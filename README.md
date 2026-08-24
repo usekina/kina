@@ -26,6 +26,25 @@ This repository preserves earlier exploratory work and product-direction discuss
 
 Current Aoi-maintained development is in `aoi_kinabot_app/`.
 
+## Participate
+
+KinaBot welcomes code, tests, documentation, translation, accessibility review,
+privacy review, reproducible research, issue triage, and product feedback.
+
+- [Contributing guide](CONTRIBUTING.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Security and private vulnerability reporting](SECURITY.md)
+- [Product and engineering roadmap](ROADMAP.md)
+- [Release process](RELEASING.md)
+- [Current application changelog](aoi_kinabot_app/CHANGELOG.md)
+- [Licensing guide](LICENSING.md) and [commercial licensing](COMMERCIAL-LICENSING.md)
+- [Community/commercial boundary](COMMUNITY-AND-COMMERCIAL.md)
+- [Contributor agreement](CLA.md), [trademark policy](TRADEMARKS.md), and
+  [authorship provenance](PROVENANCE.md)
+
+Start with a scoped [issue](https://github.com/usekina/kina/issues/new/choose)
+or review tasks labeled [`good first issue`](https://github.com/usekina/kina/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22good%20first%20issue%22).
+
 KinaBot V1 does not use cognitive age, biological age, dementia risk, medical risk labels, or diagnosis-like composite scores. V1 focuses on separate speech and language feature scores, trend reflection, consent-first access, and privacy-aware data handling.
 
 Please treat files outside `aoi_kinabot_app/` as historical exploratory materials unless otherwise stated.
@@ -119,6 +138,10 @@ KinaBot is an early-stage source-available public-benefit project for research, 
 
 ## License
 
-This repository uses a non-commercial license. Personal, academic, and non-profit research use is allowed under the license terms. Commercial use requires prior written permission.
+This repository currently uses a custom non-commercial source-available
+license. Personal, academic, and non-profit research use is allowed under its
+terms. Commercial use requires prior written permission. Because the license
+restricts fields of use, it is not an OSI-approved open-source license; please
+describe the current project as **source-available**, not OSI open source.
 
 See [LICENSE.md](LICENSE.md) for details.

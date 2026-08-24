@@ -24,8 +24,26 @@ Before starting substantial work:
 3. Wait for maintainer alignment before investing in a large feature or changing
    scoring, data handling, consent, safety wording, dependencies, or architecture.
 
+By submitting a contribution outside the protected Aoi-maintained application
+boundary, you must read and affirmatively accept [`CLA.md`](CLA.md). Contact the
+maintainer before submitting on behalf of a company or other legal entity.
+
 Small documentation corrections and narrowly scoped bug fixes may go directly
 to a pull request when the problem and solution are clear.
+
+### Aoi-maintained application boundary
+
+`aoi_kinabot_app/` is the independently maintained KinaBot product area. Only
+Aoi, using an approved personal or AImoji project identity, may author and
+commit changes in that directory. External contributors are welcome to report
+issues, supply reproducible evidence, review behavior, and propose patches, but
+accepted implementation must be independently reviewed and submitted by Aoi.
+
+This boundary preserves product responsibility and authorship provenance. It
+must not be used to erase or under-credit the person who discovered a problem,
+designed a solution, supplied research, or provided review. Those contributions
+should be credited in the issue, decision record, pull request, or release notes
+with permission.
 
 ## Choose the Right Contribution
 
@@ -125,6 +143,12 @@ Never commit `.env` files, cloud credentials, API keys, participant data,
 generated local databases, or production exports. Use synthetic data in tests
 and examples.
 
+Use a personal email address or an email address you are explicitly authorized
+to use for this project in Git author and committer metadata. Do not use an
+unrelated employer, university, customer, or third-party domain. Pull requests
+containing a blocked employer domain fail the contributor-identity check; amend
+or recreate the affected commits before requesting review.
+
 ## Make a Focused Change
 
 1. Fork the repository and create a branch from the latest `main`.
@@ -212,6 +236,9 @@ By contributing, you confirm that:
 - it may be distributed under this repository's license; and
 - it contains no confidential, proprietary, medical, or personal data that you
   lack permission to share.
+
+The prospective rights grant and commercial-relicensing terms are defined in
+[`CLA.md`](CLA.md); this summary does not replace that agreement.
 
 We recognize non-code contributions as well as merged code. GitHub records issue
 authors, pull-request authors, reviewers, and commits; release notes or project

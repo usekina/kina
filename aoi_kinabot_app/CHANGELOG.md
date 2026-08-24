@@ -1,5 +1,17 @@
 # Changelog
 
+All notable changes to the current Aoi-maintained KinaBot application are
+recorded here. Historical repository-root prototypes are outside this
+changelog. Entries distinguish shipped engineering changes from deployment,
+user-research, institutional, clinical, or regulatory claims.
+
+## 2026-08-24 · Community governance foundation
+
+- Added a project Code of Conduct, expanded security and privacy disclosure
+  policy, structured Issue Forms, and a responsible-use pull request checklist.
+- Defined roadmap status language, release readiness, contributor recognition,
+  and honest licensing terminology for the current source-available project.
+
 ## 2026-08-24 · Kina orange product interface
 
 - Introduced the Kina orange-red product accent for primary actions, recording,
@@ -98,10 +110,6 @@
 - Temporarily disabled in-browser recording after unreliable mobile-browser
   behavior was observed. The interface now clearly marks direct recording as
   coming soon and uses the stable audio-file upload flow.
-
-All notable changes to the current Aoi-maintained KinaBot application are
-recorded here. Historical repository-root prototypes are outside this
-changelog.
 
 ## [1.1.0] - Unreleased
 

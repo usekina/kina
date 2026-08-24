@@ -1,0 +1,83 @@
+name: Feature or improvement
+description: Propose a scoped, testable improvement grounded in a user need.
+title: "[Proposal]: "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the user problem before the solution. A proposal is a starting point, not a delivery commitment.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues, pull requests, and the roadmap.
+          required: true
+        - label: This proposal respects KinaBot's non-clinical and consent-first boundaries.
+          required: true
+  - type: textarea
+    id: user_problem
+    attributes:
+      label: User and problem
+      description: Who experiences the problem, in what context, and what evidence supports it?
+    validations:
+      required: true
+  - type: textarea
+    id: current_gap
+    attributes:
+      label: Current workflow and gap
+      description: Explain why the current experience is insufficient.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: Describe the smallest useful outcome without unnecessarily prescribing implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and non-goals
+      description: State what is included and explicitly excluded.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: List measurable conditions another person can verify.
+      placeholder: |
+        - [ ] Given ..., when ..., then ...
+        - [ ] Regression coverage includes ...
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What simpler options or workarounds were considered?
+  - type: checkboxes
+    id: impacts
+    attributes:
+      label: Impact areas to evaluate
+      options:
+        - label: Privacy, consent, retention, or deletion
+        - label: Security or abuse resistance
+        - label: Accessibility or older-adult usability
+        - label: Scoring definition, versioning, or historical trends
+        - label: Multilingual behavior
+        - label: Data/API migration or backward compatibility
+        - label: AWS operations, cost, or deployment
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks, limitations, and maintenance
+      description: Describe likely failure modes, misuse, ongoing ownership, and dependencies.
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Supporting evidence
+      description: Link non-sensitive research, mockups, feedback, or examples; disclose assumptions.

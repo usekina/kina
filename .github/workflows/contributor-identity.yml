@@ -1,0 +1,25 @@
+name: Contributor identity policy
+
+on:
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  check-commit-emails:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Reject blocked employer email domains
+        run: python .github/scripts/check_contributor_emails.py "origin/${{ github.base_ref }}..HEAD"
+      - name: Protect the Aoi-maintained application boundary
+        run: python .github/scripts/check_aoi_app_ownership.py "origin/${{ github.base_ref }}..HEAD"
