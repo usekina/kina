@@ -9,3 +9,6 @@ pytest>=7.4.0
 hypothesis>=6.92.0
 reportlab>=4.0.0
 flake8>=7.3.0
+fastapi>=0.115.0
+python-multipart>=0.0.20
+httpx>=0.28.0

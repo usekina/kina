@@ -386,10 +386,16 @@ def save_feature_scores(test_session_id: int, scores: Iterable[dict]) -> None:
         )
 
 
-def get_user_scores(user_id: int) -> list[sqlite3.Row]:
+def get_user_scores(
+    user_id: int, scoring_model_version: str | None = None
+) -> list[sqlite3.Row]:
+    version_clause = " AND ts.scoring_model_version = ?" if scoring_model_version else ""
+    parameters: tuple = (
+        (user_id, scoring_model_version) if scoring_model_version else (user_id,)
+    )
     with get_connection() as conn:
         return conn.execute(
-            """
+            f"""
             SELECT
                 ts.id AS session_id,
                 ts.created_at,
@@ -405,10 +411,10 @@ def get_user_scores(user_id: int) -> list[sqlite3.Row]:
                 fs.score
             FROM feature_scores fs
             JOIN test_sessions ts ON ts.id = fs.test_session_id
-            WHERE ts.user_id = ?
+            WHERE ts.user_id = ?{version_clause}
             ORDER BY ts.created_at ASC, fs.feature_name ASC
             """,
-            (user_id,),
+            parameters,
         ).fetchall()
 
 
