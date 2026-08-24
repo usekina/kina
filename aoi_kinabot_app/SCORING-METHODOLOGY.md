@@ -1,6 +1,6 @@
 # KinaBot V1.1 Scoring Methodology
 
-Scoring model version: `score-v3-connector-boundaries`
+Scoring model version: `score-v4-internal-pause-span`
 
 ## Purpose
 
@@ -60,7 +60,7 @@ representative recordings before broad interpretation.
 | Response Length | Total language units relative to the language adapter |
 | Sentence Complexity | Units per sentence and discourse connectors |
 | Speech Pace | Language units per minute |
-| Pause Pattern | Voiced time, pause time/count, mean/maximum pause, pause ratio |
+| Pause Pattern | Voiced time, internal pause time/count, mean/maximum pause, internal pause ratio |
 | Repetition Pattern | Repeated units relative to total units |
 | Emotional Tone | Counts from a small language-specific expression lexicon |
 | Transcription Clarity | Amount of recognizable transcript evidence |
@@ -71,6 +71,13 @@ not count; for example, `and` in `candy` and `if` in `gift` are excluded. Each
 real occurrence is counted, including repeated connectors. Japanese and Chinese
 use their language-specific connector matching behavior rather than English
 word-boundary rules.
+
+Pause Pattern measures gaps between detected speech segments within the detected
+speech span. The internal pause ratio is total positive gap time divided by the
+interval from the first valid speech start to the last valid speech end. Leading
+and trailing recording silence are retained as separate raw metrics but do not
+affect the Pause Pattern score. Overlapping segments are merged before voiced
+and pause durations are calculated.
 
 ## Longitudinal Display
 
@@ -116,3 +123,7 @@ Future validation should include:
 - test-retest reliability;
 - subgroup fairness review; and
 - documented calibration changes.
+
+Whisper segment timestamps cannot detect every pause that occurs inside one
+segment. More precise word timestamps, audio-level voice activity detection,
+and real-recording calibration remain future validation work.

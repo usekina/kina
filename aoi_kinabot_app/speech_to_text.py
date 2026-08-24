@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import os
 import tempfile
 from functools import lru_cache
@@ -86,28 +87,53 @@ def transcribe_audio_upload(
 
 def calculate_pause_metrics(segments: list, duration_seconds: float | None) -> dict:
     """Calculate descriptive pause metrics from timestamped speech segments."""
-    ordered = sorted(
-        (
-            (max(0.0, float(segment.start)), max(0.0, float(segment.end)))
-            for segment in segments
-            if float(segment.end) > float(segment.start)
-        ),
-        key=lambda item: item[0],
-    )
-    if not ordered:
+    total_duration = max(0.0, float(duration_seconds or 0.0))
+    intervals = []
+    for segment in segments:
+        try:
+            start = max(0.0, float(segment.start))
+            end = max(0.0, float(segment.end))
+        except (AttributeError, TypeError, ValueError):
+            continue
+        if not math.isfinite(start) or not math.isfinite(end):
+            continue
+        if total_duration > 0:
+            start = min(start, total_duration)
+            end = min(end, total_duration)
+        if end > start:
+            intervals.append((start, end))
+
+    if not intervals:
         return {}
 
-    voiced_seconds = sum(end - start for start, end in ordered)
+    ordered = sorted(intervals, key=lambda item: item[0])
+    merged = []
+    for start, end in ordered:
+        if merged and start <= merged[-1][1]:
+            merged[-1] = (merged[-1][0], max(merged[-1][1], end))
+        else:
+            merged.append((start, end))
+
+    voiced_seconds = sum(end - start for start, end in merged)
     pauses = [
-        max(0.0, ordered[index][0] - ordered[index - 1][1])
-        for index in range(1, len(ordered))
+        merged[index][0] - merged[index - 1][1]
+        for index in range(1, len(merged))
     ]
     meaningful_pauses = [pause for pause in pauses if pause >= 0.25]
-    total_duration = duration_seconds or ordered[-1][1]
-    pause_seconds = max(0.0, total_duration - voiced_seconds)
+    first_speech_start = merged[0][0]
+    last_speech_end = merged[-1][1]
+    speech_span_seconds = last_speech_end - first_speech_start
+    internal_pause_seconds = sum(pauses)
+    effective_duration = total_duration or last_speech_end
+    leading_silence_seconds = first_speech_start
+    trailing_silence_seconds = max(0.0, effective_duration - last_speech_end)
     return {
         "voiced_seconds": round(voiced_seconds, 3),
-        "pause_seconds": round(pause_seconds, 3),
+        "pause_seconds": round(internal_pause_seconds, 3),
+        "internal_pause_seconds": round(internal_pause_seconds, 3),
+        "speech_span_seconds": round(speech_span_seconds, 3),
+        "leading_silence_seconds": round(leading_silence_seconds, 3),
+        "trailing_silence_seconds": round(trailing_silence_seconds, 3),
         "pause_count": len(meaningful_pauses),
         "mean_pause_seconds": round(
             sum(meaningful_pauses) / len(meaningful_pauses), 3
@@ -117,7 +143,7 @@ def calculate_pause_metrics(segments: list, duration_seconds: float | None) -> d
         "max_pause_seconds": round(max(meaningful_pauses), 3)
         if meaningful_pauses
         else 0.0,
-        "pause_ratio": round(pause_seconds / total_duration, 4)
-        if total_duration > 0
+        "pause_ratio": round(internal_pause_seconds / speech_span_seconds, 4)
+        if speech_span_seconds > 0
         else 0.0,
     }

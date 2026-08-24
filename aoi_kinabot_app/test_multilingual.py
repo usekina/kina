@@ -137,7 +137,11 @@ def test_pause_metrics_and_score_use_timestamps():
     )
     assert metrics["pause_count"] == 2
     assert metrics["max_pause_seconds"] == 1.5
-    assert metrics["pause_ratio"] == 0.45
+    assert metrics["internal_pause_seconds"] == 2.5
+    assert metrics["speech_span_seconds"] == 8.0
+    assert metrics["leading_silence_seconds"] == 0.0
+    assert metrics["trailing_silence_seconds"] == 2.0
+    assert metrics["pause_ratio"] == 0.3125
     scores = calculate_feature_scores(
         "Today I spoke clearly about my day.",
         10.0,

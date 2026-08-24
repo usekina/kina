@@ -236,6 +236,10 @@ def score_pause_pattern(acoustic_metrics: dict | None) -> tuple[float, str]:
         in {
             "voiced_seconds",
             "pause_seconds",
+            "internal_pause_seconds",
+            "speech_span_seconds",
+            "leading_silence_seconds",
+            "trailing_silence_seconds",
             "pause_count",
             "mean_pause_seconds",
             "max_pause_seconds",
