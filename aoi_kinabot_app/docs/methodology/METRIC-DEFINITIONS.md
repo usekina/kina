@@ -1,6 +1,6 @@
 # How KinaBot Produces the Eight Feature Indexes
 
-Model version: `score-v3-connector-boundaries`
+Model version: `score-v4-internal-pause-span`
 
 KinaBot uses its own Python and multilingual NLP pipeline. Audio is transcribed
 privately by the application, then language-specific tokenization and acoustic
@@ -17,7 +17,7 @@ cognitive test result.
 | Response Length | Total recognized language units | Units relative to a language-specific pilot reference center |
 | Sentence Structure | Average units per sentence and connector count | Weighted, bounded combination of length and connectors |
 | Speech Pace | Language units and recording duration | Distance from a broad language-specific pilot center |
-| Pause Pattern | Pause ratio, count, mean, maximum, voiced and pause time | Weighted distance from broad descriptive centers |
+| Pause Pattern | Internal pause ratio, count, mean, maximum, voiced time, and edge silence | Weighted distance from broad descriptive centers; edge silence is excluded from the score |
 | Repetition Pattern | Repeated instances relative to total units | Lower repetition ratio maps to a higher display index |
 | Emotional Tone | Small language-specific positive/negative wording lexicon | Bounded balance of detected wording; topic strongly affects it |
 | Recording Clarity | Amount of recognizable transcript evidence | Tiered index based on usable recognized units |
@@ -26,6 +26,12 @@ For English sentence structure, connectors are matched as complete normalized
 token sequences. Connector text embedded inside an unrelated word is not
 counted, while repeated standalone connectors are counted repeatedly. Japanese
 and Chinese retain language-specific matching rules.
+
+The internal pause ratio divides positive gaps between valid detected speech
+segments by the span from the first speech start to the last speech end.
+Leading and trailing silence are reported separately and do not change the
+Pause Pattern index. Segment timestamps do not reveal every pause within a
+single Whisper segment, so this remains a descriptive engineering measure.
 
 English uses regular-expression word tokens, Japanese uses Janome
 morphological analysis, and Chinese uses jieba segmentation. Pace and response

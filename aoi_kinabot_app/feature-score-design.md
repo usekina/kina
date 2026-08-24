@@ -82,11 +82,12 @@ This reflects speaking pace in this sample. Faster or slower is not automaticall
 
 Measures pause and silence behavior in the audio sample.
 
-Possible raw metrics:
+Raw metrics:
 
-- Silence ratio
-- Average pause length
-- Number of long pauses
+- Internal pause ratio within the detected speech span
+- Internal pause count, mean, and maximum duration
+- Voiced duration and detected speech-span duration
+- Leading and trailing recording silence, reported separately and excluded from the score
 
 User-facing explanation:
 

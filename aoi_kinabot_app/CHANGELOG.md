@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-08-24 · Pause measurement boundary correction
+
+- Changed Pause Pattern to measure only gaps inside the detected speech span,
+  so leading or trailing recording silence no longer changes the index.
+- Preserved leading and trailing silence as separate raw recording metrics.
+- Added deterministic handling for invalid, overlapping, out-of-order, and
+  out-of-range segment timestamps.
+- Incremented the scoring model to `score-v4-internal-pause-span` and kept
+  cross-version scores off the same uninterrupted trend line.
+- Added regression coverage for edge padding, genuine internal-gap changes,
+  single-segment recordings, segment merging, and invalid timestamp inputs.
+
 ## 2026-08-10 · Offline/private research API
 
 - Added a dedicated localhost-only FastAPI subsystem so approved university
