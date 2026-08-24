@@ -54,7 +54,7 @@ from reflection_profile import build_reflection_profile
 from wellness_guidance import wellness_suggestions
 
 
-st.set_page_config(page_title="KinaBot", page_icon="🎙️", layout="centered")
+st.set_page_config(page_title="KinaBot", page_icon="🎙️", layout="wide")
 init_db()
 browser_timezone = st.context.timezone or "UTC"
 today = local_date_iso(browser_timezone)
@@ -62,43 +62,146 @@ today = local_date_iso(browser_timezone)
 st.markdown(
     """
     <style>
-    .block-container {max-width: 760px; padding-top: 2rem; padding-bottom: 4rem;}
-    h1 {letter-spacing: -0.04em;}
-    .kinabot-hero {
-        padding: 2.6rem 0 1.45rem;
-        text-align: center;
+    :root {
+        --kina-orange: #e85d2a;
+        --kina-orange-dark: #bd3f16;
+        --kina-orange-soft: #fff0e9;
+        --kina-ink: #172033;
+        --kina-muted: #647084;
+        --kina-line: #e2e7ef;
+        --kina-surface: #ffffff;
+        --kina-canvas: #f7f9fc;
+        --kina-green: #267a55;
     }
-    .kinabot-hero__brand {
-        color: #f26a21;
-        font-size: clamp(1.45rem, 4vw, 1.9rem);
-        font-weight: 800;
-        letter-spacing: -0.035em;
-        line-height: 1;
-        margin-bottom: 1.15rem;
+    .stApp {background: var(--kina-canvas); color: var(--kina-ink);}
+    .block-container {max-width: 1040px; padding-top: 1.2rem; padding-bottom: 4rem;}
+    h1, h2, h3 {color: var(--kina-ink); letter-spacing: -0.035em;}
+    [data-testid="stHeader"] {background: transparent;}
+    .kinabot-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.65rem 0 1rem;
+        border-bottom: 1px solid var(--kina-line);
+    }
+    .kinabot-topbar__brand {
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        color: var(--kina-ink);
+        font-size: 1.25rem;
+        font-weight: 750;
+        letter-spacing: -0.03em;
+    }
+    .kinabot-topbar__mark {
+        display: grid;
+        place-items: center;
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 0.75rem;
+        background: var(--kina-orange);
+        color: #ffffff;
+        font-size: 1.1rem;
+    }
+    .kinabot-topbar__trust {
+        color: var(--kina-muted);
+        font-size: 0.86rem;
+    }
+    .kinabot-hero {
+        padding: 3.4rem 0 1.6rem;
+        text-align: left;
+        max-width: 820px;
+    }
+    .kinabot-hero__eyebrow {
+        color: var(--kina-orange-dark);
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-bottom: 0.8rem;
     }
     .kinabot-hero__title {
-        color: #252832;
-        font-size: clamp(2.45rem, 7vw, 4.4rem);
-        font-weight: 780;
-        letter-spacing: -0.055em;
-        line-height: 1.02;
-        margin: 0 auto;
-        max-width: 720px;
+        color: var(--kina-ink);
+        font-size: clamp(2.5rem, 6vw, 4.6rem);
+        font-weight: 760;
+        letter-spacing: -0.06em;
+        line-height: 1.03;
+        margin: 0;
+        max-width: 800px;
     }
     .kinabot-hero__subtitle {
-        color: rgba(49, 51, 63, 0.68);
-        font-size: 1.05rem;
-        line-height: 1.65;
-        margin: 1.2rem auto 0;
-        max-width: 600px;
+        color: var(--kina-muted);
+        font-size: 1.08rem;
+        line-height: 1.6;
+        margin: 1.25rem 0 0;
+        max-width: 720px;
+    }
+    .kinabot-trust-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.7rem 1.4rem;
+        margin: 1.35rem 0 0.5rem;
+        color: var(--kina-green);
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+    .kinabot-steps {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        overflow: hidden;
+        margin: 1.5rem 0 2rem;
+        border: 1px solid var(--kina-line);
+        border-radius: 1rem;
+        background: var(--kina-surface);
+    }
+    .kinabot-step {padding: 1.05rem 1.15rem;}
+    .kinabot-step + .kinabot-step {border-left: 1px solid var(--kina-line);}
+    .kinabot-step__number {color: var(--kina-orange-dark); font-weight: 750;}
+    .kinabot-step__title {margin-top: 0.25rem; color: var(--kina-ink); font-weight: 700;}
+    .kinabot-step__copy {margin-top: 0.25rem; color: var(--kina-muted); font-size: 0.86rem; line-height: 1.45;}
+    .reflection-panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin: 1.4rem 0 0.8rem;
+        padding: 1rem 1.15rem;
+        border: 1px solid var(--kina-line);
+        border-radius: 1rem;
+        background: var(--kina-surface);
+    }
+    .reflection-panel-head__title {color: var(--kina-ink); font-size: 1.25rem; font-weight: 750;}
+    .reflection-panel-head__private {color: var(--kina-green); font-size: 0.86rem; font-weight: 650;}
+    [data-testid="stAudioInput"], [data-testid="stFileUploader"] {
+        padding: 1rem;
+        border: 1px solid var(--kina-line);
+        border-radius: 1rem;
+        background: var(--kina-surface);
+    }
+    button[kind="primary"] {
+        border-color: var(--kina-orange) !important;
+        background: var(--kina-orange) !important;
+        color: #ffffff !important;
+        box-shadow: 0 0.5rem 1.25rem rgba(232, 93, 42, 0.22);
+    }
+    button[kind="primary"]:hover {
+        border-color: var(--kina-orange-dark) !important;
+        background: var(--kina-orange-dark) !important;
+    }
+    button[kind="secondary"] {border-color: var(--kina-line); background: var(--kina-surface);}
+    div[data-baseweb="radio"] > div {gap: 0.35rem;}
+    div[data-baseweb="radio"] label {
+        border: 1px solid var(--kina-line);
+        border-radius: 999px;
+        padding: 0.35rem 0.7rem;
+        background: var(--kina-surface);
     }
     .kinabot-language-label {
-        color: rgba(49, 51, 63, 0.62);
+        color: var(--kina-muted);
         font-size: 0.88rem;
         font-weight: 650;
         letter-spacing: 0.02em;
         margin: 0.25rem 0 0.2rem;
-        text-align: center;
+        text-align: left;
     }
     .privacy-card {
         padding: 0.9rem 1rem; border-radius: 0.8rem;
@@ -198,6 +301,11 @@ st.markdown(
     }
     @media (max-width: 430px) {
         .block-container {padding-left: 1rem; padding-right: 1rem;}
+        .kinabot-topbar__trust {display: none;}
+        .kinabot-hero {padding-top: 2.2rem;}
+        .kinabot-hero__title {font-size: 2.55rem;}
+        .kinabot-steps {grid-template-columns: 1fr;}
+        .kinabot-step + .kinabot-step {border-left: 0; border-top: 1px solid var(--kina-line);}
         .metric-grid {gap: 0.5rem;}
         .metric-tile {padding: 0.7rem;}
     }
@@ -208,11 +316,15 @@ st.markdown(
 
 LANDING_COPY = {
     "English": {
-        "title": "Know your speech patterns over time",
+        "eyebrow": "A private moment to reflect",
+        "title": "Notice how your expression changes over time.",
         "subtitle": (
-            "Speak naturally. KinaBot helps you reflect on your own speech patterns "
-            "over time—with dignity, privacy, and family connection at the center."
+            "Record a short reflection. KinaBot turns speech patterns into clear, "
+            "personal trends—without diagnosing, ranking, or comparing you with anyone else."
         ),
+        "trust_privacy": "✓ Privacy-first",
+        "trust_history": "✓ Your own history only",
+        "trust_wellness": "✓ Wellness, not diagnosis",
         "language": "Choose your language",
         "start": "Start",
         "login_caption": "Enter your email to keep your reflections together.",
@@ -229,12 +341,15 @@ LANDING_COPY = {
         ),
     },
     "日本語": {
-        "title": "話し方のパターンを長期的に振り返る",
+        "eyebrow": "自分と向き合う、プライベートなひととき",
+        "title": "表現の変化を、時間を通して見つめる。",
         "subtitle": (
-            "いつもの言葉で話すだけ。KinaBotがあなた自身の基準をつくり、"
-            "尊厳とプライバシー、家族とのつながりを大切にしながら、"
-            "話し方のパターンを長期的に振り返ります。"
+            "短い振り返りを録音すると、KinaBotが話し方の特徴を分かりやすい個人の"
+            "傾向として示します。診断・順位付け・他者との比較は行いません。"
         ),
+        "trust_privacy": "✓ プライバシーを優先",
+        "trust_history": "✓ 自分自身の履歴のみ",
+        "trust_wellness": "✓ 診断ではなくウェルネス",
         "language": "表示言語を選択",
         "start": "はじめる",
         "login_caption": "メールアドレスで振り返りの記録をまとめます。",
@@ -251,11 +366,15 @@ LANDING_COPY = {
         ),
     },
     "中文": {
-        "title": "长期了解自己的语言表达模式",
+        "eyebrow": "留给自己的一段私密反思时间",
+        "title": "了解自己的表达如何随时间变化。",
         "subtitle": (
-            "只需用最自然的语言说话。KinaBot建立你的个人基线，帮助你长期了解"
-            "自己的语言表达模式，并把尊严、隐私与家庭联结放在中心。"
+            "录制一段简短反思。KinaBot把语言特征转化为清晰的个人趋势，"
+            "不进行诊断、排名，也不与他人比较。"
         ),
+        "trust_privacy": "✓ 隐私优先",
+        "trust_history": "✓ 只比较自己的历史",
+        "trust_wellness": "✓ 关注身心状态，而非诊断",
         "language": "选择界面语言",
         "start": "开始",
         "login_caption": "输入邮箱，让每次记录连续保存。",
@@ -271,6 +390,24 @@ LANDING_COPY = {
             "它不是医疗器械或诊断工具。"
         ),
     },
+}
+
+LANDING_STEPS = {
+    "English": [
+        ("Speak naturally", "Share a short reflection in English, 日本語, or 中文."),
+        ("See clear signals", "Review eight understandable speech and language features."),
+        ("Follow your pattern", "Compare only with your own compatible past sessions."),
+    ],
+    "日本語": [
+        ("自然に話す", "英語・日本語・中国語で短い振り返りを話します。"),
+        ("特徴を分かりやすく見る", "8つの発話と言語の特徴を確認します。"),
+        ("自分のパターンを追う", "互換性のある自分自身の過去記録とのみ比較します。"),
+    ],
+    "中文": [
+        ("自然表达", "使用英语、日语或中文完成一段简短反思。"),
+        ("查看清晰指标", "了解八项易于理解的语言与语音特征。"),
+        ("关注自己的变化", "只与评分兼容的个人历史记录进行比较。"),
+    ],
 }
 
 OFFLINE_LOGIN_COPY = {
@@ -452,10 +589,22 @@ if "ui_language" not in st.session_state:
 copy = LANDING_COPY[st.session_state.ui_language]
 st.markdown(
     f"""
+    <header class="kinabot-topbar">
+      <div class="kinabot-topbar__brand">
+        <span class="kinabot-topbar__mark">◉</span>
+        <span>KinaBot</span>
+      </div>
+      <div class="kinabot-topbar__trust">Privacy-first · Personal trends · Wellness reflection</div>
+    </header>
     <section class="kinabot-hero">
-      <div class="kinabot-hero__brand">KinaBot</div>
+      <div class="kinabot-hero__eyebrow">{copy['eyebrow']}</div>
       <div class="kinabot-hero__title">{copy['title']}</div>
       <div class="kinabot-hero__subtitle">{copy['subtitle']}</div>
+      <div class="kinabot-trust-row">
+        <span>{copy['trust_privacy']}</span>
+        <span>{copy['trust_history']}</span>
+        <span>{copy['trust_wellness']}</span>
+      </div>
     </section>
     <div class="kinabot-language-label">{copy['language']}</div>
     """,
@@ -469,6 +618,31 @@ st.radio(
     label_visibility="collapsed",
 )
 copy = LANDING_COPY[st.session_state.ui_language]
+landing_steps = LANDING_STEPS[st.session_state.ui_language]
+
+if not st.session_state.get("verified", False):
+    st.markdown(
+        f"""
+        <section class="kinabot-steps" aria-label="How KinaBot works">
+          <div class="kinabot-step">
+            <div class="kinabot-step__number">01</div>
+            <div class="kinabot-step__title">{landing_steps[0][0]}</div>
+            <div class="kinabot-step__copy">{landing_steps[0][1]}</div>
+          </div>
+          <div class="kinabot-step">
+            <div class="kinabot-step__number">02</div>
+            <div class="kinabot-step__title">{landing_steps[1][0]}</div>
+            <div class="kinabot-step__copy">{landing_steps[1][1]}</div>
+          </div>
+          <div class="kinabot-step">
+            <div class="kinabot-step__number">03</div>
+            <div class="kinabot-step__title">{landing_steps[2][0]}</div>
+            <div class="kinabot-step__copy">{landing_steps[2][1]}</div>
+          </div>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
 
 if "email" not in st.session_state:
     st.session_state.email = ""
@@ -914,7 +1088,15 @@ if remaining <= 0:
     st.stop()
 
 capture_copy = AUDIO_CAPTURE_COPY[st.session_state.ui_language]
-st.subheader(capture_copy["new"])
+st.markdown(
+    f"""
+    <div class="reflection-panel-head">
+      <div class="reflection-panel-head__title">{capture_copy['new']}</div>
+      <div class="reflection-panel-head__private">🔒 Private processing</div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 if "recording_language" not in st.session_state:
     st.session_state.recording_language = st.session_state.ui_language
