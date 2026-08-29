@@ -59,7 +59,8 @@ Include:
 
 Never attach real participant audio, transcripts, email addresses, credentials,
 medical information, or other sensitive data to a public issue. Create synthetic
-test data that reproduces the behavior instead.
+test data that reproduces the behavior instead. See the
+[Synthetic Test Data Guide](docs/SYNTHETIC-TEST-DATA.md).
 
 ### Propose a feature or improvement
 
