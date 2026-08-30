@@ -482,6 +482,14 @@ HISTORY_COPY = {
         "progress": "{count} of 3 sessions completed. Trends begin after session 3.",
         "recent": "Recent sessions",
         "all": "All sessions",
+        "mixed_languages": (
+            "This account history combines recordings from every selected language. "
+            "Language-specific scoring baselines can make cross-language differences less comparable."
+        ),
+        "mixed_versions": (
+            "This history includes more than one scoring-model version. Earlier sessions remain "
+            "visible, but direct comparisons across model versions should be interpreted cautiously."
+        ),
         "change": "Observed change since the first sample",
         "higher": "Higher in latest sample",
         "lower": "Lower in latest sample",
@@ -505,6 +513,14 @@ HISTORY_COPY = {
         "progress": "3回中{count}回完了しました。3回目からトレンドを表示します。",
         "recent": "最近のセッション",
         "all": "すべてのセッション",
+        "mixed_languages": (
+            "このアカウントでは、選択したすべての言語の記録をまとめて表示しています。"
+            "言語ごとの採点基準が異なるため、言語をまたぐ差は単純比較できない場合があります。"
+        ),
+        "mixed_versions": (
+            "この履歴には複数の採点モデル版が含まれます。以前の記録も表示されますが、"
+            "異なる版のスコアを直接比較する場合は注意が必要です。"
+        ),
         "change": "最初のサンプルからの変化",
         "higher": "最新サンプルで高い",
         "lower": "最新サンプルで低い",
@@ -527,6 +543,14 @@ HISTORY_COPY = {
         "progress": "已完成3次中的{count}次，第3次开始显示趋势。",
         "recent": "最近记录",
         "all": "全部记录",
+        "mixed_languages": (
+            "此账户历史合并显示所有已选择语言的记录。不同语言使用各自的评分基准，"
+            "因此跨语言分数差异不一定可以直接比较。"
+        ),
+        "mixed_versions": (
+            "此历史包含多个评分模型版本。旧记录仍会显示，但直接比较不同版本的分数时"
+            "需要谨慎解释。"
+        ),
         "change": "与第一次样本相比的变化",
         "higher": "最近一次较高",
         "lower": "最近一次较低",
@@ -926,9 +950,7 @@ primary_view = st.radio(
 
 if primary_view == "trends":
     assign_timezone_to_legacy_sessions(st.session_state.user_id, browser_timezone)
-    rows = get_user_scores(
-        st.session_state.user_id, scoring_model_version=SCORING_MODEL_VERSION
-    )
+    rows = get_user_scores(st.session_state.user_id)
     st.subheader(history_copy["trends"])
     if not rows:
         st.caption(history_copy["no_scores"])
@@ -936,6 +958,10 @@ if primary_view == "trends":
 
     history = pd.DataFrame([dict(row) for row in rows])
     session_count = int(history["session_id"].nunique())
+    if history["language"].dropna().nunique() > 1:
+        st.info(history_copy["mixed_languages"])
+    if history["scoring_model_version"].dropna().nunique() > 1:
+        st.warning(history_copy["mixed_versions"])
     st.markdown(f"### {history_copy['latest']}")
     st.markdown(
         metric_grid_html(
@@ -986,6 +1012,8 @@ if primary_view == "trends":
     feature_history = feature_history.copy()
     feature_history["session_label"] = (
         feature_history["session_date"].astype(str)
+        + " · "
+        + feature_history["language"].fillna("Unknown").astype(str)
         + " #"
         + feature_history["session_number"].astype(str)
     )

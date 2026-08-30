@@ -1,7 +1,9 @@
 import database
 
 
-def _save_session(user_id: int, version: str, score: float) -> None:
+def _save_session(
+    user_id: int, version: str, score: float, language: str
+) -> None:
     session_id = database.create_test_session(
         user_id=user_id,
         session_date="2026-08-24",
@@ -9,6 +11,7 @@ def _save_session(user_id: int, version: str, score: float) -> None:
         app_version="test",
         consent_version="test",
         scoring_model_version=version,
+        language=language,
     )
     database.save_feature_scores(
         session_id,
@@ -23,18 +26,22 @@ def _save_session(user_id: int, version: str, score: float) -> None:
     )
 
 
-def test_score_history_can_be_limited_to_one_model_version(tmp_path, monkeypatch):
+def test_score_history_combines_languages_and_model_versions_for_one_user(
+    tmp_path, monkeypatch
+):
     monkeypatch.setattr(database, "DATABASE_PATH", tmp_path / "kina.sqlite3")
     database.init_db()
     user_id = database.upsert_user("version-test")
-    _save_session(user_id, "score-v2-multilingual", 24.0)
-    _save_session(user_id, "score-v3-connector-boundaries", 14.0)
+    assert database.upsert_user("version-test") == user_id
+    _save_session(user_id, "score-v2-multilingual", 24.0, "English")
+    _save_session(user_id, "score-v3-connector-boundaries", 14.0, "中文")
 
-    current_rows = database.get_user_scores(
-        user_id, scoring_model_version="score-v3-connector-boundaries"
-    )
+    rows = database.get_user_scores(user_id)
 
-    assert len(current_rows) == 1
-    assert current_rows[0]["score"] == 14.0
-    assert current_rows[0]["scoring_model_version"] == "score-v3-connector-boundaries"
-    assert len(database.get_user_scores(user_id)) == 2
+    assert len(rows) == 2
+    assert {row["score"] for row in rows} == {14.0, 24.0}
+    assert {row["language"] for row in rows} == {"English", "中文"}
+    assert {row["scoring_model_version"] for row in rows} == {
+        "score-v2-multilingual",
+        "score-v3-connector-boundaries",
+    }
