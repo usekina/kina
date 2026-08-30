@@ -13,6 +13,7 @@ what a voice sample can prove.
 - [Product and UX Learnings](PRODUCT-UX-LEARNINGS.md)
 - [Engineering Learnings](ENGINEERING-LEARNINGS.md)
 - [Responsible Wellness Design](RESPONSIBLE-WELLNESS-DESIGN.md)
+- [Scientific Evidence and Claims Boundaries](SCIENTIFIC-EVIDENCE-AND-CLAIMS.md)
 - [Validation Plan](VALIDATION-PLAN.md)
 - [AI Risk Register](AI-RISK-REGISTER.md)
 - [Impact Metrics and Evidence Rules](IMPACT-METRICS.md)
