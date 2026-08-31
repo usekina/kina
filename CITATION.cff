@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "If you use KinaBot in research, education, or evaluation, please cite this software and the exact release used."
+title: "KinaBot"
+type: software
+authors:
+  - family-names: "Minamoto"
+    given-names: "Aoi"
+repository-code: "https://github.com/usekina/kina"
+url: "https://www.kinabot.com/"
+abstract: "A dignity-first, privacy-aware system for longitudinal speech reflection, healthy aging, and family-centered care."
+keywords:
+  - speech reflection
+  - healthy aging
+  - longitudinal language analysis
+  - privacy-aware AI
