@@ -2,6 +2,13 @@
 
 # KinaBot
 
+> [!IMPORTANT]
+> **This is the official, actively maintained KinaBot repository.** KinaBot is
+> developed and maintained by Aoi Minamoto through AImoji LLC. The earlier
+> [`aoiminamoto/kina`](https://github.com/aoiminamoto/kina) repository is
+> retained only as a historical record. Active releases, issues, security
+> reports, and contributions belong here.
+
 > **KinaBot is a dignity-first, privacy-aware AI system for longitudinal speech
 > reflection, healthy aging, and family-centered care.**
 
@@ -38,6 +45,8 @@ privacy review, reproducible research, issue triage, and product feedback.
 - [Release process](RELEASING.md)
 - [Current application changelog](aoi_kinabot_app/CHANGELOG.md)
 - [Scientific evidence and claims boundaries](aoi_kinabot_app/docs/SCIENTIFIC-EVIDENCE-AND-CLAIMS.md)
+- [Institutional pilot evidence framework](aoi_kinabot_app/docs/institutional-pilots/README.md)
+- [How to cite KinaBot](CITATION.cff)
 - [Licensing guide](LICENSING.md) and [commercial licensing](COMMERCIAL-LICENSING.md)
 - [Community/commercial boundary](COMMUNITY-AND-COMMERCIAL.md)
 - [Contributor agreement](CLA.md), [trademark policy](TRADEMARKS.md), and
