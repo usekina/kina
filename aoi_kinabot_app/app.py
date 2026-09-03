@@ -39,7 +39,11 @@ from database import (
     upsert_user,
 )
 from email_delivery import send_verification_email
-from history_view import latest_session_scores, metric_grid_html
+from history_view import (
+    latest_session_scores,
+    metric_grid_html,
+    select_latest_comparable_history,
+)
 from insight_service import generate_wellness_insight
 from language_analysis import LANGUAGE_CODES, analyze_transcript
 from local_time import local_date_iso
@@ -985,11 +989,21 @@ if primary_view == "trends":
             use_container_width=True,
         )
 
-    if session_count < 3:
-        st.info(history_copy["progress"].format(count=session_count))
+    comparable_history, comparison_key = select_latest_comparable_history(history)
+    comparable_count = int(comparable_history["session_id"].nunique())
+    if comparison_key is None:
+        st.info(
+            "Not enough comparable sessions for a trend yet. Complete 3 sessions "
+            "using the same spoken language and analysis version."
+        )
         st.stop()
+    st.caption(
+        "Comparison set: "
+        f"{comparison_key[0]} · scoring {comparison_key[1]} · pipeline {comparison_key[2]} "
+        f"({comparable_count} sessions). Other history is preserved but not compared."
+    )
 
-    feature_names = list(history["feature_name"].drop_duplicates())
+    feature_names = list(comparable_history["feature_name"].drop_duplicates())
     selected_feature = st.selectbox(
         history_copy["recent"],
         feature_names,
@@ -1004,9 +1018,9 @@ if primary_view == "trends":
         horizontal=True,
         label_visibility="collapsed",
     )
-    feature_history = history[history["feature_name"] == selected_feature].sort_values(
-        "session_id"
-    )
+    feature_history = comparable_history[
+        comparable_history["feature_name"] == selected_feature
+    ].sort_values("session_id")
     if history_scope == "recent":
         feature_history = feature_history.tail(3)
     feature_history = feature_history.copy()
@@ -1027,7 +1041,7 @@ if primary_view == "trends":
     )
     st.line_chart(chart_df, height=260)
 
-    ordered = history.sort_values("session_id")
+    ordered = comparable_history.sort_values("session_id")
     first_score = float(
         ordered[ordered["feature_name"] == selected_feature].iloc[0]["score"]
     )
@@ -1046,7 +1060,9 @@ if primary_view == "trends":
     st.write(f"{pattern} ({observed_change:+.1f})")
     st.caption(history_copy["boundary"])
 
-    insight = generate_wellness_insight([dict(row) for row in rows], st.session_state.ui_language)
+    insight = generate_wellness_insight(
+        comparable_history.to_dict("records"), st.session_state.ui_language
+    )
     st.markdown("#### One small action")
     if insight.get("encouragement"):
         st.write(insight["encouragement"])
