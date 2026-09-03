@@ -9,6 +9,46 @@ import pandas as pd
 from scoring import display_feature_name
 
 
+COMPARISON_KEY_COLUMNS = ("language", "scoring_model_version", "app_version")
+
+
+def comparison_key(row: dict) -> tuple[str, ...]:
+    """Return the provenance key that makes two sessions comparable."""
+    return tuple(str(row.get(column) or "unknown") for column in COMPARISON_KEY_COLUMNS)
+
+
+def select_latest_comparable_history(
+    history: pd.DataFrame, minimum_sessions: int = 3
+) -> tuple[pd.DataFrame, tuple[str, ...] | None]:
+    """Select the newest compatible group without dropping historical records."""
+    if history.empty:
+        return history.copy(), None
+    working = history.copy()
+    working["_comparison_key"] = working.apply(
+        lambda row: comparison_key(row.to_dict()), axis=1
+    )
+    counts = (
+        working[["_comparison_key", "session_id"]]
+        .drop_duplicates()
+        .groupby("_comparison_key")["session_id"]
+        .nunique()
+    )
+    eligible = set(counts[counts >= minimum_sessions].index)
+    if not eligible:
+        return working.drop(columns=["_comparison_key"]), None
+    latest = (
+        working[working["_comparison_key"].isin(eligible)]
+        .groupby("_comparison_key")["session_id"]
+        .max()
+        .sort_values()
+    )
+    selected = latest.index[-1]
+    result = working[working["_comparison_key"] == selected].drop(
+        columns=["_comparison_key"]
+    )
+    return result, selected
+
+
 def metric_grid_html(score_items: list[dict], language: str) -> str:
     """Return a compact two-column score grid suitable for narrow screens."""
     tiles = []
