@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import date
+import json
 import uuid
 import pandas as pd
 import streamlit as st
@@ -31,6 +32,9 @@ from database import (
     get_user_habit_checkins,
     get_user_profile,
     get_user_scores,
+    has_active_consent,
+    delete_user_research_data,
+    export_user_data,
     init_db,
     list_admin_test_records,
     list_admin_users,
@@ -39,6 +43,7 @@ from database import (
     save_feature_scores,
     save_habit_checkins,
     update_user_profile,
+    withdraw_research_consent,
     upsert_user,
 )
 from email_delivery import send_verification_email
@@ -876,12 +881,9 @@ language_options = [
 if saved_name:
     st.markdown(f"### Welcome back, {saved_name}")
 
-profile_complete = bool(
-    saved_name and profile.get("age_range") and profile.get("gender")
-)
 with st.expander(
-    "Account settings" if profile_complete else "Complete your account",
-    expanded=not profile_complete,
+    "Account settings",
+    expanded=False,
 ):
     st.caption(st.session_state.email)
     display_name = st.text_input(
@@ -924,25 +926,45 @@ with st.expander(
         placeholder="Example: US",
     )
     if st.button("Save account"):
-        if not display_name.strip() or age_range is None or gender is None:
-            st.error("Please enter your name and select age range and gender.")
-        else:
-            update_user_profile(
-                st.session_state.user_id,
-                display_name.strip(),
-                age_range,
-                gender,
-                None if primary_language == "Prefer not to say" else primary_language,
-                country_region.strip() or None,
-            )
-            refreshed_profile = get_user_profile(st.session_state.user_id)
-            st.session_state.profile = dict(refreshed_profile) if refreshed_profile else {}
-            st.success("Account saved.")
-            st.rerun()
+        update_user_profile(
+            st.session_state.user_id,
+            display_name.strip() or None,
+            None if age_range in (None, "Prefer not to say") else age_range,
+            None if gender in (None, "Prefer not to say") else gender,
+            None if primary_language == "Prefer not to say" else primary_language,
+            country_region.strip() or None,
+        )
+        refreshed_profile = get_user_profile(st.session_state.user_id)
+        st.session_state.profile = dict(refreshed_profile) if refreshed_profile else {}
+        st.success("Account saved.")
+        st.rerun()
 
-if not profile_complete:
-    st.info("Complete your account once. KinaBot will remember it for future visits.")
-    st.stop()
+with st.expander("Manage my data"):
+    st.caption("View, export, correct, withdraw, or delete your KinaBot data.")
+    export_payload = export_user_data(st.session_state.user_id)
+    st.download_button(
+        "Download my data",
+        data=json.dumps(export_payload, ensure_ascii=False, indent=2).encode("utf-8"),
+        file_name="kinabot_my_data.json",
+        mime="application/json",
+        use_container_width=True,
+    )
+    if st.button("Withdraw from research"):
+        withdraw_research_consent(st.session_state.user_id)
+        st.session_state["research_pilot_consent"] = False
+        st.warning("Future research collection is stopped. You must re-consent to rejoin.")
+        st.stop()
+    if st.button("Log out"):
+        st.session_state.clear()
+        st.rerun()
+    st.divider()
+    st.caption("Account deletion permanently removes your profile, sessions, scores, habits, consent records, and verification records.")
+    delete_confirm = st.checkbox("I understand this cannot be undone.")
+    if st.button("Delete account and history", disabled=not delete_confirm):
+        delete_user_research_data(st.session_state.user_id)
+        st.session_state.clear()
+        st.success("Your account and stored data have been deleted.")
+        st.stop()
 
 history_copy = HISTORY_COPY[st.session_state.ui_language]
 challenge_copy = CHALLENGE_COPY[st.session_state.ui_language]
@@ -1141,7 +1163,9 @@ with st.expander("Read Research Notice", expanded=False):
     )
 
 consent = st.checkbox(
-    "I have had an opportunity to review the Research Notice and agree to join the KinaBot Research Pilot."
+    "I have had an opportunity to review the Research Notice and agree to join the KinaBot Research Pilot.",
+    value=has_active_consent(st.session_state.user_id, CONSENT_VERSION),
+    key="research_pilot_consent",
 )
 
 if not consent:

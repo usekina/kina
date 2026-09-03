@@ -61,6 +61,7 @@ def init_db() -> None:
                 user_id INTEGER NOT NULL,
                 consent_version TEXT NOT NULL,
                 accepted_at TEXT NOT NULL,
+                withdrawn_at TEXT,
                 FOREIGN KEY (user_id) REFERENCES users(id)
             );
 
@@ -115,6 +116,7 @@ def init_db() -> None:
         ensure_column(conn, "test_sessions", "language", "TEXT")
         ensure_column(conn, "test_sessions", "duration_seconds", "REAL")
         ensure_column(conn, "test_sessions", "timezone_name", "TEXT")
+        ensure_column(conn, "consent_events", "withdrawn_at", "TEXT")
         ensure_column(conn, "test_sessions", "idempotency_key", "TEXT")
         _repair_legacy_session_number_duplicates(conn)
         conn.execute(
@@ -197,6 +199,10 @@ def delete_user_research_data(user_id: int) -> bool:
                 f"DELETE FROM feature_scores WHERE test_session_id IN ({placeholders})",
                 session_ids,
             )
+        email_hash = conn.execute(
+            "SELECT email_hash FROM users WHERE id = ?", (user_id,)
+        ).fetchone()["email_hash"]
+        conn.execute("DELETE FROM verification_codes WHERE email_hash = ?", (email_hash,))
         conn.execute("DELETE FROM habit_checkins WHERE user_id = ?", (user_id,))
         conn.execute("DELETE FROM consent_events WHERE user_id = ?", (user_id,))
         conn.execute("DELETE FROM test_sessions WHERE user_id = ?", (user_id,))
@@ -254,11 +260,70 @@ def record_consent(user_id: int, consent_version: str) -> None:
             WHERE NOT EXISTS (
                 SELECT 1
                 FROM consent_events
-                WHERE user_id = ? AND consent_version = ?
+                WHERE user_id = ? AND consent_version = ? AND withdrawn_at IS NULL
             )
             """,
             (user_id, consent_version, utc_now_iso(), user_id, consent_version),
         )
+
+
+def has_active_consent(user_id: int, consent_version: str) -> bool:
+    with get_connection() as conn:
+        return bool(conn.execute(
+            "SELECT 1 FROM consent_events WHERE user_id = ? AND consent_version = ? "
+            "AND withdrawn_at IS NULL LIMIT 1", (user_id, consent_version)
+        ).fetchone())
+
+
+def withdraw_research_consent(user_id: int) -> int:
+    """Stop future research use while retaining the consent audit event."""
+    with get_connection() as conn:
+        cursor = conn.execute(
+            "UPDATE consent_events SET withdrawn_at = ? "
+            "WHERE user_id = ? AND withdrawn_at IS NULL",
+            (utc_now_iso(), user_id),
+        )
+        return int(cursor.rowcount)
+
+
+def export_user_data(user_id: int) -> dict:
+    """Return a participant's stored data in a portable JSON-compatible shape."""
+    with get_connection() as conn:
+        user = conn.execute(
+            "SELECT id, email, display_name, age_range, gender, primary_language, "
+            "country_region, timezone_name, created_at, last_active_at "
+            "FROM users WHERE id = ?", (user_id,)
+        ).fetchone()
+        if not user:
+            return {}
+        sessions = conn.execute(
+            "SELECT * FROM test_sessions WHERE user_id = ? ORDER BY created_at ASC, id ASC",
+            (user_id,),
+        ).fetchall()
+        session_ids = [int(row["id"]) for row in sessions]
+        scores = []
+        if session_ids:
+            placeholders = ",".join("?" for _ in session_ids)
+            scores = conn.execute(
+                f"SELECT * FROM feature_scores WHERE test_session_id IN ({placeholders}) "
+                "ORDER BY test_session_id ASC, id ASC", session_ids
+            ).fetchall()
+        consents = conn.execute(
+            "SELECT consent_version, accepted_at, withdrawn_at FROM consent_events "
+            "WHERE user_id = ? ORDER BY accepted_at ASC", (user_id,)
+        ).fetchall()
+        habits = conn.execute(
+            "SELECT checkin_date, habit_name, completed, created_at, updated_at "
+            "FROM habit_checkins WHERE user_id = ? ORDER BY checkin_date ASC, id ASC",
+            (user_id,),
+        ).fetchall()
+        return {
+            "profile": dict(user),
+            "sessions": [dict(row) for row in sessions],
+            "feature_scores": [dict(row) for row in scores],
+            "consent_events": [dict(row) for row in consents],
+            "habit_checkins": [dict(row) for row in habits],
+        }
 
 
 def save_verification_code(email_hash: str, code_hash: str, expires_at: str) -> None:
