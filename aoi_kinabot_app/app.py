@@ -1087,23 +1087,46 @@ else:
 st.markdown(
     """
     <div class="privacy-card">
-      <strong>Your recording is not saved.</strong><br>
-      Your selected file is processed privately on the KinaBot server with local Python,
-      then the temporary copy is deleted. Raw audio and full transcripts are not
-      sent to OpenAI. After three sessions, only anonymous score history may be
-      used to select a general wellness action. KinaBot stores your account, scores,
-      usage history, and optional habit check-ins—not the raw audio or full transcript.
+      <strong>KinaBot Research Pilot</strong><br>
+      Free access is provided as a research pilot. Review the notice below before joining.
+      KinaBot describes speech samples only; it is not a medical or diagnostic service.
     </div>
     """,
     unsafe_allow_html=True,
 )
 
+with st.expander("Read Research Notice", expanded=False):
+    st.markdown(
+        """
+        **AImoji LLC** provides KinaBot as a long-term research pilot. You may continue
+        using the pilot until the pilot ends or you withdraw your consent.
+
+        KinaBot helps you view and understand your own voice-derived cognitive-wellness
+        results. With your consent, AImoji LLC may analyze pseudonymized voice-derived
+        scores, usage trends, and demographic information that you voluntarily provide
+        for the research purposes described here.
+
+        Gender, age range, location, and first language are optional. Data is not used
+        for commercial sales or targeted advertising. AImoji LLC may publish aggregated,
+        non-identifying findings in academic papers, research reports, or presentations.
+        Publications will not include your name, email address, raw voice recordings,
+        or directly identifying information.
+
+        Joining is voluntary. You may decline or withdraw without penalty; the standard
+        non-research version is not currently available.
+
+        Withdrawal stops future research collection. Data already included in completed
+        or published aggregate results may not be removable. Contact the study
+        administrator if you have questions or want to withdraw.
+        """
+    )
+
 consent = st.checkbox(
-    "I understand and agree. KinaBot describes this sample only; it does not assess health."
+    "I have had an opportunity to review the Research Notice and agree to join the KinaBot Research Pilot."
 )
 
 if not consent:
-    st.caption("Please agree before analyzing a recording.")
+    st.caption("This free version is only available to research-pilot participants. Decline and exit to leave.")
     st.stop()
 
 record_consent(st.session_state.user_id, CONSENT_VERSION)
