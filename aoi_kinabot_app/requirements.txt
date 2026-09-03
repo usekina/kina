@@ -5,3 +5,4 @@ faster-whisper>=1.1.0
 jieba>=0.42.1
 janome>=0.5.0
 tzdata>=2026.1
+reportlab>=4.2,<5
