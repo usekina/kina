@@ -56,6 +56,7 @@ from insight_service import generate_wellness_insight
 from language_analysis import LANGUAGE_CODES, analyze_transcript
 from local_time import local_date_iso
 from offline_identity import normalize_participant_id, participant_key, valid_participant_id
+from pilot_report import build_personal_pdf_report
 from speech_to_text import (
     LOCAL_TRANSCRIPTION_TYPES,
     speech_to_text_configured,
@@ -947,6 +948,18 @@ with st.expander("Manage my data"):
         data=json.dumps(export_payload, ensure_ascii=False, indent=2).encode("utf-8"),
         file_name="kinabot_my_data.json",
         mime="application/json",
+        use_container_width=True,
+    )
+    personal_report = build_personal_pdf_report(
+        st.session_state.get("profile") or {},
+        get_user_scores(st.session_state.user_id),
+    )
+    st.download_button(
+        "Download my PDF report",
+        data=personal_report,
+        file_name="kinabot_research_pilot_report.pdf",
+        mime="application/pdf",
+        help="A basic report of your own scores. It excludes raw audio and internal model data.",
         use_container_width=True,
     )
     if st.button("Withdraw from research"):
