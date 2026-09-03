@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import date
+import uuid
 import pandas as pd
 import streamlit as st
 
@@ -23,6 +24,8 @@ from config import (
 from database import (
     assign_timezone_to_legacy_sessions,
     count_tests_today,
+    complete_test_session,
+    DailyLimitReached,
     create_test_session,
     get_admin_metrics,
     get_user_habit_checkins,
@@ -1222,6 +1225,9 @@ if st.button("3 · Analyze my reflection", type="primary", use_container_width=T
     elif selected_audio.name.rsplit(".", 1)[-1].lower() not in LOCAL_TRANSCRIPTION_TYPES:
         st.warning("Use MP3, MP4, MPEG, MPGA, M4A, WAV, or WEBM for automatic analysis.")
     else:
+        request_key = st.session_state.setdefault(
+            "pending_analysis_request_id", uuid.uuid4().hex
+        )
         with st.status("Processing your recording…", expanded=True) as analysis_status:
             st.write("Transcribing privately on the KinaBot server…")
             (
@@ -1248,19 +1254,28 @@ if st.button("3 · Analyze my reflection", type="primary", use_container_width=T
             )
             audio_metadata = accept_audio_upload(selected_audio, selected_audio.name)
             session_number = tests_today + 1
-            test_session_id = create_test_session(
-                user_id=st.session_state.user_id,
-                session_date=today,
-                session_number=session_number,
-                app_version=APP_VERSION,
-                consent_version=CONSENT_VERSION,
-                scoring_model_version=SCORING_MODEL_VERSION,
-                session_type=session_type,
-                language=language,
-                duration_seconds=detected_duration or audio_metadata["duration_seconds"],
-                timezone_name=browser_timezone,
-            )
-            save_feature_scores(test_session_id, scores)
+            try:
+                test_session_id, session_number, already_saved = complete_test_session(
+                    user_id=st.session_state.user_id,
+                    session_date=today,
+                    app_version=APP_VERSION,
+                    consent_version=CONSENT_VERSION,
+                    scoring_model_version=SCORING_MODEL_VERSION,
+                    scores=scores,
+                    max_tests_per_day=MAX_TESTS_PER_DAY,
+                    session_type=session_type,
+                    language=language,
+                    duration_seconds=detected_duration or audio_metadata["duration_seconds"],
+                    timezone_name=browser_timezone,
+                    idempotency_key=request_key,
+                )
+            except DailyLimitReached as exc:
+                analysis_status.update(label="Daily limit reached", state="error")
+                st.warning(str(exc))
+                st.stop()
+            if already_saved:
+                st.info("This analysis was already saved; showing the existing result.")
+            st.session_state.pop("pending_analysis_request_id", None)
             analysis_status.update(label="Analysis complete", state="complete", expanded=False)
 
         result_copy = {
