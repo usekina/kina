@@ -115,6 +115,39 @@ def init_db() -> None:
         ensure_column(conn, "test_sessions", "language", "TEXT")
         ensure_column(conn, "test_sessions", "duration_seconds", "REAL")
         ensure_column(conn, "test_sessions", "timezone_name", "TEXT")
+        ensure_column(conn, "test_sessions", "idempotency_key", "TEXT")
+        _repair_legacy_session_number_duplicates(conn)
+        conn.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS ux_sessions_user_date_number "
+            "ON test_sessions(user_id, session_date, session_number)"
+        )
+        conn.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS ux_feature_scores_session_name "
+            "ON feature_scores(test_session_id, feature_name)"
+        )
+        conn.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS ux_sessions_idempotency_key "
+            "ON test_sessions(idempotency_key) WHERE idempotency_key IS NOT NULL"
+        )
+
+
+def _repair_legacy_session_number_duplicates(conn: sqlite3.Connection) -> None:
+    """Normalize legacy numbering before adding the production uniqueness index."""
+    rows = conn.execute(
+        """
+        SELECT id, user_id, session_date
+        FROM test_sessions
+        ORDER BY user_id, session_date, created_at, id
+        """
+    ).fetchall()
+    counters: dict[tuple[int, str], int] = {}
+    for row in rows:
+        key = (int(row["user_id"]), str(row["session_date"]))
+        counters[key] = counters.get(key, 0) + 1
+        conn.execute(
+            "UPDATE test_sessions SET session_number = ? WHERE id = ?",
+            (counters[key], int(row["id"])),
+        )
 
 
 def upsert_user(email_hash: str, email: str | None = None) -> int:
@@ -337,6 +370,7 @@ def create_test_session(
     language: str | None = None,
     duration_seconds: float | None = None,
     timezone_name: str | None = None,
+    idempotency_key: str | None = None,
 ) -> int:
     with get_connection() as conn:
         cursor = conn.execute(
@@ -344,8 +378,8 @@ def create_test_session(
             INSERT INTO test_sessions
                 (user_id, session_date, session_number, session_type, language,
                  duration_seconds, timezone_name, app_version, consent_version,
-                 scoring_model_version, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                scoring_model_version, idempotency_key, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 user_id,
@@ -358,10 +392,91 @@ def create_test_session(
                 app_version,
                 consent_version,
                 scoring_model_version,
+                idempotency_key,
                 utc_now_iso(),
             ),
         )
         return int(cursor.lastrowid)
+
+
+class DailyLimitReached(ValueError):
+    """Raised when an atomic completion would exceed the daily limit."""
+
+
+def complete_test_session(
+    *,
+    user_id: int,
+    session_date: str,
+    app_version: str,
+    consent_version: str,
+    scoring_model_version: str,
+    scores: Iterable[dict],
+    max_tests_per_day: int,
+    session_type: str | None = None,
+    language: str | None = None,
+    duration_seconds: float | None = None,
+    timezone_name: str | None = None,
+    idempotency_key: str | None = None,
+) -> tuple[int, int, bool]:
+    """Atomically enforce quota and persist one complete scored session.
+
+    Returns (session_id, session_number, already_existed). Transcription stays
+    outside this short write transaction; all database writes commit or roll back.
+    """
+    score_rows = list(scores)
+    with get_connection() as conn:
+        conn.execute("BEGIN IMMEDIATE")
+        if idempotency_key:
+            existing = conn.execute(
+                "SELECT id, session_number FROM test_sessions WHERE idempotency_key = ?",
+                (idempotency_key,),
+            ).fetchone()
+            if existing:
+                return int(existing["id"]), int(existing["session_number"]), True
+
+        count = conn.execute(
+            "SELECT COUNT(*) AS count FROM test_sessions WHERE user_id = ? AND session_date = ?",
+            (user_id, session_date),
+        ).fetchone()["count"]
+        if int(count) >= max_tests_per_day:
+            raise DailyLimitReached("Daily reflection limit reached.")
+
+        session_number = int(count) + 1
+        now = utc_now_iso()
+        cursor = conn.execute(
+            """
+            INSERT INTO test_sessions
+                (user_id, session_date, session_number, session_type, language,
+                 duration_seconds, timezone_name, app_version, consent_version,
+                 scoring_model_version, idempotency_key, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                user_id, session_date, session_number, session_type, language,
+                duration_seconds, timezone_name, app_version, consent_version,
+                scoring_model_version, idempotency_key, now,
+            ),
+        )
+        session_id = int(cursor.lastrowid)
+        conn.executemany(
+            """
+            INSERT INTO feature_scores
+                (test_session_id, feature_name, raw_metric, score, explanation, created_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            [
+                (
+                    session_id,
+                    item["feature_name"],
+                    item.get("raw_metric"),
+                    float(item["score"]),
+                    item["explanation"],
+                    now,
+                )
+                for item in score_rows
+            ],
+        )
+        return session_id, session_number, False
 
 
 def save_feature_scores(test_session_id: int, scores: Iterable[dict]) -> None:

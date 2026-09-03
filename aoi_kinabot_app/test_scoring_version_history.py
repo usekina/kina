@@ -2,12 +2,12 @@ import database
 
 
 def _save_session(
-    user_id: int, version: str, score: float, language: str
+    user_id: int, version: str, score: float, language: str, session_number: int
 ) -> None:
     session_id = database.create_test_session(
         user_id=user_id,
         session_date="2026-08-24",
-        session_number=1,
+        session_number=session_number,
         app_version="test",
         consent_version="test",
         scoring_model_version=version,
@@ -33,8 +33,8 @@ def test_score_history_combines_languages_and_model_versions_for_one_user(
     database.init_db()
     user_id = database.upsert_user("version-test")
     assert database.upsert_user("version-test") == user_id
-    _save_session(user_id, "score-v2-multilingual", 24.0, "English")
-    _save_session(user_id, "score-v3-connector-boundaries", 14.0, "中文")
+    _save_session(user_id, "score-v2-multilingual", 24.0, "English", 1)
+    _save_session(user_id, "score-v3-connector-boundaries", 14.0, "中文", 2)
 
     rows = database.get_user_scores(user_id)
 

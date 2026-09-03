@@ -8,7 +8,7 @@ from typing import BinaryIO
 from config import (APP_VERSION, MAX_TESTS_PER_DAY, PARTICIPANT_KEY_SECRET,
                     SCORING_MODEL_VERSION)
 from database import (
-    count_tests_today, create_test_session, delete_user_research_data,
+    complete_test_session, count_tests_today, delete_user_research_data,
     find_user_id_by_email_hash, get_user_scores, init_db, record_consent,
     save_feature_scores, upsert_user,
 )
@@ -41,7 +41,8 @@ def _participant_context(participant_id: str) -> tuple[str, int | None]:
 def analyze_reflection(*, participant_id: str, language: str,
                        consent_version: str, audio_file: BinaryIO,
                        filename: str,
-                       session_type: str = "research-reflection") -> dict:
+                       session_type: str = "research-reflection",
+                       idempotency_key: str | None = None) -> dict:
     """Transcribe and score while retaining only pseudonymous derived data."""
     if language not in LANGUAGE_CODES:
         raise ResearchServiceError("Language must be English, 日本語, or 中文.")
@@ -62,15 +63,15 @@ def analyze_reflection(*, participant_id: str, language: str,
     )
     user_id = user_id or upsert_user(key, email=None)
     record_consent(user_id, consent_version.strip())
-    session_number = count_tests_today(user_id, today) + 1
-    session_id = create_test_session(
-        user_id=user_id, session_date=today, session_number=session_number,
-        app_version=APP_VERSION, consent_version=consent_version.strip(),
-        scoring_model_version=SCORING_MODEL_VERSION,
+    session_id, session_number, _ = complete_test_session(
+        user_id=user_id, session_date=today, app_version=APP_VERSION,
+        consent_version=consent_version.strip(),
+        scoring_model_version=SCORING_MODEL_VERSION, scores=scores,
+        max_tests_per_day=MAX_TESTS_PER_DAY,
         session_type=session_type.strip()[:100] or "research-reflection",
         language=language, duration_seconds=duration, timezone_name="UTC",
+        idempotency_key=idempotency_key,
     )
-    save_feature_scores(session_id, scores)
     return {
         "analysis_id": f"session-{session_id}", "session_number": session_number,
         "language": language, "duration_seconds": duration, "summary": summary,
