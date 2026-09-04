@@ -14,7 +14,12 @@ COMPARISON_KEY_COLUMNS = ("language", "scoring_model_version", "analysis_pipelin
 
 def comparison_key(row: dict) -> tuple[str, ...]:
     """Return the provenance key that makes two sessions comparable."""
-    return tuple(str(row.get(column) or "unknown") for column in COMPARISON_KEY_COLUMNS)
+    # Legacy sessions predate analysis_pipeline_id; app_version is the safest
+    # compatibility discriminator available for those records.
+    pipeline_id = row.get("analysis_pipeline_id") or row.get("app_version") or "unknown"
+    return (str(row.get("language") or "unknown"),
+            str(row.get("scoring_model_version") or "unknown"),
+            str(pipeline_id))
 
 
 def select_latest_comparable_history(
