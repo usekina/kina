@@ -2,6 +2,8 @@
 
 # KinaBot
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22305527.svg)](https://doi.org/10.5281/zenodo.22305527)
+
 > [!IMPORTANT]
 > **This is the official, actively maintained KinaBot repository.** KinaBot is
 > developed and maintained by Aoi Minamoto through AImoji LLC. The earlier
@@ -146,6 +148,17 @@ KinaBot should be used with:
 
 KinaBot is an early-stage source-available public-benefit project for research, education, and non-commercial exploration. The project is not clinically validated and should not be used as a standalone medical screening system.
 
+## Citation
+
+For reproducible work, cite the exact release used. The current archived release is:
+
+> Minamoto, A. (2026). *KinaBot* (Version v1.1.0) [Computer software].
+> Zenodo. https://doi.org/10.5281/zenodo.22305528
+
+Use the [KinaBot concept DOI](https://doi.org/10.5281/zenodo.22305527) when
+referring to the project across all versions. Citation metadata is also available
+in [CITATION.cff](CITATION.cff).
+
 ## License
 
 This repository currently uses a custom non-commercial source-available
@@ -154,4 +167,8 @@ terms. Commercial use requires prior written permission. Because the license
 restricts fields of use, it is not an OSI-approved open-source license; please
 describe the current project as **source-available**, not OSI open source.
 
-See [LICENSE.md](LICENSE.md) for details.
+See the controlling [LICENSE.md](LICENSE.md), the plain-language
+[licensing guide](LICENSING.md), and the
+[commercial licensing process](COMMERCIAL-LICENSING.md) for details. The same
+license is recorded under Rights on the
+[Zenodo v1.1.0 record](https://zenodo.org/records/22305528).
