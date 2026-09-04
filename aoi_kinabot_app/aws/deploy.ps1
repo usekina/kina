@@ -2,7 +2,8 @@ param(
     [string]$Region = "us-west-2",
     [string]$StackName = "kinabot-production",
     [string]$RepositoryName = "kinabot",
-    [string]$CertificateArn = ""
+    [string]$CertificateArn = "",
+    [string]$ImageTag = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -16,7 +17,6 @@ docker version | Out-Null
 
 $accountId = $identity.Account
 $registry = "$accountId.dkr.ecr.$Region.amazonaws.com"
-$imageUri = "$registry/$RepositoryName`:latest"
 
 $previousErrorPreference = $ErrorActionPreference
 $ErrorActionPreference = "SilentlyContinue"
@@ -37,6 +37,14 @@ aws ecr get-login-password --region $Region |
     docker login --username AWS --password-stdin $registry | Out-Null
 
 $appDirectory = Split-Path -Parent $PSScriptRoot
+$resolvedImageTag = $ImageTag
+if (-not $resolvedImageTag) {
+    $resolvedImageTag = (git -C $appDirectory rev-parse --short HEAD).Trim()
+}
+if (-not $resolvedImageTag) {
+    throw "Unable to determine an immutable Git image tag. Pass -ImageTag explicitly."
+}
+$imageUri = "$registry/$RepositoryName`:$resolvedImageTag"
 docker build --pull --tag $imageUri $appDirectory
 docker push $imageUri
 
