@@ -356,7 +356,7 @@ LANDING_COPY = {
     },
     "日本語": {
         "eyebrow": "自分と向き合う、プライベートなひととき",
-        "title": "表現の変化を、時間を通して見つめる。",
+        "title": "あなたの声、あなたのパターン、時間とともに",
         "subtitle": (
             "短い振り返りを録音すると、KinaBotが話し方の特徴を分かりやすい個人の"
             "傾向として示します。診断・順位付け・他者との比較は行いません。"
@@ -381,7 +381,7 @@ LANDING_COPY = {
     },
     "中文": {
         "eyebrow": "留给自己的一段私密反思时间",
-        "title": "了解自己的表达如何随时间变化。",
+        "title": "你的声音，你的模式，随时间变化",
         "subtitle": (
             "录制一段简短反思。KinaBot把语言特征转化为清晰的个人趋势，"
             "不进行诊断、排名，也不与他人比较。"
@@ -496,18 +496,21 @@ HISTORY_COPY = {
         "progress": "{count} of 3 sessions completed. Trends begin after session 3.",
         "recent": "Recent sessions",
         "all": "All sessions",
-        "mixed_languages": (
-            "This account history combines recordings from every selected language. "
-            "Language-specific scoring baselines can make cross-language differences less comparable."
-        ),
-        "mixed_versions": (
-            "This history includes more than one scoring-model version. Earlier sessions remain "
-            "visible, but direct comparisons across model versions should be interpreted cautiously."
+        "comparability_note": (
+            "Earlier recordings remain visible, but trends compare only sessions with the same "
+            "language and scoring method."
         ),
         "change": "Observed change since the first sample",
         "higher": "Higher in latest sample",
         "lower": "Lower in latest sample",
         "similar": "Similar",
+        "small_action": "One small action",
+        "research_summary": "What the research says",
+        "research_source": "Read the research source",
+        "insight_role": (
+            "KinaBot helps you understand the insight and turn it into one simple action. "
+            "It does not provide medical advice."
+        ),
         "method": "How the 8 features are calculated",
         "method_intro": (
             "KinaBot calculates descriptive 0–100 feature indexes with its own "
@@ -527,18 +530,20 @@ HISTORY_COPY = {
         "progress": "3回中{count}回完了しました。3回目からトレンドを表示します。",
         "recent": "最近のセッション",
         "all": "すべてのセッション",
-        "mixed_languages": (
-            "このアカウントでは、選択したすべての言語の記録をまとめて表示しています。"
-            "言語ごとの採点基準が異なるため、言語をまたぐ差は単純比較できない場合があります。"
-        ),
-        "mixed_versions": (
-            "この履歴には複数の採点モデル版が含まれます。以前の記録も表示されますが、"
-            "異なる版のスコアを直接比較する場合は注意が必要です。"
+        "comparability_note": (
+            "以前の記録も表示しますが、トレンドでは同じ言語・採点方式の記録だけを比較します。"
         ),
         "change": "最初のサンプルからの変化",
         "higher": "最新サンプルで高い",
         "lower": "最新サンプルで低い",
         "similar": "ほぼ同じ",
+        "small_action": "小さな行動を一つ",
+        "research_summary": "研究の要点",
+        "research_source": "研究資料を読む",
+        "insight_role": (
+            "KinaBotは、気づきを理解し、無理のない一つの行動につなげるお手伝いをします。"
+            "医療上の助言ではありません。"
+        ),
         "method": "8項目の計算方法",
         "method_intro": (
             "KinaBot独自のPythonと多言語NLPにより、0〜100の記述的な特徴指数を"
@@ -557,18 +562,19 @@ HISTORY_COPY = {
         "progress": "已完成3次中的{count}次，第3次开始显示趋势。",
         "recent": "最近记录",
         "all": "全部记录",
-        "mixed_languages": (
-            "此账户历史合并显示所有已选择语言的记录。不同语言使用各自的评分基准，"
-            "因此跨语言分数差异不一定可以直接比较。"
-        ),
-        "mixed_versions": (
-            "此历史包含多个评分模型版本。旧记录仍会显示，但直接比较不同版本的分数时"
-            "需要谨慎解释。"
+        "comparability_note": (
+            "历史记录仍会保留；趋势只比较语言和评分方式相同的记录。"
         ),
         "change": "与第一次样本相比的变化",
         "higher": "最近一次较高",
         "lower": "最近一次较低",
         "similar": "基本相近",
+        "small_action": "一个简单行动",
+        "research_summary": "研究简介",
+        "research_source": "查看研究来源",
+        "insight_role": (
+            "KinaBot帮助你理解这些信息，并把它转化为一个容易实践的小行动；这不是医疗建议。"
+        ),
         "method": "8项指标如何计算",
         "method_intro": (
             "KinaBot使用自己的Python与多语言NLP流程计算0–100的描述性特征指数。"
@@ -1000,10 +1006,10 @@ if primary_view == "trends":
         st.info("No measured features are available for comparable trends yet.")
         st.stop()
     session_count = int(history["session_id"].nunique())
-    if history["language"].dropna().nunique() > 1:
-        st.info(history_copy["mixed_languages"])
-    if history["scoring_model_version"].dropna().nunique() > 1:
-        st.warning(history_copy["mixed_versions"])
+    has_mixed_languages = history["language"].dropna().nunique() > 1
+    has_mixed_versions = history["scoring_model_version"].dropna().nunique() > 1
+    if has_mixed_languages or has_mixed_versions:
+        st.info(history_copy["comparability_note"])
     st.markdown(f"### {history_copy['latest']}")
     st.markdown(
         metric_grid_html(
@@ -1101,11 +1107,13 @@ if primary_view == "trends":
     insight = generate_wellness_insight(
         comparable_history.to_dict("records"), st.session_state.ui_language
     )
-    st.markdown("#### One small action")
-    if insight.get("encouragement"):
-        st.write(insight["encouragement"])
+    st.markdown(f"#### {history_copy['small_action']}")
     st.info(insight["action"])
-    st.caption(f"{insight['why']} [Research source]({insight['source']})")
+    st.caption(insight["why"])
+    st.markdown(f"**{history_copy['research_summary']}**")
+    st.caption(insight["research_summary"])
+    st.markdown(f"[{history_copy['research_source']}]({insight['source']})")
+    st.caption(history_copy["insight_role"])
     st.caption(insight["boundary"])
     st.stop()
 

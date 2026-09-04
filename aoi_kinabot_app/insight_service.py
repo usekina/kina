@@ -22,6 +22,11 @@ ACTIONS = {
                 "Tell one story about your day and ask one follow-up question."
             ),
             "why": "Social connection is a general cognitive-wellness habit.",
+            "research_summary": (
+                "A 3-year observational study followed 217 cognitively normal older adults. "
+                "Greater social engagement was associated with relatively better cognitive trajectories "
+                "in one higher-risk subgroup; the study does not prove that conversation prevents decline."
+            ),
             "source": SOCIAL_ENGAGEMENT_STUDY,
         },
         {
@@ -30,6 +35,11 @@ ACTIONS = {
                 "walk and describe three things you noticed afterward."
             ),
             "why": "Regular physical activity is supported as a general wellness habit.",
+            "research_summary": (
+                "WHO reviewed evidence on modifiable lifestyle factors and recommends regular physical "
+                "activity as part of risk-reduction guidance. This is population guidance, not an "
+                "individual treatment promise."
+            ),
             "source": WHO_GUIDELINE,
         },
         {
@@ -38,6 +48,11 @@ ACTIONS = {
                 "fish, nuts, or olive oil in a way that fits your dietary needs."
             ),
             "why": "Mediterranean-style eating patterns have been studied for cognitive wellness.",
+            "research_summary": (
+                "A randomized PREDIMED-NAVARRA trial reported better cognitive performance with "
+                "Mediterranean-style diets than with its control diet in older adults at high vascular risk. "
+                "It does not mean that one meal changes cognition."
+            ),
             "source": MEDITERRANEAN_TRIAL,
         },
     ],
@@ -45,16 +60,28 @@ ACTIONS = {
         {
             "action": "明日、家族や友人と20分話しましょう。今日の出来事を一つ話し、相手にも質問を一つしてみてください。",
             "why": "人との交流は、一般的な認知ウェルネス習慣の一つです。",
+            "research_summary": (
+                "認知機能が正常な高齢者217人を3年間追跡した観察研究です。特定の高リスク群では、"
+                "交流の多さが認知機能の相対的な維持と関連しましたが、会話が低下を防ぐと証明した研究ではありません。"
+            ),
             "source": SOCIAL_ENGAGEMENT_STUDY,
         },
         {
             "action": "安全に行える場合、明日20分ほど無理のない散歩をし、後で気づいたことを三つ話してみましょう。",
             "why": "定期的な身体活動は、一般的な健康習慣として支持されています。",
+            "research_summary": (
+                "WHOは修正可能な生活習慣に関する研究を検討し、リスク低減の一環として定期的な身体活動を"
+                "推奨しています。これは集団向けの指針であり、個人への治療効果を保証するものではありません。"
+            ),
             "source": WHO_GUIDELINE,
         },
         {
             "action": "明日の一食に、体調や食事制限に合わせて、野菜、豆類、全粒穀物、魚、ナッツ、オリーブ油などを取り入れてみましょう。",
             "why": "地中海食に近い食習慣は、認知ウェルネスとの関連が研究されています。",
+            "research_summary": (
+                "PREDIMED-NAVARRA無作為化試験では、血管リスクの高い高齢者において、地中海食群の認知成績が"
+                "対照食群より良好でした。一回の食事で認知機能が変わることを示すものではありません。"
+            ),
             "source": MEDITERRANEAN_TRIAL,
         },
     ],
@@ -62,16 +89,28 @@ ACTIONS = {
         {
             "action": "从明天开始，和家人或朋友聊20分钟。讲一件今天发生的事，再问对方一个问题。",
             "why": "保持社交联系是一种通用的认知健康生活习惯。",
+            "research_summary": (
+                "这项观察性研究对217名认知功能正常的老年人随访了3年。在一个较高风险亚组中，较多社交参与"
+                "与认知表现相对保持有关；研究并未证明一次谈话能够预防认知下降。"
+            ),
             "source": SOCIAL_ENGAGEMENT_STUDY,
         },
         {
             "action": "如果身体情况允许，明天舒适地散步20分钟，之后说出途中注意到的三件事。",
             "why": "规律的身体活动是一种有研究支持的通用健康习惯。",
+            "research_summary": (
+                "WHO审查了可调整生活方式因素的相关证据，并把规律身体活动列为风险降低建议的一部分。"
+                "这是面向人群的一般指南，不代表对个人的治疗保证。"
+            ),
             "source": WHO_GUIDELINE,
         },
         {
             "action": "明天选一餐，在符合自身饮食需要的前提下加入蔬菜、豆类、全谷物、鱼、坚果或橄榄油。",
             "why": "偏地中海式的饮食模式已被用于认知健康相关研究。",
+            "research_summary": (
+                "PREDIMED-NAVARRA随机试验发现，在心血管风险较高的老年人中，地中海式饮食组的认知表现"
+                "优于对照饮食组；这并不表示一顿饭就能改变认知功能。"
+            ),
             "source": MEDITERRANEAN_TRIAL,
         },
     ],
@@ -130,8 +169,7 @@ def generate_wellness_insight(history: list[dict[str, Any]], language: str) -> d
     prompt = {
         "task": (
             "Choose exactly one allowed action that is most useful for the repeated "
-            "longitudinal pattern. Return its zero-based action_index and one short, "
-            "plain-language encouragement sentence in the requested language."
+            "longitudinal pattern. Return only its zero-based action_index."
         ),
         "anonymous_kina_scores": payload,
         "allowed_actions": allowed,
@@ -163,12 +201,8 @@ def generate_wellness_insight(history: list[dict[str, Any]], language: str) -> d
                                 "minimum": 0,
                                 "maximum": len(allowed) - 1,
                             },
-                            "encouragement": {
-                                "type": "string",
-                                "maxLength": 300,
-                            },
                         },
-                        "required": ["action_index", "encouragement"],
+                        "required": ["action_index"],
                         "additionalProperties": False,
                     },
                 },
@@ -178,7 +212,6 @@ def generate_wellness_insight(history: list[dict[str, Any]], language: str) -> d
         parsed = json.loads(response.output_text)
         index = max(0, min(len(allowed) - 1, int(parsed.get("action_index", 0))))
         result = dict(allowed[index])
-        result["encouragement"] = str(parsed.get("encouragement", "")).strip()[:300]
         result["boundary"] = BOUNDARY.get(language, BOUNDARY["English"])
         result["generated_by"] = "OpenAI from anonymous scores and curated actions"
         return result
