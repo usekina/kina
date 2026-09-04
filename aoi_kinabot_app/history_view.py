@@ -9,7 +9,7 @@ import pandas as pd
 from scoring import display_feature_name
 
 
-COMPARISON_KEY_COLUMNS = ("language", "scoring_model_version", "app_version")
+COMPARISON_KEY_COLUMNS = ("language", "scoring_model_version", "analysis_pipeline_id")
 
 
 def comparison_key(row: dict) -> tuple[str, ...]:
@@ -53,6 +53,8 @@ def metric_grid_html(score_items: list[dict], language: str) -> str:
     """Return a compact two-column score grid suitable for narrow screens."""
     tiles = []
     for item in score_items:
+        if item.get("score") is None:
+            continue
         score = int(round(float(item["score"])))
         label = escape(display_feature_name(str(item["feature_name"]), language))
         tiles.append(

@@ -88,6 +88,8 @@ def anonymous_trend_payload(history: list[dict[str, Any]], language: str) -> dic
     """Build the complete and exclusive payload allowed to leave KinaBot."""
     feature_series: dict[str, list[float]] = {}
     for row in history:
+        if row.get("score") is None or row.get("availability_status") == "unavailable":
+            continue
         name = str(row["feature_name"])
         feature_series.setdefault(name, []).append(round(float(row["score"]), 1))
     return {

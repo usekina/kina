@@ -32,7 +32,10 @@ def test_local_nlp_scores_multilingual():
     ]:
         scores, summary = analyze_transcript(text, language, 30)
         assert len(scores) == 8
-        assert all(0 <= item["score"] <= 100 for item in scores)
+        assert all(
+            item["score"] is None or 0 <= item["score"] <= 100
+            for item in scores
+        )
         assert summary
 
 

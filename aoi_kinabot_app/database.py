@@ -77,6 +77,7 @@ def init_db() -> None:
                 app_version TEXT NOT NULL,
                 consent_version TEXT NOT NULL,
                 scoring_model_version TEXT NOT NULL,
+                analysis_pipeline_id TEXT NOT NULL DEFAULT 'legacy-unknown',
                 created_at TEXT NOT NULL,
                 FOREIGN KEY (user_id) REFERENCES users(id)
             );
@@ -86,7 +87,9 @@ def init_db() -> None:
                 test_session_id INTEGER NOT NULL,
                 feature_name TEXT NOT NULL,
                 raw_metric TEXT,
-                score REAL NOT NULL,
+                score REAL,
+                availability_status TEXT NOT NULL DEFAULT 'available',
+                failure_reason TEXT,
                 explanation TEXT NOT NULL,
                 created_at TEXT NOT NULL,
                 FOREIGN KEY (test_session_id) REFERENCES test_sessions(id)
@@ -118,6 +121,10 @@ def init_db() -> None:
         ensure_column(conn, "test_sessions", "timezone_name", "TEXT")
         ensure_column(conn, "consent_events", "withdrawn_at", "TEXT")
         ensure_column(conn, "test_sessions", "idempotency_key", "TEXT")
+        ensure_column(conn, "test_sessions", "analysis_pipeline_id", "TEXT NOT NULL DEFAULT 'legacy-unknown'")
+        ensure_column(conn, "feature_scores", "availability_status", "TEXT NOT NULL DEFAULT 'available'")
+        ensure_column(conn, "feature_scores", "failure_reason", "TEXT")
+        _migrate_feature_scores_nullable(conn)
         _repair_legacy_session_number_duplicates(conn)
         conn.execute(
             "CREATE UNIQUE INDEX IF NOT EXISTS ux_sessions_user_date_number "
@@ -131,6 +138,38 @@ def init_db() -> None:
             "CREATE UNIQUE INDEX IF NOT EXISTS ux_sessions_idempotency_key "
             "ON test_sessions(idempotency_key) WHERE idempotency_key IS NOT NULL"
         )
+
+
+def _migrate_feature_scores_nullable(conn: sqlite3.Connection) -> None:
+    """Rebuild legacy tables whose score column was declared NOT NULL."""
+    info = next((row for row in conn.execute("PRAGMA table_info(feature_scores)") if row[1] == "score"), None)
+    if not info or not info[3]:
+        return
+    conn.execute("ALTER TABLE feature_scores RENAME TO feature_scores_legacy")
+    conn.execute(
+        """CREATE TABLE feature_scores (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            test_session_id INTEGER NOT NULL,
+            feature_name TEXT NOT NULL,
+            raw_metric TEXT,
+            score REAL,
+            availability_status TEXT NOT NULL DEFAULT 'available',
+            failure_reason TEXT,
+            explanation TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY (test_session_id) REFERENCES test_sessions(id)
+        )"""
+    )
+    conn.execute(
+        """INSERT INTO feature_scores
+            (id, test_session_id, feature_name, raw_metric, score,
+             availability_status, failure_reason, explanation, created_at)
+           SELECT id, test_session_id, feature_name, raw_metric, score,
+                  'available', NULL, explanation, created_at
+           FROM feature_scores_legacy"""
+    )
+    conn.execute("DROP TABLE feature_scores_legacy")
+    conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS ux_feature_scores_session_name ON feature_scores(test_session_id, feature_name)")
 
 
 def _repair_legacy_session_number_duplicates(conn: sqlite3.Connection) -> None:
@@ -431,6 +470,7 @@ def create_test_session(
     app_version: str,
     consent_version: str,
     scoring_model_version: str,
+    analysis_pipeline_id: str = "legacy-unknown",
     session_type: str | None = None,
     language: str | None = None,
     duration_seconds: float | None = None,
@@ -443,8 +483,8 @@ def create_test_session(
             INSERT INTO test_sessions
                 (user_id, session_date, session_number, session_type, language,
                  duration_seconds, timezone_name, app_version, consent_version,
-                scoring_model_version, idempotency_key, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                scoring_model_version, analysis_pipeline_id, idempotency_key, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 user_id,
@@ -457,6 +497,7 @@ def create_test_session(
                 app_version,
                 consent_version,
                 scoring_model_version,
+                analysis_pipeline_id,
                 idempotency_key,
                 utc_now_iso(),
             ),
@@ -475,6 +516,7 @@ def complete_test_session(
     app_version: str,
     consent_version: str,
     scoring_model_version: str,
+    analysis_pipeline_id: str = "legacy-unknown",
     scores: Iterable[dict],
     max_tests_per_day: int,
     session_type: str | None = None,
@@ -513,28 +555,31 @@ def complete_test_session(
             INSERT INTO test_sessions
                 (user_id, session_date, session_number, session_type, language,
                  duration_seconds, timezone_name, app_version, consent_version,
-                 scoring_model_version, idempotency_key, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 scoring_model_version, analysis_pipeline_id, idempotency_key, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 user_id, session_date, session_number, session_type, language,
                 duration_seconds, timezone_name, app_version, consent_version,
-                scoring_model_version, idempotency_key, now,
+                scoring_model_version, analysis_pipeline_id, idempotency_key, now,
             ),
         )
         session_id = int(cursor.lastrowid)
         conn.executemany(
             """
             INSERT INTO feature_scores
-                (test_session_id, feature_name, raw_metric, score, explanation, created_at)
-            VALUES (?, ?, ?, ?, ?, ?)
+                (test_session_id, feature_name, raw_metric, score, availability_status,
+                 failure_reason, explanation, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
             [
                 (
                     session_id,
                     item["feature_name"],
                     item.get("raw_metric"),
-                    float(item["score"]),
+                    float(item["score"]) if item.get("score") is not None else None,
+                    item.get("availability_status", "available"),
+                    item.get("failure_reason"),
                     item["explanation"],
                     now,
                 )
@@ -549,15 +594,18 @@ def save_feature_scores(test_session_id: int, scores: Iterable[dict]) -> None:
         conn.executemany(
             """
             INSERT INTO feature_scores
-                (test_session_id, feature_name, raw_metric, score, explanation, created_at)
-            VALUES (?, ?, ?, ?, ?, ?)
+                (test_session_id, feature_name, raw_metric, score, availability_status,
+                 failure_reason, explanation, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
             [
                 (
                     test_session_id,
                     item["feature_name"],
                     item.get("raw_metric"),
-                    float(item["score"]),
+                    float(item["score"]) if item.get("score") is not None else None,
+                    item.get("availability_status", "available"),
+                    item.get("failure_reason"),
                     item["explanation"],
                     utc_now_iso(),
                 )
@@ -582,8 +630,9 @@ def get_user_scores(user_id: int) -> list[sqlite3.Row]:
                 ts.app_version,
                 ts.consent_version,
                 ts.scoring_model_version,
+                ts.analysis_pipeline_id,
                 fs.feature_name,
-                fs.score
+                fs.score, fs.availability_status, fs.failure_reason
             FROM feature_scores fs
             JOIN test_sessions ts ON ts.id = fs.test_session_id
             WHERE ts.user_id = ?

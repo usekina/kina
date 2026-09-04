@@ -211,18 +211,18 @@ def score_sentence_complexity(
 
 def score_speech_pace(
     words: list[str], duration_seconds: float | None, language: str
-) -> tuple[float, str]:
+) -> tuple[float | None, str, str | None]:
     if not duration_seconds or duration_seconds <= 0:
-        return 50.0, "duration_seconds=unknown; neutral_score_used=true"
+        return None, "duration_seconds=unknown", "duration_unknown"
     units_per_minute = len(words) / duration_seconds * 60
     center = {"en": 130, "ja": 110, "zh": 110}[language_code(language)]
     score = 100 - abs(units_per_minute - center) * 0.5
-    return clamp_score(score), f"units_per_minute={units_per_minute:.2f}; center={center}"
+    return clamp_score(score), f"units_per_minute={units_per_minute:.2f}; center={center}", None
 
 
-def score_pause_pattern(acoustic_metrics: dict | None) -> tuple[float, str]:
+def score_pause_pattern(acoustic_metrics: dict | None) -> tuple[float | None, str, str | None]:
     if not acoustic_metrics:
-        return 50.0, "pause_analysis=unavailable; neutral_score_used=true"
+        return None, "pause_analysis=unavailable", "acoustic_analysis_unavailable"
     pause_ratio = float(acoustic_metrics.get("pause_ratio", 0.0))
     mean_pause = float(acoustic_metrics.get("mean_pause_seconds", 0.0))
     # A broad descriptive center avoids treating one exact speaking style as ideal.
@@ -246,7 +246,7 @@ def score_pause_pattern(acoustic_metrics: dict | None) -> tuple[float, str]:
             "pause_ratio",
         }
     )
-    return clamp_score(score), raw
+    return clamp_score(score), raw, None
 
 
 def score_repetition_pattern(words: list[str]) -> tuple[float, str]:
@@ -305,11 +305,18 @@ def calculate_feature_scores(
     ]
     results = []
     for feature_name, builder in score_builders:
-        score, raw_metric = builder()
+        built = builder()
+        if len(built) == 2:
+            score, raw_metric = built
+            failure_reason = None
+        else:
+            score, raw_metric, failure_reason = built
         results.append(
             {
                 "feature_name": feature_name,
                 "score": score,
+                "availability_status": "unavailable" if score is None else "available",
+                "failure_reason": failure_reason,
                 "raw_metric": raw_metric,
                 "explanation": feature_explanation(feature_name, language),
                 "scoring_model_version": SCORING_MODEL_VERSION,

@@ -15,6 +15,7 @@ from config import (
     ADMIN_KEY,
     ALLOW_LOCAL_VERIFICATION_CODES,
     APP_VERSION,
+    ANALYSIS_PIPELINE_ID,
     CONSENT_VERSION,
     MAX_AUDIO_BYTES,
     MAX_TESTS_PER_DAY,
@@ -998,7 +999,13 @@ if primary_view == "trends":
         st.caption(history_copy["no_scores"])
         st.stop()
 
-    history = pd.DataFrame([dict(row) for row in rows])
+    history = pd.DataFrame([
+        dict(row) for row in rows
+        if row["score"] is not None and row["availability_status"] != "unavailable"
+    ])
+    if history.empty:
+        st.info("No measured features are available for comparable trends yet.")
+        st.stop()
     session_count = int(history["session_id"].nunique())
     if history["language"].dropna().nunique() > 1:
         st.info(history_copy["mixed_languages"])
@@ -1298,6 +1305,7 @@ if st.button("3 · Analyze my reflection", type="primary", use_container_width=T
                     app_version=APP_VERSION,
                     consent_version=CONSENT_VERSION,
                     scoring_model_version=SCORING_MODEL_VERSION,
+                    analysis_pipeline_id=ANALYSIS_PIPELINE_ID,
                     scores=scores,
                     max_tests_per_day=MAX_TESTS_PER_DAY,
                     session_type=session_type,
@@ -1339,22 +1347,27 @@ if st.button("3 · Analyze my reflection", type="primary", use_container_width=T
             },
         }[language]
         st.success(result_copy["saved"])
-        snapshot = build_reflection_profile(scores, language)
+        available_scores = [item for item in scores if item.get("score") is not None]
+        unavailable = [item for item in scores if item.get("score") is None]
+        if unavailable:
+            st.info("Some features were unavailable and were excluded from summaries.")
+        snapshot = build_reflection_profile(available_scores, language)
         st.markdown(f"### {snapshot['title']}")
         st.caption(snapshot["subtitle"])
         snapshot_columns = st.columns(2)
         for index, dimension in enumerate(snapshot["dimensions"]):
-            score = int(dimension["score"])
+            score = dimension["score"]
+            score_label = str(int(score)) if score is not None else "Not available"
             with snapshot_columns[index % 2]:
                 st.markdown(
                     f"""
                     <div class="snapshot-card">
                       <div class="snapshot-card__top">
                         <span class="snapshot-card__label">{dimension["label"]}</span>
-                        <span class="snapshot-card__value">{score}</span>
+                        <span class="snapshot-card__value">{score_label}</span>
                       </div>
                       <div class="snapshot-card__track">
-                        <div class="snapshot-card__fill" style="width:{score}%"></div>
+                        <div class="snapshot-card__fill" style="width:{score or 0}%"></div>
                       </div>
                     </div>
                     """,
