@@ -78,16 +78,23 @@ COPY = {
 
 def build_reflection_profile(scores: list[dict[str, Any]], language: str) -> dict:
     """Aggregate existing local features into four transparent UX dimensions."""
-    values = {str(item["feature_name"]): float(item["score"]) for item in scores}
+    values = {
+        str(item["feature_name"]): float(item["score"])
+        for item in scores
+        if item.get("score") is not None
+    }
     dimensions = {
-        name: round(
-            sum(values.get(feature, 0.0) for feature in features) / len(features)
+        name: (
+            round(sum(values[feature] for feature in features if feature in values)
+                  / sum(feature in values for feature in features))
+            if any(feature in values for feature in features) else None
         )
         for name, features in PROFILE_COMPONENTS.items()
     }
     copy = COPY.get(language, COPY["English"])
-    strongest = max(dimensions, key=dimensions.get)
-    focus = min(dimensions, key=dimensions.get)
+    available_dimensions = {key: value for key, value in dimensions.items() if value is not None}
+    strongest = max(available_dimensions, key=available_dimensions.get) if available_dimensions else None
+    focus = min(available_dimensions, key=available_dimensions.get) if available_dimensions else None
     labels = copy["labels"]
     return {
         "title": copy["title"],
@@ -97,11 +104,11 @@ def build_reflection_profile(scores: list[dict[str, Any]], language: str) -> dic
             for key in PROFILE_COMPONENTS
         ],
         "takeaway_title": copy["takeaway"],
-        "takeaway": copy["summary"].format(
-            strong=labels[strongest],
-            focus=labels[focus],
+        "takeaway": (
+            copy["summary"].format(strong=labels[strongest], focus=labels[focus])
+            if strongest else "No comparable measured features are available for this recording."
         ),
         "action_title": copy["action_title"],
-        "action": copy["actions"][focus],
+        "action": copy["actions"][focus] if focus else "Try a clearer recording with duration and audio analysis available.",
         "detail_label": copy["detail"],
     }
