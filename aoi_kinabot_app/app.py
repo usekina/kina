@@ -331,7 +331,7 @@ st.markdown(
 LANDING_COPY = {
     "English": {
         "eyebrow": "A private moment to reflect",
-        "title": "Notice how your expression changes over time.",
+        "title": "Your Voice, Your Patterns, Over Time",
         "subtitle": (
             "Record a short reflection. KinaBot turns speech patterns into clear, "
             "personal trends—without diagnosing, ranking, or comparing you with anyone else."
@@ -632,17 +632,10 @@ st.markdown(
         <span class="kinabot-topbar__mark">◉</span>
         <span>KinaBot</span>
       </div>
-      <div class="kinabot-topbar__trust">Privacy-first · Personal trends · Wellness reflection</div>
     </header>
     <section class="kinabot-hero">
-      <div class="kinabot-hero__eyebrow">{copy['eyebrow']}</div>
       <div class="kinabot-hero__title">{copy['title']}</div>
       <div class="kinabot-hero__subtitle">{copy['subtitle']}</div>
-      <div class="kinabot-trust-row">
-        <span>{copy['trust_privacy']}</span>
-        <span>{copy['trust_history']}</span>
-        <span>{copy['trust_wellness']}</span>
-      </div>
     </section>
     <div class="kinabot-language-label">{copy['language']}</div>
     """,
