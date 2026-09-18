@@ -53,7 +53,7 @@ def radar_comparison(records: list[dict], session_id: int | None = None) -> dict
     selected = sessions[selected_id]
     metadata = next(iter(selected.values()))
     key = comparison_key(metadata)
-    trusted_key = all(part and part != "unknown" for part in key)
+    trusted_key = all(part and part not in {"unknown", "legacy-unknown"} for part in key)
     earlier = sorted(
         sid for sid, scores in sessions.items()
         if sid < selected_id and trusted_key

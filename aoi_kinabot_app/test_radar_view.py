@@ -56,6 +56,9 @@ def test_unknown_provenance_never_establishes_reference():
     for row in rows:
         row["app_version"] = "legacy-1"
     assert radar_comparison(rows)["reference_count"] == 3
+    for row in rows:
+        row["analysis_pipeline_id"] = "legacy-unknown"
+    assert radar_comparison(rows)["reference_count"] == 0
 
 
 def test_empty_and_missing_session_are_safe():
