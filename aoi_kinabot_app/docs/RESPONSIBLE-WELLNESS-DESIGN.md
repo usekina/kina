@@ -56,27 +56,30 @@ without implying that KinaBot detected a condition.
 
 ## Agency-Enhancing Technology
 
-KinaBot should help people understand their own observations, make informed
-choices, and act on goals they choose. The product should support a person's
-judgment rather than replace it or create dependence on a score or an AI system.
-These are design principles, not a claim that every capability is implemented.
+KinaBot is designed to **strengthen the user, not weaken them**.
 
-- Make observations understandable: explain what each feature measures, what
-  it does not establish, and when missing data or uncertainty limits comparison.
-- Compare a person with their own compatible past recordings. A radar chart is
-  a descriptive view of eight features, not a health grade; a larger shape is
-  not inherently better, and a recent average is not a validated clinical baseline.
-- Leave interpretation open to context, including the recording topic, language,
-  environment, and how the person felt. Do not present one score as a verdict.
-- Offer optional, practical wellness actions with a clear rationale. Users
-  should be free to choose, adapt, skip, or stop without pressure or shame.
-- Make participation and data choices understandable. Recording, sharing, and
-  research participation should not be driven by hidden defaults or coercion.
-- Support conversations with family members or qualified professionals when
-  the user chooses, without positioning KinaBot as a diagnostic authority.
-- Evaluate whether people understand the results and feel able to make their
-  own choices, rather than treating more recordings or longer engagement alone
-  as evidence of benefit.
+The purpose of technology should not be to make people more dependent, more passive, or more restricted in the name of comfort or convenience. It should increase their ability to understand themselves, adapt to change, make informed decisions, and participate more fully in the world around them.
+
+> **Do not shrink the world to make the user more comfortable.**\
+> **Use technology to help people understand themselves, move through discomfort, and expand the world they are able to live in.**
+
+KinaBot aims to make previously invisible patterns in speech and language more visible over time. By helping people see changes they may not otherwise notice, the system should create **more awareness, more agency, and more choices — not fewer**.
+
+The intended path is:
+
+**measurement → awareness → agency → action**
+
+not:
+
+**measurement → judgment → dependence → restriction**
+
+A core design principle is:
+
+> **Technology should empower the user to become more capable, not make the user increasingly dependent on the technology itself.**
+
+Every KinaBot feature should therefore ask:
+
+> **Does this help the person understand more, do more, and choose more — or does it unnecessarily reduce their independence and the size of their world?**
 
 ## Data Dignity
 
