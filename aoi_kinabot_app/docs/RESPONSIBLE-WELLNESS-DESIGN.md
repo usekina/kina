@@ -54,6 +54,30 @@ there is an actual error. Explain uncertainty near the relevant result.
 Encourage a person with persistent concerns to consult a qualified professional,
 without implying that KinaBot detected a condition.
 
+## Agency-Enhancing Technology
+
+KinaBot should help people understand their own observations, make informed
+choices, and act on goals they choose. The product should support a person's
+judgment rather than replace it or create dependence on a score or an AI system.
+These are design principles, not a claim that every capability is implemented.
+
+- Make observations understandable: explain what each feature measures, what
+  it does not establish, and when missing data or uncertainty limits comparison.
+- Compare a person with their own compatible past recordings. A radar chart is
+  a descriptive view of eight features, not a health grade; a larger shape is
+  not inherently better, and a recent average is not a validated clinical baseline.
+- Leave interpretation open to context, including the recording topic, language,
+  environment, and how the person felt. Do not present one score as a verdict.
+- Offer optional, practical wellness actions with a clear rationale. Users
+  should be free to choose, adapt, skip, or stop without pressure or shame.
+- Make participation and data choices understandable. Recording, sharing, and
+  research participation should not be driven by hidden defaults or coercion.
+- Support conversations with family members or qualified professionals when
+  the user chooses, without positioning KinaBot as a diagnostic authority.
+- Evaluate whether people understand the results and feel able to make their
+  own choices, rather than treating more recordings or longer engagement alone
+  as evidence of benefit.
+
 ## Data Dignity
 
 Users should know:
