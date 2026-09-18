@@ -8,6 +8,10 @@ Parameters:
     Type: AWS::EC2::Subnet::Id
   SubnetB:
     Type: AWS::EC2::Subnet::Id
+  AdminEmail:
+    Type: String
+    Default: ""
+    Description: Owner email allowed to authenticate with the admin key. Empty disables admin access.
   ContainerImage:
     Type: String
   OpenAIApiKeySecretArn:
@@ -338,6 +342,8 @@ Resources:
             - ContainerPort: 8501
               Protocol: tcp
           Environment:
+            - Name: KINABOT_ADMIN_EMAIL
+              Value: !Ref AdminEmail
             - Name: KINABOT_ENVIRONMENT
               Value: staging
             - Name: KINABOT_ALLOW_LOCAL_CODES

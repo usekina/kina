@@ -24,6 +24,7 @@ ALLOW_LOCAL_VERIFICATION_CODES = (
     and ENVIRONMENT != "production"
     and not OFFLINE_RESEARCH_MODE
 )
+ADMIN_EMAIL = os.getenv("KINABOT_ADMIN_EMAIL", "").strip().casefold()
 ADMIN_KEY = os.getenv("KINABOT_ADMIN_KEY", "").strip()
 LOCAL_API_TOKEN = os.getenv("KINABOT_LOCAL_API_TOKEN", "").strip()
 

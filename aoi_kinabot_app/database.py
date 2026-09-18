@@ -632,7 +632,7 @@ def get_user_scores(user_id: int) -> list[sqlite3.Row]:
                 ts.scoring_model_version,
                 ts.analysis_pipeline_id,
                 fs.feature_name,
-                fs.score, fs.availability_status, fs.failure_reason
+                fs.score, fs.raw_metric, fs.availability_status, fs.failure_reason
             FROM feature_scores fs
             JOIN test_sessions ts ON ts.id = fs.test_session_id
             WHERE ts.user_id = ?
@@ -707,6 +707,14 @@ def list_admin_test_records() -> list[sqlite3.Row]:
         return conn.execute(
             """
             SELECT
+                u.id AS user_id,
+                ts.id AS session_id,
+                ts.session_date,
+                ts.app_version,
+                ts.scoring_model_version,
+                ts.analysis_pipeline_id,
+                fs.availability_status,
+                fs.failure_reason,
                 u.email,
                 u.display_name,
                 u.age_range,

@@ -1,4 +1,4 @@
-﻿"""Aoi-maintained KinaBot V1 local skeleton app."""
+"""Aoi-maintained KinaBot V1 local skeleton app."""
 
 from __future__ import annotations
 
@@ -13,6 +13,7 @@ from auth import create_local_verification_code, verify_code
 from challenge_progress import CHALLENGE_DAYS, challenge_status
 from config import (
     ADMIN_KEY,
+    ADMIN_EMAIL,
     ALLOW_LOCAL_VERIFICATION_CODES,
     APP_VERSION,
     ANALYSIS_PIPELINE_ID,
@@ -64,7 +65,9 @@ from speech_to_text import (
     transcribe_audio_upload,
 )
 from scoring import display_feature_name, feature_explanation
-from reflection_profile import build_reflection_profile
+from clarity_ui import inject_theme, ui_copy, render_result, recording_prompt
+from radar_view import measured_score
+from admin_view import is_owner, render_admin, verify_owner_key
 from wellness_guidance import wellness_suggestions
 
 
@@ -73,260 +76,7 @@ init_db()
 browser_timezone = st.context.timezone or "UTC"
 today = local_date_iso(browser_timezone)
 
-st.markdown(
-    """
-    <style>
-    :root {
-        --kina-orange: #e85d2a;
-        --kina-orange-dark: #bd3f16;
-        --kina-orange-soft: #fff0e9;
-        --kina-ink: #172033;
-        --kina-muted: #647084;
-        --kina-line: #e2e7ef;
-        --kina-surface: #ffffff;
-        --kina-canvas: #f7f9fc;
-        --kina-green: #267a55;
-    }
-    .stApp {background: var(--kina-canvas); color: var(--kina-ink);}
-    .block-container {max-width: 1040px; padding-top: 1.2rem; padding-bottom: 4rem;}
-    h1, h2, h3 {color: var(--kina-ink); letter-spacing: -0.035em;}
-    [data-testid="stHeader"] {background: transparent;}
-    .kinabot-topbar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1rem;
-        padding: 0.65rem 0 1rem;
-        border-bottom: 1px solid var(--kina-line);
-    }
-    .kinabot-topbar__brand {
-        display: flex;
-        align-items: center;
-        gap: 0.7rem;
-        color: var(--kina-ink);
-        font-size: 1.25rem;
-        font-weight: 750;
-        letter-spacing: -0.03em;
-    }
-    .kinabot-topbar__mark {
-        display: grid;
-        place-items: center;
-        width: 2.25rem;
-        height: 2.25rem;
-        border-radius: 0.75rem;
-        background: var(--kina-orange);
-        color: #ffffff;
-        font-size: 1.1rem;
-    }
-    .kinabot-topbar__trust {
-        color: var(--kina-muted);
-        font-size: 0.86rem;
-    }
-    .kinabot-hero {
-        padding: 3.4rem 0 1.6rem;
-        text-align: left;
-        max-width: 820px;
-    }
-    .kinabot-hero__eyebrow {
-        color: var(--kina-orange-dark);
-        font-size: 0.95rem;
-        font-weight: 700;
-        margin-bottom: 0.8rem;
-    }
-    .kinabot-hero__title {
-        color: var(--kina-ink);
-        font-size: clamp(2.5rem, 6vw, 4.6rem);
-        font-weight: 760;
-        letter-spacing: -0.06em;
-        line-height: 1.03;
-        margin: 0;
-        max-width: 800px;
-    }
-    .kinabot-hero__subtitle {
-        color: var(--kina-muted);
-        font-size: 1.08rem;
-        line-height: 1.6;
-        margin: 1.25rem 0 0;
-        max-width: 720px;
-    }
-    .kinabot-trust-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.7rem 1.4rem;
-        margin: 1.35rem 0 0.5rem;
-        color: var(--kina-green);
-        font-size: 0.9rem;
-        font-weight: 600;
-    }
-    .kinabot-steps {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        overflow: hidden;
-        margin: 1.5rem 0 2rem;
-        border: 1px solid var(--kina-line);
-        border-radius: 1rem;
-        background: var(--kina-surface);
-    }
-    .kinabot-step {padding: 1.05rem 1.15rem;}
-    .kinabot-step + .kinabot-step {border-left: 1px solid var(--kina-line);}
-    .kinabot-step__number {color: var(--kina-orange-dark); font-weight: 750;}
-    .kinabot-step__title {margin-top: 0.25rem; color: var(--kina-ink); font-weight: 700;}
-    .kinabot-step__copy {margin-top: 0.25rem; color: var(--kina-muted); font-size: 0.86rem; line-height: 1.45;}
-    .reflection-panel-head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1rem;
-        margin: 1.4rem 0 0.8rem;
-        padding: 1rem 1.15rem;
-        border: 1px solid var(--kina-line);
-        border-radius: 1rem;
-        background: var(--kina-surface);
-    }
-    .reflection-panel-head__title {color: var(--kina-ink); font-size: 1.25rem; font-weight: 750;}
-    .reflection-panel-head__private {color: var(--kina-green); font-size: 0.86rem; font-weight: 650;}
-    [data-testid="stAudioInput"], [data-testid="stFileUploader"] {
-        padding: 1rem;
-        border: 1px solid var(--kina-line);
-        border-radius: 1rem;
-        background: var(--kina-surface);
-    }
-    button[kind="primary"] {
-        border-color: var(--kina-orange) !important;
-        background: var(--kina-orange) !important;
-        color: #ffffff !important;
-        box-shadow: 0 0.5rem 1.25rem rgba(232, 93, 42, 0.22);
-    }
-    button[kind="primary"]:hover {
-        border-color: var(--kina-orange-dark) !important;
-        background: var(--kina-orange-dark) !important;
-    }
-    button[kind="secondary"] {border-color: var(--kina-line); background: var(--kina-surface);}
-    div[data-baseweb="radio"] > div {gap: 0.35rem;}
-    div[data-baseweb="radio"] label {
-        border: 1px solid var(--kina-line);
-        border-radius: 999px;
-        padding: 0.35rem 0.7rem;
-        background: var(--kina-surface);
-    }
-    .kinabot-language-label {
-        color: var(--kina-muted);
-        font-size: 0.88rem;
-        font-weight: 650;
-        letter-spacing: 0.02em;
-        margin: 0.25rem 0 0.2rem;
-        text-align: left;
-    }
-    .privacy-card {
-        padding: 0.9rem 1rem; border-radius: 0.8rem;
-        background: rgba(46, 160, 67, 0.08);
-        border: 1px solid rgba(46, 160, 67, 0.20);
-        margin: 0.5rem 0 1rem;
-    }
-    .privacy-card strong {color: #238636;}
-    .score-card {
-        padding: 0.9rem 1rem;
-        margin: 0.55rem 0;
-        border: 1px solid rgba(49, 51, 63, 0.14);
-        border-radius: 0.85rem;
-        background: rgba(250, 250, 250, 0.75);
-    }
-    .score-card__top {
-        display: flex;
-        align-items: baseline;
-        justify-content: space-between;
-        gap: 1rem;
-        margin-bottom: 0.45rem;
-    }
-    .score-card__name {font-weight: 650; font-size: 1.02rem;}
-    .score-card__value {font-weight: 750; white-space: nowrap;}
-    .score-card__track {
-        width: 100%; height: 0.42rem; border-radius: 99px;
-        background: rgba(252, 110, 81, 0.15); overflow: hidden;
-    }
-    .score-card__fill {
-        height: 100%; border-radius: 99px; background: #fc6e51;
-    }
-    .score-card__explanation {
-        color: rgba(49, 51, 63, 0.72);
-        font-size: 0.9rem; line-height: 1.45; margin-top: 0.55rem;
-    }
-    .snapshot-card {
-        padding: 0.9rem 1rem; margin: 0.35rem 0;
-        border: 1px solid #f4d4c3; border-radius: 1rem;
-        background: linear-gradient(145deg, #fff7f1, #ffffff);
-    }
-    .snapshot-card__top {
-        display: flex; justify-content: space-between; align-items: center;
-    }
-    .snapshot-card__label {font-weight: 700; color: #303642;}
-    .snapshot-card__value {font-size: 1.25rem; font-weight: 750; color: #e65f3c;}
-    .snapshot-card__track {
-        height: 0.45rem; background: #f5e4dc; border-radius: 99px;
-        overflow: hidden; margin-top: 0.65rem;
-    }
-    .snapshot-card__fill {
-        height: 100%; background: linear-gradient(90deg, #f28a5c, #e55438);
-        border-radius: 99px;
-    }
-    .metric-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.65rem;
-        margin: 0.75rem 0 1rem;
-    }
-    .metric-tile {
-        min-width: 0;
-        padding: 0.78rem 0.82rem;
-        border: 1px solid rgba(49, 51, 63, 0.12);
-        border-radius: 0.9rem;
-        background: linear-gradient(145deg, #fffaf7, #ffffff);
-    }
-    .metric-tile__top {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 0.55rem;
-    }
-    .metric-tile__name {
-        color: #343741;
-        font-size: 0.83rem;
-        font-weight: 680;
-        line-height: 1.25;
-    }
-    .metric-tile__value {
-        color: #e65f3c;
-        font-size: 1.05rem;
-        font-weight: 800;
-        line-height: 1;
-        white-space: nowrap;
-    }
-    .metric-tile__track {
-        height: 0.3rem;
-        margin-top: 0.65rem;
-        overflow: hidden;
-        border-radius: 99px;
-        background: #f5e4dc;
-    }
-    .metric-tile__fill {
-        height: 100%;
-        border-radius: 99px;
-        background: linear-gradient(90deg, #f28a5c, #e55438);
-    }
-    @media (max-width: 430px) {
-        .block-container {padding-left: 1rem; padding-right: 1rem;}
-        .kinabot-topbar__trust {display: none;}
-        .kinabot-hero {padding-top: 2.2rem;}
-        .kinabot-hero__title {font-size: 2.55rem;}
-        .kinabot-steps {grid-template-columns: 1fr;}
-        .kinabot-step + .kinabot-step {border-left: 0; border-top: 1px solid var(--kina-line);}
-        .metric-grid {gap: 0.5rem;}
-        .metric-tile {padding: 0.7rem;}
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
+inject_theme()
 
 LANDING_COPY = {
     "English": {
@@ -631,55 +381,16 @@ if "ui_language" not in st.session_state:
     st.session_state.ui_language = "English"
 
 copy = LANDING_COPY[st.session_state.ui_language]
-st.markdown(
-    f"""
-    <header class="kinabot-topbar">
-      <div class="kinabot-topbar__brand">
-        <span class="kinabot-topbar__mark">◉</span>
-        <span>KinaBot</span>
-      </div>
-    </header>
-    <section class="kinabot-hero">
-      <div class="kinabot-hero__title">{copy['title']}</div>
-      <div class="kinabot-hero__subtitle">{copy['subtitle']}</div>
-    </section>
-    <div class="kinabot-language-label">{copy['language']}</div>
-    """,
-    unsafe_allow_html=True,
-)
-st.radio(
-    "Language / 言語 / 语言",
-    ["English", "日本語", "中文"],
-    horizontal=True,
-    key="ui_language",
-    label_visibility="collapsed",
-)
+st.markdown('<header class="kinabot-topbar"><div class="kinabot-topbar__brand"><span class="kinabot-topbar__mark">◉</span>KinaBot</div></header>', unsafe_allow_html=True)
+if st.session_state.get("verified", False):
+    with st.sidebar:
+        st.markdown("## KinaBot")
+        st.selectbox("Language / 言語 / 语言", ["English", "日本語", "中文"], key="ui_language")
+else:
+    st.radio("Language / 言語 / 语言", ["English", "日本語", "中文"], horizontal=True, key="ui_language")
+    st.title(ui_copy("start", st.session_state.ui_language))
+    st.caption(ui_copy("intro", st.session_state.ui_language))
 copy = LANDING_COPY[st.session_state.ui_language]
-landing_steps = LANDING_STEPS[st.session_state.ui_language]
-
-if not st.session_state.get("verified", False):
-    st.markdown(
-        f"""
-        <section class="kinabot-steps" aria-label="How KinaBot works">
-          <div class="kinabot-step">
-            <div class="kinabot-step__number">01</div>
-            <div class="kinabot-step__title">{landing_steps[0][0]}</div>
-            <div class="kinabot-step__copy">{landing_steps[0][1]}</div>
-          </div>
-          <div class="kinabot-step">
-            <div class="kinabot-step__number">02</div>
-            <div class="kinabot-step__title">{landing_steps[1][0]}</div>
-            <div class="kinabot-step__copy">{landing_steps[1][1]}</div>
-          </div>
-          <div class="kinabot-step">
-            <div class="kinabot-step__number">03</div>
-            <div class="kinabot-step__title">{landing_steps[2][0]}</div>
-            <div class="kinabot-step__copy">{landing_steps[2][1]}</div>
-          </div>
-        </section>
-        """,
-        unsafe_allow_html=True,
-    )
 
 if "email" not in st.session_state:
     st.session_state.email = ""
@@ -771,8 +482,13 @@ if not st.session_state.verified:
     if st.session_state.code_sent:
         if st.session_state.staging_code:
             st.info(f"Private staging code: {st.session_state.staging_code}")
+        owner_login = bool(ADMIN_EMAIL and st.session_state.email.strip().casefold() == ADMIN_EMAIL)
+        owner_login_key = st.text_input("Admin key", type="password", key="owner_login_key") if owner_login else ""
         code = st.text_input(copy["code"], max_chars=6)
         if st.button(copy["continue"], type="primary", use_container_width=True):
+            if owner_login and not verify_owner_key(st.session_state.email, ADMIN_EMAIL, owner_login_key, ADMIN_KEY):
+                st.error("An administrator key is required for this account.")
+                st.stop()
             email_hash = verify_code(st.session_state.email, code)
             if not email_hash:
                 st.error(copy["invalid_code"])
@@ -785,82 +501,33 @@ if not st.session_state.verified:
                 profile = get_user_profile(st.session_state.user_id)
                 st.session_state.profile = dict(profile) if profile else {}
                 st.session_state.verified = True
+                st.session_state.admin_identity_email = ADMIN_EMAIL if owner_login else ""
+                st.session_state.pop("owner_login_key", None)
                 st.session_state.staging_code = ""
                 st.rerun()
 
     st.caption(copy["disclaimer"])
     st.stop()
 
-if ADMIN_KEY:
-    with st.sidebar.expander("Research admin"):
-        st.caption("Private owner access")
-        admin_view_key = st.text_input("Admin key", type="password")
-        if admin_view_key == ADMIN_KEY:
-            metrics = get_admin_metrics()
-            metric_col_1, metric_col_2 = st.columns(2)
-            metric_col_1.metric("Users", metrics["total_users"])
-            metric_col_2.metric("Sessions", metrics["total_tests"])
-            st.caption(f"Active today: {metrics['active_users_today']}")
-
-            users_df = pd.DataFrame([dict(row) for row in list_admin_users()])
-            tests_df = pd.DataFrame([dict(row) for row in list_admin_test_records()])
-            research_df = pd.DataFrame(
-                [dict(row) for row in list_research_records()]
-            )
-            if not users_df.empty:
-                with st.expander("Participant profile summary"):
-                    summary_rows = []
-                    for field, label in [
-                        ("age_range", "Age range"),
-                        ("gender", "Gender"),
-                        ("primary_language", "Primary language"),
-                        ("country_region", "Country / region"),
-                    ]:
-                        counts = (
-                            users_df[field]
-                            .fillna("Not provided")
-                            .replace("", "Not provided")
-                            .value_counts()
-                        )
-                        summary_rows.extend(
-                            {
-                                "field": label,
-                                "value": value,
-                                "users": int(count),
-                            }
-                            for value, count in counts.items()
-                        )
-                    st.dataframe(
-                        pd.DataFrame(summary_rows),
-                        hide_index=True,
-                        width="stretch",
-                    )
-
-            st.download_button(
-                "Download research CSV",
-                data=research_df.to_csv(index=False).encode("utf-8-sig"),
-                file_name=f"kinabot_research_{date.today().isoformat()}.csv",
-                mime="text/csv",
-                use_container_width=True,
-                help="De-identified longitudinal records. No email or display name.",
-            )
-            st.download_button(
-                "Download private user list",
-                data=users_df.to_csv(index=False).encode("utf-8-sig"),
-                file_name=f"kinabot_users_private_{date.today().isoformat()}.csv",
-                mime="text/csv",
-                use_container_width=True,
-                help="Contains personal information. Store separately from research data.",
-            )
-            st.markdown("**Recent sessions**")
-            st.dataframe(tests_df.head(100), hide_index=True, width="stretch")
-            st.caption(
-                "Use the de-identified research CSV for analysis. Keep the private "
-                "user list access-restricted and never place it in GitHub."
-            )
-        elif admin_view_key:
-            st.warning("Invalid admin key.")
-
+if "pending_primary_view" in st.session_state:
+    st.session_state.primary_view = st.session_state.pop("pending_primary_view")
+navigation_labels = {
+    "today": ui_copy("record", st.session_state.ui_language),
+    "results": ui_copy("results", st.session_state.ui_language),
+    "trends": ui_copy("history", st.session_state.ui_language),
+}
+owner = is_owner(st.session_state.verified, st.session_state.email, ADMIN_EMAIL,
+                 offline=OFFLINE_RESEARCH_MODE,
+                 owner_key_verified=st.session_state.get("admin_identity_email") == ADMIN_EMAIL)
+if owner and ADMIN_KEY:
+    navigation_labels["admin"] = "Admin"
+if st.session_state.get("primary_view") not in navigation_labels:
+    st.session_state.primary_view = "today"
+primary_view = st.sidebar.radio(
+    "KinaBot", list(navigation_labels),
+    format_func=lambda key: navigation_labels[key],
+    key="primary_view", label_visibility="collapsed",
+)
 
 if st.session_state.profile is None:
     profile = get_user_profile(st.session_state.user_id)
@@ -879,11 +546,8 @@ language_options = [
     "Other",
 ]
 
-if saved_name:
-    st.markdown(f"### Welcome back, {saved_name}")
-
-with st.expander(
-    "Account settings",
+with st.sidebar.expander(
+    ui_copy("account", st.session_state.ui_language),
     expanded=False,
 ):
     st.caption(st.session_state.email)
@@ -981,26 +645,27 @@ with st.expander("Manage my data"):
 
 history_copy = HISTORY_COPY[st.session_state.ui_language]
 challenge_copy = CHALLENGE_COPY[st.session_state.ui_language]
-primary_view = st.radio(
-    "KinaBot navigation",
-    ["today", "trends"],
-    format_func=lambda option: history_copy[option],
-    horizontal=True,
-    label_visibility="collapsed",
-    key="primary_view",
-)
+if primary_view == "admin":
+    render_admin(owner=owner, admin_key=ADMIN_KEY)
+    st.stop()
+
+if primary_view == "results":
+    assign_timezone_to_legacy_sessions(st.session_state.user_id, browser_timezone)
+    render_result([dict(row) for row in get_user_scores(st.session_state.user_id)], st.session_state.ui_language)
+    st.stop()
 
 if primary_view == "trends":
     assign_timezone_to_legacy_sessions(st.session_state.user_id, browser_timezone)
     rows = get_user_scores(st.session_state.user_id)
-    st.subheader(history_copy["trends"])
+    st.title(ui_copy("history", st.session_state.ui_language))
+    st.caption(ui_copy("history_intro", st.session_state.ui_language))
     if not rows:
         st.caption(history_copy["no_scores"])
         st.stop()
 
     history = pd.DataFrame([
         dict(row) for row in rows
-        if row["score"] is not None and row["availability_status"] != "unavailable"
+        if measured_score(dict(row)) is not None
     ])
     if history.empty:
         st.info("No measured features are available for comparable trends yet.")
@@ -1010,15 +675,6 @@ if primary_view == "trends":
     has_mixed_versions = history["scoring_model_version"].dropna().nunique() > 1
     if has_mixed_languages or has_mixed_versions:
         st.info(history_copy["comparability_note"])
-    st.markdown(f"### {history_copy['latest']}")
-    st.markdown(
-        metric_grid_html(
-            latest_session_scores(history),
-            st.session_state.ui_language,
-        ),
-        unsafe_allow_html=True,
-    )
-
     with st.expander(history_copy["method"]):
         st.write(history_copy["method_intro"])
         for feature_name in history["feature_name"].drop_duplicates():
@@ -1126,36 +782,8 @@ challenge_session_dates = list(
     }.values()
 )
 challenge = challenge_status(challenge_session_dates, date.fromisoformat(today))
-st.markdown(f"### {challenge_copy['title']}")
-st.caption(challenge_copy["subtitle"])
-if challenge["challenge_complete"]:
-    st.success(challenge_copy["foundation"])
-else:
-    st.progress(challenge["day"] / CHALLENGE_DAYS)
-    challenge_col_1, challenge_col_2 = st.columns(2)
-    challenge_col_1.metric(
-        challenge_copy["progress_label"],
-        challenge_copy["day"].format(day=challenge["day"]),
-    )
-    challenge_col_2.metric(
-        challenge_copy["reflection_days"],
-        challenge["reflection_days"],
-    )
-if challenge["complete_today"]:
-    st.success(challenge_copy["today_complete"])
-else:
-    st.info(challenge_copy["today_ready"])
-
-st.markdown(
-    """
-    <div class="privacy-card">
-      <strong>KinaBot Research Pilot</strong><br>
-      Free access is provided as a research pilot. Review the notice below before joining.
-      KinaBot describes speech samples only; it is not a medical or diagnostic service.
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+recording_prompt(st.session_state.ui_language)
+st.caption(challenge_copy["today_complete"] if challenge["complete_today"] else challenge_copy["today_ready"])
 
 with st.expander("Read Research Notice", expanded=False):
     st.markdown(
@@ -1228,7 +856,7 @@ session_type = "Daily reflection"
 st.markdown(f"**{capture_copy['method']}**")
 audio_method = st.radio(
     capture_copy["method"],
-    ["upload", "record"],
+    ["record", "upload"],
     format_func=lambda option: capture_copy[option],
     horizontal=True,
     label_visibility="collapsed",
@@ -1262,7 +890,7 @@ if tests_today == 0:
     st.caption(challenge_copy["today_ready"])
 else:
     st.caption(challenge_copy["available"].format(remaining=max(0, remaining)))
-if st.button("3 · Analyze my reflection", type="primary", use_container_width=True):
+if st.button(ui_copy("analyze", st.session_state.ui_language), type="primary", use_container_width=True, disabled=selected_audio is None):
     if selected_audio is None:
         st.warning("Upload a speech sample first.")
     elif selected_audio.size > MAX_AUDIO_BYTES:
@@ -1324,107 +952,45 @@ if st.button("3 · Analyze my reflection", type="primary", use_container_width=T
             st.session_state.pop("pending_analysis_request_id", None)
             analysis_status.update(label="Analysis complete", state="complete", expanded=False)
 
-        result_copy = {
-            "English": {
-                "saved": f"Session {session_number} saved. Audio and full transcript were not retained.",
-                "title": "Your sample",
-                "scale": "Each score is a 0–100 sample feature index—not a percentage or health rating.",
-                "boundary": (
-                    "Scores describe this recording only. They do not indicate health, "
-                    "ability, improvement, decline, or risk."
-                ),
-            },
-            "日本語": {
-                "saved": f"セッション{session_number}を保存しました。音声と全文は保存していません。",
-                "title": "今回の結果",
-                "scale": "各スコアは0〜100のサンプル特徴指数です。割合や健康評価ではありません。",
-                "boundary": "スコアは今回の録音だけを表し、健康・能力・改善・低下・リスクを示すものではありません。",
-            },
-            "中文": {
-                "saved": f"第 {session_number} 次记录已保存。语音和完整转写文本均未保留。",
-                "title": "本次结果",
-                "scale": "每项为 0–100 的样本特征分数，不是百分比、健康评分或人群排名。",
-                "boundary": "分数只描述本次录音，不代表健康、能力、改善、下降或风险。",
-            },
-        }[language]
-        st.success(result_copy["saved"])
-        available_scores = [item for item in scores if item.get("score") is not None]
-        unavailable = [item for item in scores if item.get("score") is None]
-        if unavailable:
-            st.info("Some features were unavailable and were excluded from summaries.")
-        snapshot = build_reflection_profile(available_scores, language)
-        st.markdown(f"### {snapshot['title']}")
-        st.caption(snapshot["subtitle"])
-        snapshot_columns = st.columns(2)
-        for index, dimension in enumerate(snapshot["dimensions"]):
-            score = dimension["score"]
-            score_label = str(int(score)) if score is not None else "Not available"
-            with snapshot_columns[index % 2]:
-                st.markdown(
-                    f"""
-                    <div class="snapshot-card">
-                      <div class="snapshot-card__top">
-                        <span class="snapshot-card__label">{dimension["label"]}</span>
-                        <span class="snapshot-card__value">{score_label}</span>
-                      </div>
-                      <div class="snapshot-card__track">
-                        <div class="snapshot-card__fill" style="width:{score or 0}%"></div>
-                      </div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
-        st.markdown(f"#### {snapshot['takeaway_title']}")
-        st.write(snapshot["takeaway"])
-        st.markdown(f"#### {snapshot['action_title']}")
-        st.info(snapshot["action"])
-        st.caption(result_copy["scale"])
-        st.markdown(
-            metric_grid_html(scores, language),
-            unsafe_allow_html=True,
-        )
-        with st.expander(snapshot["detail_label"]):
-            for item in scores:
-                label = display_feature_name(item["feature_name"], language)
-                st.markdown(f"**{label}** — {item['explanation']}")
-        st.caption(result_copy["boundary"])
+        st.session_state.pending_primary_view = "results"
+        st.rerun()
 
-st.subheader("Today's wellness habit")
-habit_copy = wellness_suggestions(language, [])
-st.caption(
-    "Choose the one habit that best matches today. Habit tracking is separate from "
-    "speech scores. KinaBot does not claim "
-    "that a habit caused any score or sample change."
-)
-habit_labels = habit_copy["habit_labels"]
-selected_habit_label = st.radio(
-    "Select one",
-    list(habit_labels.values()),
-    index=None,
-    key=f"habit_{today}",
-)
-if st.button("Save today's habit check-in"):
-    if selected_habit_label is None:
-        st.error("Please select one habit.")
-    else:
-        selected_habit = next(
-            name for name, label in habit_labels.items() if label == selected_habit_label
-        )
-        habit_values = {name: name == selected_habit for name in habit_labels}
-        save_habit_checkins(st.session_state.user_id, today, habit_values)
-        st.success("Today's wellness habit was saved.")
-
-habit_rows = get_user_habit_checkins(st.session_state.user_id)
-if habit_rows:
-    habit_history = pd.DataFrame([dict(row) for row in habit_rows])
-    habit_daily = (
-        habit_history.groupby("checkin_date", as_index=False)["completed"]
-        .sum()
-        .rename(columns={"completed": "habits_completed"})
+with st.expander(ui_copy("habit", st.session_state.ui_language)):
+    st.subheader("Today's wellness habit")
+    habit_copy = wellness_suggestions(language, [])
+    st.caption(
+        "Choose the one habit that best matches today. Habit tracking is separate from "
+        "speech scores. KinaBot does not claim "
+        "that a habit caused any score or sample change."
     )
-    st.bar_chart(habit_daily.set_index("checkin_date"))
-    st.caption("This chart shows self-reported habit completion only.")
+    habit_labels = habit_copy["habit_labels"]
+    selected_habit_label = st.radio(
+        "Select one",
+        list(habit_labels.values()),
+        index=None,
+        key=f"habit_{today}",
+    )
+    if st.button("Save today's habit check-in"):
+        if selected_habit_label is None:
+            st.error("Please select one habit.")
+        else:
+            selected_habit = next(
+                name for name, label in habit_labels.items() if label == selected_habit_label
+            )
+            habit_values = {name: name == selected_habit for name in habit_labels}
+            save_habit_checkins(st.session_state.user_id, today, habit_values)
+            st.success("Today's wellness habit was saved.")
 
+    habit_rows = get_user_habit_checkins(st.session_state.user_id)
+    if habit_rows:
+        habit_history = pd.DataFrame([dict(row) for row in habit_rows])
+        habit_daily = (
+            habit_history.groupby("checkin_date", as_index=False)["completed"]
+            .sum()
+            .rename(columns={"completed": "habits_completed"})
+        )
+        st.bar_chart(habit_daily.set_index("checkin_date"))
+        st.caption("This chart shows self-reported habit completion only.")
 
 st.divider()
 st.caption(
