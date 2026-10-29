@@ -7,6 +7,12 @@ user-research, institutional, clinical, or regulatory claims.
 
 ## Unreleased · Self directed wellness choices
 
+- Use a compact single-column care panel with three main choices, expandable
+  action-specific evidence and a separate completion confirmation in EN/JA/ZH.
+- Show measured repetition ratios as percentages, relative changes and point
+  differences; missing data and zero denominators are handled explicitly.
+- Add an account-scoped completion count and latest completed action. More
+  choices preserves learning and custom actions without crowding the main flow.
 - Separate descriptive, provenance-matched speech observations from general
   wellness options. Feature-index changes are expressed in points, not percent.
 - Replace score-driven API action selection and fixed activity durations with

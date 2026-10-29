@@ -1,4 +1,4 @@
-"""SQLite database helpers for KinaBot V1."""
+﻿"""SQLite database helpers for KinaBot V1."""
 
 from __future__ import annotations
 
@@ -822,3 +822,14 @@ def complete_wellness_plan(user_id: int, plan_date: str) -> None:
             "WHERE user_id=? AND plan_date=? AND status='planned'",
             (utc_now_iso(), user_id, plan_date),
         )
+
+
+def wellness_completion_summary(user_id: int, through_date: str) -> dict:
+    """Count self-confirmed plan completions, never historical check-in boxes."""
+    with get_connection() as conn:
+        rows = conn.execute(
+            "SELECT plan_date, action_id, custom_text FROM wellness_plans "
+            "WHERE user_id=? AND status='completed' AND plan_date<=? "
+            "ORDER BY plan_date DESC", (user_id, through_date)
+        ).fetchall()
+    return {'count': len(rows), 'latest': dict(rows[0]) if rows else None}

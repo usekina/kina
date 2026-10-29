@@ -26,5 +26,13 @@ button[kind="primary"]:hover{background:var(--kina-orange-dark)!important}
 .metric-tile__name{font-size:.88rem}.metric-tile__value{color:var(--kina-orange);font-weight:600}
 .metric-tile__track{height:.25rem;background:var(--kina-orange-soft);margin-top:.6rem;border-radius:9px;overflow:hidden}
 .metric-tile__fill{height:100%;background:var(--kina-orange)}
+.st-key-wellness_care{max-width:650px;margin:1.6rem auto;padding:1.5rem;background:var(--kina-surface);border-radius:1rem;border:1px solid var(--kina-line)}
+.st-key-wellness_care h3{font-size:clamp(1.4rem,3vw,1.9rem);line-height:1.3;margin:.6rem 0}
+.st-key-wellness_care [data-testid="stRadio"] [role="radiogroup"]{gap:.65rem}
+.st-key-wellness_care [data-testid="stRadio"] label[data-baseweb="radio"]{display:flex;min-height:76px;width:100%;margin:0;padding:1rem;border:1px solid var(--kina-line);border-radius:.85rem;background:var(--kina-surface)}
+.st-key-wellness_care [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked){border-color:var(--kina-orange);background:var(--kina-orange-soft)}
+.st-key-wellness_care [data-testid="stRadio"] label[data-baseweb="radio"] p{line-height:1.6;font-size:1rem;overflow-wrap:anywhere}
+.st-key-wellness_care button{min-height:44px}
+@media(max-width:640px){.st-key-wellness_care{padding:1rem;margin:1rem 0}.st-key-wellness_care [data-testid="stRadio"] label[data-baseweb="radio"]{padding:.85rem}}
 @media(prefers-color-scheme:dark){:root{--kina-orange:#ffad8d;--kina-orange-dark:#ffc3aa;--kina-orange-soft:#4b3028;--kina-ink:#e7eef9;--kina-muted:#b8c3d4;--kina-line:#404d60;--kina-surface:#252e3a;--kina-canvas:#1d232c}button[kind="primary"]{color:#331b12!important}.kinabot-topbar__mark{color:#331b12}}
 @media(max-width:640px){.block-container{padding:1rem 1rem 2.5rem}.kinabot-topbar{margin-bottom:.8rem}.reflection-panel-head__private{display:none}.clarity-prompt{padding:1rem}.metric-grid{gap:.4rem}}
