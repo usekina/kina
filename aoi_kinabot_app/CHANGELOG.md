@@ -5,6 +5,16 @@ recorded here. Historical repository-root prototypes are outside this
 changelog. Entries distinguish shipped engineering changes from deployment,
 user-research, institutional, clinical, or regulatory claims.
 
+## Unreleased · Recording control visibility
+
+- Enlarged the native start and finish recording controls and added visible
+  English, Japanese, and Chinese action labels and recording-state guidance.
+- Localized the analysis action and recording-ready instructions.
+- Restored orange-red accents across the main interface and radar chart.
+- Checked native idle controls on desktop and mobile; recording-state layout
+  uses a simulated fixture. Live microphone and deployed-browser checks remain
+  required before release.
+
 ## 2026-08-24 · Community governance foundation
 
 - Added a project Code of Conduct, expanded security and privacy disclosure

@@ -69,7 +69,7 @@ def radar_document(data: dict, language: str, show_reference: bool) -> str:
     }
     safe_json = json.dumps(payload, ensure_ascii=False).replace("<", "\\u003c")
     return """<!doctype html><html><head><meta charset="utf-8"><style>
-    :root{color-scheme:light dark;--ink:light-dark(#172d48,#e7eef9);--line:light-dark(#dce3ed,#404d60);--accent:light-dark(#245b95,#8cbfff);--muted:light-dark(#617086,#b8c3d4)}
+    :root{color-scheme:light dark;--ink:light-dark(#172d48,#e7eef9);--line:light-dark(#dce3ed,#404d60);--accent:light-dark(#c2411b,#ffad8d);--muted:light-dark(#617086,#b8c3d4)}
     body{margin:0;font:14px system-ui,sans-serif;color:var(--ink)}svg{display:block;width:100%;height:390px}text{fill:var(--ink);font:12px system-ui,sans-serif}.grid{fill:none;stroke:var(--line);stroke-width:1}.now{stroke:var(--accent);stroke-width:2.5;fill:color-mix(in srgb,var(--accent) 10%,transparent)}.ref{stroke:var(--muted);stroke-width:2;stroke-dasharray:5 5;fill:none}.dot{fill:var(--accent)}.tick{fill:var(--muted);font-size:11px}.legend{display:flex;justify-content:center;gap:22px;flex-wrap:wrap;font-size:12px}.swatch{display:inline-block;width:23px;margin-right:7px;border-top:3px solid var(--accent)}.past{border-top:2px dashed var(--muted)}</style></head><body>
     <svg role="img" aria-label="Eight descriptive feature indexes; full values in the table below"></svg><div class="legend"></div><script>
     const d=PAYLOAD;const svg=document.querySelector('svg');
