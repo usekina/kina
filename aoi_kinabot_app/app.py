@@ -10,6 +10,7 @@ import streamlit as st
 
 from audio_processing import SUPPORTED_AUDIO_TYPES, accept_audio_upload
 from auth import create_local_verification_code, verify_code
+from recording_ui import render_recorder, recording_copy
 from challenge_progress import CHALLENGE_DAYS, challenge_status
 from config import (
     ADMIN_KEY,
@@ -862,9 +863,8 @@ audio_method = st.radio(
     label_visibility="collapsed",
 )
 if audio_method == "record":
-    selected_audio = st.audio_input(
-        capture_copy["record_label"],
-        help=capture_copy["record_help"],
+    selected_audio = render_recorder(
+        st.session_state.ui_language, capture_copy["record_help"]
     )
     st.caption(capture_copy["fallback"])
 else:
