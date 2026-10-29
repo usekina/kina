@@ -55,7 +55,7 @@ from history_view import (
     metric_grid_html,
     select_latest_comparable_history,
 )
-from insight_service import generate_wellness_insight
+from wellness_view import render_wellness_choice
 from language_analysis import LANGUAGE_CODES, analyze_transcript
 from local_time import local_date_iso
 from offline_identity import normalize_participant_id, participant_key, valid_participant_id
@@ -636,7 +636,7 @@ with st.expander("Manage my data"):
         st.session_state.clear()
         st.rerun()
     st.divider()
-    st.caption("Account deletion permanently removes your profile, sessions, scores, habits, consent records, and verification records.")
+    st.caption("Account deletion permanently removes your profile, sessions, scores, habits, wellness plans, consent records, and verification records.")
     delete_confirm = st.checkbox("I understand this cannot be undone.")
     if st.button("Delete account and history", disabled=not delete_confirm):
         delete_user_research_data(st.session_state.user_id)
@@ -653,6 +653,7 @@ if primary_view == "admin":
 if primary_view == "results":
     assign_timezone_to_legacy_sessions(st.session_state.user_id, browser_timezone)
     render_result([dict(row) for row in get_user_scores(st.session_state.user_id)], st.session_state.ui_language)
+    render_wellness_choice(st.session_state.user_id, today, st.session_state.ui_language, show_observation=True)
     st.stop()
 
 if primary_view == "trends":
@@ -662,6 +663,7 @@ if primary_view == "trends":
     st.caption(ui_copy("history_intro", st.session_state.ui_language))
     if not rows:
         st.caption(history_copy["no_scores"])
+        render_wellness_choice(st.session_state.user_id, today, st.session_state.ui_language)
         st.stop()
 
     history = pd.DataFrame([
@@ -670,6 +672,7 @@ if primary_view == "trends":
     ])
     if history.empty:
         st.info("No measured features are available for comparable trends yet.")
+        render_wellness_choice(st.session_state.user_id, today, st.session_state.ui_language)
         st.stop()
     session_count = int(history["session_id"].nunique())
     has_mixed_languages = history["language"].dropna().nunique() > 1
@@ -697,6 +700,7 @@ if primary_view == "trends":
             "Not enough comparable sessions for a trend yet. Complete 3 sessions "
             "using the same spoken language and analysis version."
         )
+        render_wellness_choice(st.session_state.user_id, today, st.session_state.ui_language)
         st.stop()
     st.caption(
         "Comparison set: "
@@ -761,17 +765,7 @@ if primary_view == "trends":
     st.write(f"{pattern} ({observed_change:+.1f})")
     st.caption(history_copy["boundary"])
 
-    insight = generate_wellness_insight(
-        comparable_history.to_dict("records"), st.session_state.ui_language
-    )
-    st.markdown(f"#### {history_copy['small_action']}")
-    st.info(insight["action"])
-    st.caption(insight["why"])
-    st.markdown(f"**{history_copy['research_summary']}**")
-    st.caption(insight["research_summary"])
-    st.markdown(f"[{history_copy['research_source']}]({insight['source']})")
-    st.caption(history_copy["insight_role"])
-    st.caption(insight["boundary"])
+    render_wellness_choice(st.session_state.user_id, today, st.session_state.ui_language)
     st.stop()
 
 assign_timezone_to_legacy_sessions(st.session_state.user_id, browser_timezone)
@@ -829,6 +823,7 @@ tests_today = count_tests_today(st.session_state.user_id, today)
 remaining = MAX_TESTS_PER_DAY - tests_today
 if remaining <= 0:
     st.info(challenge_copy["limit"])
+    render_wellness_choice(st.session_state.user_id, today, st.session_state.ui_language)
     st.stop()
 
 capture_copy = AUDIO_CAPTURE_COPY[st.session_state.ui_language]
@@ -955,42 +950,7 @@ if st.button(ui_copy("analyze", st.session_state.ui_language), type="primary", u
         st.session_state.pending_primary_view = "results"
         st.rerun()
 
-with st.expander(ui_copy("habit", st.session_state.ui_language)):
-    st.subheader("Today's wellness habit")
-    habit_copy = wellness_suggestions(language, [])
-    st.caption(
-        "Choose the one habit that best matches today. Habit tracking is separate from "
-        "speech scores. KinaBot does not claim "
-        "that a habit caused any score or sample change."
-    )
-    habit_labels = habit_copy["habit_labels"]
-    selected_habit_label = st.radio(
-        "Select one",
-        list(habit_labels.values()),
-        index=None,
-        key=f"habit_{today}",
-    )
-    if st.button("Save today's habit check-in"):
-        if selected_habit_label is None:
-            st.error("Please select one habit.")
-        else:
-            selected_habit = next(
-                name for name, label in habit_labels.items() if label == selected_habit_label
-            )
-            habit_values = {name: name == selected_habit for name in habit_labels}
-            save_habit_checkins(st.session_state.user_id, today, habit_values)
-            st.success("Today's wellness habit was saved.")
-
-    habit_rows = get_user_habit_checkins(st.session_state.user_id)
-    if habit_rows:
-        habit_history = pd.DataFrame([dict(row) for row in habit_rows])
-        habit_daily = (
-            habit_history.groupby("checkin_date", as_index=False)["completed"]
-            .sum()
-            .rename(columns={"completed": "habits_completed"})
-        )
-        st.bar_chart(habit_daily.set_index("checkin_date"))
-        st.caption("This chart shows self-reported habit completion only.")
+render_wellness_choice(st.session_state.user_id, today, st.session_state.ui_language)
 
 st.divider()
 st.caption(

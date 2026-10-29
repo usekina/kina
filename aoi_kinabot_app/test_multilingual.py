@@ -65,7 +65,7 @@ def test_wellness_menu_is_not_selected_from_scores():
     low = wellness_suggestions("English", [{"feature_name": "Expression Variety", "score": 5}])
     high = wellness_suggestions("English", [{"feature_name": "Expression Variety", "score": 95}])
     assert low["suggestions"] == high["suggestions"]
-    assert len(low["suggestions"]) == 3
+    assert len(low["suggestions"]) == 4
 
 
 def test_habit_checkins_are_upserted(tmp_path: Path, monkeypatch):
