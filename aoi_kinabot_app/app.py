@@ -11,6 +11,9 @@ import streamlit as st
 from audio_processing import SUPPORTED_AUDIO_TYPES, accept_audio_upload
 from auth import create_local_verification_code, verify_code
 from recording_ui import render_recorder, recording_copy
+from language_preferences import (initialize_languages, render_language_preferences,
+                                  render_speaking_language, render_language_summary,
+                                  language_copy)
 from challenge_progress import CHALLENGE_DAYS, challenge_status
 from config import (
     ADMIN_KEY,
@@ -378,17 +381,15 @@ CHALLENGE_COPY = {
 }
 
 
-if "ui_language" not in st.session_state:
-    st.session_state.ui_language = "English"
+initialize_languages()
 
 copy = LANDING_COPY[st.session_state.ui_language]
 st.markdown('<header class="kinabot-topbar"><div class="kinabot-topbar__brand"><span class="kinabot-topbar__mark">◉</span>KinaBot</div></header>', unsafe_allow_html=True)
 if st.session_state.get("verified", False):
     with st.sidebar:
         st.markdown("## KinaBot")
-        st.selectbox("Language / 言語 / 语言", ["English", "日本語", "中文"], key="ui_language")
-else:
-    st.radio("Language / 言語 / 语言", ["English", "日本語", "中文"], horizontal=True, key="ui_language")
+render_language_preferences(verified=st.session_state.get("verified", False))
+if not st.session_state.get("verified", False):
     st.title(ui_copy("start", st.session_state.ui_language))
     st.caption(ui_copy("intro", st.session_state.ui_language))
 copy = LANDING_COPY[st.session_state.ui_language]
@@ -837,16 +838,8 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-if "recording_language" not in st.session_state:
-    st.session_state.recording_language = st.session_state.ui_language
-
-language = st.radio(
-    capture_copy["language"],
-    ["English", "日本語", "中文"],
-    horizontal=True,
-    help=capture_copy["language_help"],
-    key="recording_language",
-)
+language = render_speaking_language(st.session_state.ui_language, location='recording')
+st.caption(language_copy(st.session_state.ui_language)['record_hint'])
 
 session_type = "Daily reflection"
 st.markdown(f"**{capture_copy['method']}**")
@@ -885,6 +878,7 @@ if tests_today == 0:
     st.caption(challenge_copy["today_ready"])
 else:
     st.caption(challenge_copy["available"].format(remaining=max(0, remaining)))
+render_language_summary(st.session_state.ui_language, language)
 if st.button(ui_copy("analyze", st.session_state.ui_language), type="primary", use_container_width=True, disabled=selected_audio is None):
     if selected_audio is None:
         st.warning("Upload a speech sample first.")
