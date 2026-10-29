@@ -5,6 +5,17 @@ recorded here. Historical repository-root prototypes are outside this
 changelog. Entries distinguish shipped engineering changes from deployment,
 user-research, institutional, clinical, or regulatory claims.
 
+## Unreleased · Self directed wellness choices
+
+- Separate descriptive, provenance-matched speech observations from general
+  wellness options. Feature-index changes are expressed in points, not percent.
+- Replace score-driven API action selection and fixed activity durations with
+  four curated options, custom actions and an explicit skip choice in EN/JA/ZH.
+- Store plans separately from completed habits; completion is self-reported.
+- Include optional plan text and status in account export and deletion. Plans
+  stay in the local app database and are not sent to an AI service or added to
+  the research-record export by this change.
+
 ## Unreleased · Recording control visibility
 
 - Enlarged the native start and finish recording controls and added visible

@@ -1,4 +1,4 @@
-﻿"""SQLite database helpers for KinaBot V1."""
+"""SQLite database helpers for KinaBot V1."""
 
 from __future__ import annotations
 
@@ -93,6 +93,17 @@ def init_db() -> None:
                 explanation TEXT NOT NULL,
                 created_at TEXT NOT NULL,
                 FOREIGN KEY (test_session_id) REFERENCES test_sessions(id)
+            );
+
+            CREATE TABLE IF NOT EXISTS wellness_plans (
+                user_id INTEGER NOT NULL,
+                plan_date TEXT NOT NULL,
+                action_id TEXT NOT NULL,
+                custom_text TEXT NOT NULL DEFAULT '',
+                status TEXT NOT NULL CHECK(status IN ('planned', 'completed', 'skipped')),
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY (user_id, plan_date),
+                FOREIGN KEY (user_id) REFERENCES users(id)
             );
 
             CREATE TABLE IF NOT EXISTS habit_checkins (
@@ -242,6 +253,7 @@ def delete_user_research_data(user_id: int) -> bool:
             "SELECT email_hash FROM users WHERE id = ?", (user_id,)
         ).fetchone()["email_hash"]
         conn.execute("DELETE FROM verification_codes WHERE email_hash = ?", (email_hash,))
+        conn.execute("DELETE FROM wellness_plans WHERE user_id = ?", (user_id,))
         conn.execute("DELETE FROM habit_checkins WHERE user_id = ?", (user_id,))
         conn.execute("DELETE FROM consent_events WHERE user_id = ?", (user_id,))
         conn.execute("DELETE FROM test_sessions WHERE user_id = ?", (user_id,))
@@ -362,6 +374,10 @@ def export_user_data(user_id: int) -> dict:
             "feature_scores": [dict(row) for row in scores],
             "consent_events": [dict(row) for row in consents],
             "habit_checkins": [dict(row) for row in habits],
+            "wellness_plans": [dict(row) for row in conn.execute(
+                "SELECT plan_date, action_id, custom_text, status, updated_at "
+                "FROM wellness_plans WHERE user_id = ? ORDER BY plan_date", (user_id,)
+            ).fetchall()],
         }
 
 
@@ -769,3 +785,40 @@ def list_research_records() -> list[sqlite3.Row]:
             ORDER BY u.id ASC, ts.created_at ASC, fs.feature_name ASC
             """
         ).fetchall()
+
+
+def save_wellness_plan(user_id: int, plan_date: str, action_id: str, custom_text: str = "") -> None:
+    from wellness_guidance import ACTION_IDS
+    if action_id not in (*ACTION_IDS, "custom", "skip"):
+        raise ValueError("Unknown wellness action")
+    text = custom_text.strip() if action_id == "custom" else ""
+    if action_id == "custom" and not 1 <= len(text) <= 160:
+        raise ValueError("Custom action must contain 1–160 characters")
+    with get_connection() as conn:
+        if not conn.execute("SELECT 1 FROM users WHERE id = ?", (user_id,)).fetchone():
+            raise ValueError("Unknown participant")
+        conn.execute(
+            "INSERT INTO wellness_plans VALUES (?, ?, ?, ?, ?, ?) "
+            "ON CONFLICT(user_id, plan_date) DO UPDATE SET "
+            "action_id=excluded.action_id, custom_text=excluded.custom_text, "
+            "status=excluded.status, updated_at=excluded.updated_at",
+            (user_id, plan_date, action_id, text,
+             "skipped" if action_id == "skip" else "planned", utc_now_iso()),
+        )
+
+
+def get_wellness_plan(user_id: int, plan_date: str):
+    with get_connection() as conn:
+        return conn.execute(
+            "SELECT action_id, custom_text, status FROM wellness_plans "
+            "WHERE user_id = ? AND plan_date = ?", (user_id, plan_date)
+        ).fetchone()
+
+
+def complete_wellness_plan(user_id: int, plan_date: str) -> None:
+    with get_connection() as conn:
+        conn.execute(
+            "UPDATE wellness_plans SET status='completed', updated_at=? "
+            "WHERE user_id=? AND plan_date=? AND status='planned'",
+            (utc_now_iso(), user_id, plan_date),
+        )
