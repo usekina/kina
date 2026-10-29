@@ -5,6 +5,15 @@ recorded here. Historical repository-root prototypes are outside this
 changelog. Entries distinguish shipped engineering changes from deployment,
 user-research, institutional, clinical, or regulatory claims.
 
+## Unreleased · Independent display and speaking languages
+
+- Explain on the opening page that display and recording languages can differ,
+  with separate selectors and examples in English, Japanese and Chinese.
+- Preserve the speaking preference across display-language changes and page
+  navigation within the current session. Confirm both languages before analysis.
+- Transcription, analysis and session history continue using the selected
+  speaking language; interface controls use the display language.
+
 ## Unreleased · Self directed wellness choices
 
 - Use a compact single-column care panel with three main choices, expandable
