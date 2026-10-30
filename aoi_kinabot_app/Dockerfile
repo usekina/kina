@@ -9,6 +9,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+ARG BUILD_REVISION=unknown
+LABEL org.opencontainers.image.revision=$BUILD_REVISION
+ENV KINABOT_BUILD_REVISION=$BUILD_REVISION
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 

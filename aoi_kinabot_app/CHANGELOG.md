@@ -5,6 +5,14 @@ recorded here. Historical repository-root prototypes are outside this
 changelog. Entries distinguish shipped engineering changes from deployment,
 user-research, institutional, clinical, or regulatory claims.
 
+## Unreleased · Orange brand consistency
+
+- Replace remaining blue-gray surfaces and typography with warm neutrals;
+  use orange-red for links, controls, alerts, chart series and radar references.
+- Include the Streamlit theme at both repository and application working
+  directories so native controls receive the brand color from either launch path.
+- Attach the source revision to container-image metadata for deployment checks.
+
 ## Unreleased · Independent display and speaking languages
 
 - Explain on the opening page that display and recording languages can differ,
