@@ -45,7 +45,8 @@ if (-not $resolvedImageTag) {
     throw "Unable to determine an immutable Git image tag. Pass -ImageTag explicitly."
 }
 $imageUri = "$registry/$RepositoryName`:$resolvedImageTag"
-docker build --pull --tag $imageUri $appDirectory
+$sourceRevision = (git -C $appDirectory rev-parse HEAD).Trim()
+docker build --pull --build-arg "BUILD_REVISION=$sourceRevision" --tag $imageUri $appDirectory
 docker push $imageUri
 
 $vpcId = aws ec2 describe-vpcs `

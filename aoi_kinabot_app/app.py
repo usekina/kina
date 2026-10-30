@@ -745,7 +745,7 @@ if primary_view == "trends":
             )
         }
     )
-    st.line_chart(chart_df, height=260)
+    st.line_chart(chart_df, height=260, color="#c2411b")
 
     ordered = comparable_history.sort_values("session_id")
     first_score = float(

@@ -87,8 +87,8 @@ def build_personal_pdf_report(
                 [
                     ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#e85d2a")),
                     ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                    ("GRID", (0, 0), (-1, -1), 0.35, colors.HexColor("#d9dee8")),
-                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f7f9fc")]),
+                    ("GRID", (0, 0), (-1, -1), 0.35, colors.HexColor("#e5d9cf")),
+                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#faf6f2")]),
                     ("ALIGN", (1, 1), (1, -1), "RIGHT"),
                     ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                     ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
